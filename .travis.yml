@@ -1,9 +1,6 @@
 sudo: false
 language: python
 python: 3.6
-cache:
-  directories:
-    - "${TRAVIS_BUILD_DIR}/.tox"
 branches:
   only:
     - master
