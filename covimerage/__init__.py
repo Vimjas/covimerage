@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import attr
+import click
 import copy
 # from collections import defaultdict
 # from functools import partial
 import itertools
 import logging
-# import os
+import os
 import re
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,26 @@ logging.basicConfig(level=logging.DEBUG)
 
 RE_FUNC_PREFIX = r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+'
 RE_CONTINUING_LINE = r'\s*\\'
+
+
+@click.command()
+@click.argument('filename', required=True, nargs=-1)
+def cli(filename):
+    """Parse FILENAME (output from Vim's :profile)."""
+    profiles = []
+    for f in filename:
+        p = Profile(f)
+        p.parse()
+        profiles.append(p)
+
+    m = MergedProfiles(profiles)
+
+    for fname, lines in m.lines.items():
+        fname = os.path.relpath(fname)
+        for [lnum, line] in lines.items():
+            print('%s:%5d:%s:%s' % (
+                fname, lnum, line.count if line.count is not None else '-',
+                line.line))
 
 
 def join_script_lines(lines):

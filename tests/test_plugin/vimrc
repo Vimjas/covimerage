@@ -1,0 +1,7 @@
+" Vimrc to run covimerage against the test plugin's files.
+
+let prof_fname = get(g:, 'prof_fname')
+exe 'profile start '.prof_fname
+profile! file ./**
+
+exe 'set runtimepath+='.expand('<sfile>:h')

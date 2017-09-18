@@ -3,6 +3,15 @@ test:
 
 VIM:=$(shell command -v nvim || echo vim)
 
+test_integration:
+	prof=$$(mktemp) \
+	  && $(VIM) --noplugin -Nu tests/test_plugin/vimrc \
+	     --cmd "let g:prof_fname = '$$prof'" \
+	     -c 'call test_plugin#func1(1)' -c q \
+	  && cat $$prof \
+	  && tox -e test_integration $$prof
+
+
 # Fixture generation.
 # TODO: cleanup.
 fixtures: tests/fixtures/test_plugin.vim.profile

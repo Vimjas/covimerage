@@ -16,3 +16,4 @@ script:
   # Make Python 3.5 available.
   - pyenv shell 2.7:3.5:3.6
   - tox -e py27,py35,py36,checkqa
+  - make test_integration
