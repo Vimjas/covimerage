@@ -49,24 +49,6 @@ def cli(filename):
                 line.line))
 
 
-def join_script_lines(lines):
-    """Join lines from scripts to match lines from functions."""
-    new = []
-    buf = None
-    for l in lines:
-        if buf:
-            m = re.match(RE_CONTINUING_LINE, l)
-            if m:
-                buf += l[m.end():]
-                continue
-        if buf is not None:
-            new.append(buf)
-        buf = l
-    if buf is not None:
-        new.append(buf)
-    return new
-
-
 @attr.s
 class Line(object):
     line = attr.ib()
