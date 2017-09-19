@@ -18,14 +18,25 @@ RE_FUNC_PREFIX = r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+'
 RE_CONTINUING_LINE = r'\s*\\'
 
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+
 @click.command()
 @click.argument('filename', required=True, nargs=-1)
+@click.version_option()
 def cli(filename):
     """Parse FILENAME (output from Vim's :profile)."""
     profiles = []
     for f in filename:
         p = Profile(f)
-        p.parse()
+        try:
+            p.parse()
+        except FileNotFoundError as exc:
+            raise click.FileError(f, 'Could not open file %s: %s' % (
+                f, exc))
         profiles.append(p)
 
     m = MergedProfiles(profiles)
