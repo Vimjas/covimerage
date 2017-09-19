@@ -367,29 +367,26 @@ class Profile(object):
                     in_function = False
                     continue
 
-                if in_script:
+                if in_script or in_function:
                     lnum += 1
                     count, total_time, self_time = parse_count_and_times(line)
                     source_line = line[28:]
-                    in_script.lines[lnum] = Line(
-                        line=source_line, count=count, total_time=total_time,
-                        self_time=self_time)
-                    if count or lnum == 1:
-                        # Parse line 1 always, as a workaround for
-                        # https://github.com/vim/vim/issues/2103.  # noqa
-                        in_script.parse_script_line(lnum, source_line)
 
-                elif in_function:
-                    lnum += 1
-                    source_line = line[28:].rstrip()
-
-                    count, total_time, self_time = parse_count_and_times(line)
-                    if count is None:
-                        # Functions do not have continued lines, assume 0.
-                        count = 0
-                    line = Line(line=source_line, count=count,
-                                total_time=total_time, self_time=self_time)
-                    in_function.lines[lnum] = line
+                    if in_script:
+                        in_script.lines[lnum] = Line(
+                            line=source_line, count=count,
+                            total_time=total_time, self_time=self_time)
+                        if count or lnum == 1:
+                            # Parse line 1 always, as a workaround for
+                            # https://github.com/vim/vim/issues/2103.  # noqa
+                            in_script.parse_script_line(lnum, source_line)
+                    elif in_function:
+                        if count is None:
+                            # Functions do not have continued lines, assume 0.
+                            count = 0
+                        line = Line(line=source_line, count=count,
+                                    total_time=total_time, self_time=self_time)
+                        in_function.lines[lnum] = line
 
                 elif line.startswith('SCRIPT  '):
                     fname = line[8:]
