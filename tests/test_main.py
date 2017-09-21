@@ -1,4 +1,6 @@
 # import os
+import logging
+
 import pytest
 
 
@@ -123,6 +125,7 @@ def test_profile_parse_dict_function():
 def test_profile_parse_dict_function_with_same_source(caplog):
     from covimerage import Profile
 
+    caplog.set_level(logging.NOTSET, logger='covimerage')
     fname = 'tests/fixtures/dict_function_with_same_source.profile'
     p = Profile(fname)
     p.parse()
@@ -162,10 +165,10 @@ def test_profile_parse_dict_function_with_same_source(caplog):
         (1, 'call obj2.dict_function(2)'),
         (1, 'call obj1.dict_function(3)')]
 
-    assert 'Found multiple sources for anonymous function 1.' in (
-        r.message for r in caplog.records)
-    assert 'Found multiple sources for anonymous function 2.' in (
-        r.message for r in caplog.records)
+    msgs = [r.message for r in caplog.records]
+    assert "Found multiple sources for anonymous function 1 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12)." in msgs  # noqa
+    assert "Found multiple sources for anonymous function 2 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12)." in msgs  # noqa
+    assert "Found already mapped dict function again (/test_plugin/dict_function_with_same_source.vim:3)." in msgs  # noqa
 
 
 def test_profile_parse_dict_function_with_continued_lines(caplog):

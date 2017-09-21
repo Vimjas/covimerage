@@ -6,13 +6,12 @@ import copy
 # from functools import partial
 import itertools
 import logging
-import os
 import re
 
 logger = logging.getLogger(__name__)
 
-logging.basicConfig(level=logging.DEBUG)
-# logger.setLevel(logging.DEBUG)
+logging.basicConfig()
+logger.setLevel(logging.INFO)
 
 RE_FUNC_PREFIX = r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+'
 RE_CONTINUING_LINE = r'\s*\\'
@@ -27,8 +26,12 @@ except NameError:
 @click.command()
 @click.argument('filename', required=True, nargs=-1)
 @click.version_option()
-def cli(filename):
+@click.option('-v', '--verbose', count=True)
+def cli(filename, verbose):
     """Parse FILENAME (output from Vim's :profile)."""
+    if verbose > 1:
+        logger.setLevel(logging.DEBUG)
+
     profiles = []
     for f in filename:
         p = Profile(f)
@@ -40,13 +43,7 @@ def cli(filename):
         profiles.append(p)
 
     m = MergedProfiles(profiles)
-
-    for fname, lines in m.lines.items():
-        fname = os.path.relpath(fname)
-        for [lnum, line] in lines.items():
-            print('%s:%5d:%s:%s' % (
-                fname, lnum, line.count if line.count is not None else '-',
-                line.line))
+    m.write_coveragepy_data()
 
 
 @attr.s
@@ -158,6 +155,28 @@ class MergedProfiles(object):
                     lines[s.path] = copy.copy(s_lines)
         return lines
 
+    def write_coveragepy_data(self):
+        import coverage
+
+        cov_data = coverage.data.CoverageData()
+        cov_dict = {}
+        cov_file_tracers = {}
+
+        for fname, lines in self.lines.items():
+            cov_dict[fname] = {
+                # lnum: line.count for lnum, line in lines.items()
+                # XXX: coveragepy does not support hit counts?!
+                lnum: None for lnum, line in lines.items() if line.count
+            }
+            cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
+
+        fname = '.coverage'
+        logger.info('Writing coverage file %s.', fname)
+        cov_data.add_lines(cov_dict)
+        cov_data.add_file_tracers(cov_file_tracers)
+
+        cov_data.write_file(fname)
+
 
 @attr.s
 class Profile(object):
@@ -208,15 +227,19 @@ class Profile(object):
             if found:
                 if len(found) > 1:
                     logger.warning(
-                        'Found multiple sources for anonymous function %s.',
-                        funcname)
+                        'Found multiple sources for anonymous function %s (%s).',  # noqa
+                        funcname, (', '.join('%s:%d' % (f[0].path, f[1])
+                                             for f in found)))
 
                 for s, lnum in found:
                     if lnum in s.mapped_dict_functions:
+                        # More likely to happen with merged profiles.
+                        logger.debug('Found already mapped dict function again (%s:%d).', s.path, lnum)  # noqa
                         continue
                     s.mapped_dict_functions.add(lnum)
                     self.anonymous_functions[funcname] = (s, lnum)
-                    return self.anonymous_functions[funcname]
+                    return (s, lnum)
+                return found[0]
 
     def find_func_in_source(self, func):
         funcname = func.name
@@ -424,3 +447,46 @@ def parse_count_and_times(line):
         self_time = float(self_time)
 
     return count, total_time, self_time
+
+
+def coverage_init(reg, options):
+    import coverage
+
+    class FileReporter(coverage.FileReporter):
+        # Empty (whitespace only), comments, continued, or `end` statements.
+        RE_NON_EXECED = re.compile(r'^\s*("|\\|end|$)')
+        RE_EXCLUDED = re.compile(
+            r'"\s*(pragma|PRAGMA)[:\s]?\s*(no|NO)\s*(cover|COVER)')
+
+        _split_lines = None
+
+        def __repr__(self):
+            return "<PythonFileReporter {0!r}>".format(self.filename)
+
+        @property
+        def split_lines(self):
+            if self._split_lines is None:
+                self._split_lines = self.source().splitlines()
+            return self._split_lines
+
+        def lines(self):
+            lines = []
+            for lnum, l in enumerate(self.split_lines, start=1):
+                if self.RE_NON_EXECED.match(l):
+                    continue
+                lines.append(lnum)
+            return set(lines)
+
+        def excluded_lines(self):
+            lines = []
+            for lnum, l in enumerate(self.split_lines, start=1):
+                # TODO: exclude until end of block (by using vimlparser?!)
+                if self.RE_EXCLUDED.search(l):
+                    lines.append(lnum)
+            return set(lines)
+
+    class CoveragePlugin(coverage.CoveragePlugin):
+        def file_reporter(self, filename):
+            return FileReporter(filename)
+
+    reg.add_file_tracer(CoveragePlugin())

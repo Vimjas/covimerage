@@ -1,6 +1,6 @@
 let prof_fname = get(g:, 'prof_fname')
 exe 'profile start '.prof_fname
-profile! file test_plugin/**
+profile! file tests/test_plugin/**
 
 set runtimepath+=$PWD/test_plugin
 
