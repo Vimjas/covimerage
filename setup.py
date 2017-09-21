@@ -20,7 +20,7 @@ DESCRIPTION = 'Generate coverage information for Vim scripts.'
 # AUTHOR = 'Awesome Soul'
 
 # What packages are required for this module to be executed?
-REQUIRED = ['attrs', 'click']
+REQUIRED = ['attrs', 'click', 'coverage']
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -84,7 +84,7 @@ setup(
     # url=URL,
     py_modules=['covimerage'],
     entry_points={
-        'console_scripts': ['covimerage=covimerage:cli'],
+        'console_scripts': ['covimerage=covimerage.cli:cli'],
     },
     install_requires=REQUIRED,
     extras_require={

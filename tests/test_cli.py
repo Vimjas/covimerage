@@ -7,11 +7,11 @@ from subprocess import call
 
 def test_cli():
     with pytest.raises(SystemExit) as excinfo:
-        cli(['tests/fixtures/conditional_function.profile'])
+        cli.write_coverage(['tests/fixtures/conditional_function.profile'])
     assert excinfo.value.code == 0
 
     with pytest.raises(SystemExit) as excinfo:
-        cli(['file not found'])
+        cli.write_coverage(['file not found'])
     assert excinfo.value.code == 1
 
 
@@ -21,4 +21,5 @@ def test_cli_call(capfd):
     assert out == 'covimerage, version %s\n' % __version__
 
     assert call(['covimerage', '--help']) == 0
-    assert call(['covimerage', 'file not found']) == 1
+    assert call(['covimerage', 'file not found']) == 2
+    assert call(['covimerage', 'write_coverage', 'file not found']) == 1

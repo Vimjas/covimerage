@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import attr
-import click
 import copy
 # from collections import defaultdict
 # from functools import partial
@@ -15,35 +14,6 @@ logger.setLevel(logging.INFO)
 
 RE_FUNC_PREFIX = r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+'
 RE_CONTINUING_LINE = r'\s*\\'
-
-
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
-
-
-@click.command()
-@click.argument('filename', required=True, nargs=-1)
-@click.version_option()
-@click.option('-v', '--verbose', count=True)
-def cli(filename, verbose):
-    """Parse FILENAME (output from Vim's :profile)."""
-    if verbose > 1:
-        logger.setLevel(logging.DEBUG)
-
-    profiles = []
-    for f in filename:
-        p = Profile(f)
-        try:
-            p.parse()
-        except FileNotFoundError as exc:
-            raise click.FileError(f, 'Could not open file %s: %s' % (
-                f, exc))
-        profiles.append(p)
-
-    m = MergedProfiles(profiles)
-    m.write_coveragepy_data()
 
 
 @attr.s
