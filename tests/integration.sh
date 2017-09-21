@@ -6,11 +6,11 @@
 set -e
 
 prof=$(mktemp)
-${VIM:-nvim} --noplugin -Nu tests/test_plugin/vimrc \
+${VIM:-vim} --noplugin -Nu tests/test_plugin/vimrc -i NONE \
   --cmd "let g:prof_fname = '$prof'" \
   -c 'call test_plugin#integration#func1()' -c q
 
-covimerage "$prof"
+covimerage write_coverage "$prof"
 # cat .coverage
 
 cat > .coveragerc <<EOF
