@@ -39,3 +39,8 @@ which creates an XML report from it).
 
 - Discussion in Coverage.py's issue tracker:
   [coverage issue 607](https://bitbucket.org/ned/coveragepy/issues/607/)
+
+## TODO
+
+- Line hit counts: known to covimerage, but not supported by Coverage.py
+  (<https://bitbucket.org/ned/coveragepy/issues/607/#comment-40048034>).
