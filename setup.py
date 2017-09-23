@@ -82,7 +82,7 @@ setup(
     # author=AUTHOR,
     # author_email=EMAIL,
     # url=URL,
-    py_modules=['covimerage'],
+    packages=['covimerage'],
     entry_points={
         'console_scripts': ['covimerage=covimerage.cli:cli'],
     },
