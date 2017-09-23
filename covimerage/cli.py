@@ -4,8 +4,6 @@ import click
 
 from covimerage import MergedProfiles, Profile
 
-logger = logging.getLogger(__name__)
-
 
 try:
     FileNotFoundError
@@ -16,9 +14,11 @@ except NameError:
 @click.group()
 @click.version_option()
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
-def cli(verbose):
-    if verbose > 1:
-        logger.setLevel(logging.DEBUG)
+@click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
+def cli(verbose, quiet):
+    if verbose - quiet:
+        logger = logging.getLogger('covimerage')
+        logger.setLevel(logger.level - (verbose - quiet) * 10)
 
 
 @cli.command()
@@ -31,8 +31,7 @@ def write_coverage(filename):
         try:
             p.parse()
         except FileNotFoundError as exc:
-            raise click.FileError(f, 'Could not open file %s: %s' % (
-                f, exc))
+            raise click.FileError(f, exc)
         profiles.append(p)
 
     m = MergedProfiles(profiles)

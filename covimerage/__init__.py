@@ -6,10 +6,11 @@ import copy
 import itertools
 import logging
 import re
+import sys
 
-logger = logging.getLogger(__name__)
-
-logging.basicConfig()
+logging.basicConfig(format='%(message)s',
+                    handlers=[logging.StreamHandler(sys.stdout)])
+logger = logging.getLogger('covimerage')
 logger.setLevel(logging.INFO)
 
 RE_FUNC_PREFIX = r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+'
@@ -300,6 +301,7 @@ class Profile(object):
                     # lnum = 0
                     break
 
+        logger.debug('Parsing file: %s', self.fname)
         with open(self.fname, 'r') as fo:
             for line in fo:
                 line = line.rstrip('\r\n')
