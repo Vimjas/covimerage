@@ -21,19 +21,31 @@ This makes Neovim/Vim write a file with profiling information.
 covimerage /tmp/vim-profile.txt
 ```
 
-This will create a `.coverage` file (through a
-[Coverage.py](http://coverage.readthedocs.io/) plugin), which the `coverage`
-tool can use then, e.g. allowing you to run `coverage report -m` on it.
+This will create a `.coverage` file (marking entries for processing by a
+[Coverage.py](http://coverage.readthedocs.io/) plugin).
 
-The `.coverage` file is also used with coverage reporting platforms like
-<https://codecov.io/> or <https://coveralls.io> (basically via `coverage xml`,
-which creates an XML report from it).
+### 3. Include the covimerage plugin in .coveragerc
+
+You need to add following in your .coveragerc to call the FileReporter
+plugin (this is basically all the `.coveragerc` you will need):
+
+```
+[run]
+plugins = covimerage
+```
+
+### 4. Create the report(s)
+
+You can now call e.g. `coverage report -m`, and you should be able to use
+coverage reporting platforms like <https://codecov.io/> or
+<https://coveralls.io>, which are basically using `coverage xml`.
 
 ## Reference implementation
 
-- [Neomake](https://github.com/neomake/neomake)
-
-  TODO: link to tests' vimrc etc.
+- [Neomake](https://github.com/neomake/neomake) is the first adopter of this.
+  It has a quite advanced test setup (e.g. Docker based builds), and therefore
+  could be helpful when you want to use covimerage for your plugin/project.
+  See <https://github.com/neomake/neomake/pull/1600>.
 
 ## Links
 
