@@ -84,7 +84,7 @@ setup(
     # url=URL,
     packages=['covimerage'],
     entry_points={
-        'console_scripts': ['covimerage=covimerage.cli:cli'],
+        'console_scripts': ['covimerage=covimerage.cli:main'],
     },
     install_requires=REQUIRED,
     extras_require={
