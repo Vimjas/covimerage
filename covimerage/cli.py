@@ -10,13 +10,15 @@ except NameError:
     FileNotFoundError = IOError
 
 
+logger = logging.getLogger('covimerage')
+
+
 @click.group()
 @click.version_option()
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
 def main(verbose, quiet):
     if verbose - quiet:
-        logger = logging.getLogger('covimerage')
         logger.setLevel(logger.level - (verbose - quiet) * 10)
 
 
