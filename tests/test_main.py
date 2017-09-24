@@ -5,6 +5,10 @@ import coverage
 import pytest
 
 
+def test_main():
+    from covimerage import __main__  # noqa: F401
+
+
 def test_profile_repr_lines():
     from covimerage import Line, Profile, Script
 
