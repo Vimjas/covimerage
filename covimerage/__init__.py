@@ -13,7 +13,8 @@ logging.basicConfig(format='%(message)s',
 logger = logging.getLogger('covimerage')
 logger.setLevel(logging.INFO)
 
-RE_FUNC_PREFIX = r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+'
+RE_FUNC_PREFIX = re.compile(
+    r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
 RE_CONTINUING_LINE = r'\s*\\'
 
 
