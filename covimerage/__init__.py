@@ -126,13 +126,14 @@ class MergedProfiles(object):
                     lines[s.path] = copy.copy(s_lines)
         return lines
 
-    def write_coveragepy_data(self):
+    def get_coveragepy_data(self):
         import coverage
 
         cov_data = coverage.data.CoverageData()
         cov_dict = {}
         cov_file_tracers = {}
 
+        # TODO: should be absolute fname?!  (tests / verify with coveragepy)
         for fname, lines in self.lines.items():
             cov_dict[fname] = {
                 # lnum: line.count for lnum, line in lines.items()
@@ -141,12 +142,20 @@ class MergedProfiles(object):
             }
             cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
 
-        fname = '.coverage'
-        logger.info('Writing coverage file %s.', fname)
         cov_data.add_lines(cov_dict)
         cov_data.add_file_tracers(cov_file_tracers)
+        return cov_data
 
-        cov_data.write_file(fname)
+    def write_coveragepy_data(self, data_file='.coverage'):
+        from click.utils import string_types
+
+        cov_data = self.get_coveragepy_data()
+
+        logger.info('Writing coverage file %s.', data_file)
+        if isinstance(data_file, string_types):
+            cov_data.write_file(data_file)
+        else:
+            cov_data.write_fileobj(data_file)
 
 
 @attr.s

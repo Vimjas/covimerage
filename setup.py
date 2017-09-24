@@ -88,7 +88,7 @@ setup(
     },
     install_requires=REQUIRED,
     extras_require={
-        'testing': ['pytest', 'pytest-catchlog'],
+        'testing': ['pytest', 'pytest-catchlog', 'pytest-mock'],
     },
     include_package_data=True,
     license='MIT',

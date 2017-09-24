@@ -1,6 +1,7 @@
-# import os
+from io import StringIO
 import logging
 
+import coverage
 import pytest
 
 
@@ -293,3 +294,30 @@ def test_merged_profiles():
         (1, '  call F()'),
         (1, 'endif'),
         (N, '')]
+
+
+def test_merged_profiles_get_coveragepy_data():
+    from covimerage import MergedProfiles
+
+    m = MergedProfiles([])
+    cov_data = m.get_coveragepy_data()
+    assert isinstance(cov_data, coverage.CoverageData)
+    assert repr(cov_data) == '<CoverageData lines={0} arcs=None tracers={0} runs=[0]>'  # noqa: E501
+
+
+def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(mocker):
+    from covimerage import MergedProfiles
+
+    m = MergedProfiles([])
+    mocked_data = mocker.Mock()
+    mocker.patch.object(m, 'get_coveragepy_data', return_value=mocked_data)
+
+    m.write_coveragepy_data()
+    mocked_data.write_file.call_args_list == [mocker.call('.coverage')]
+    mocked_data.write_fileobj.call_args_list == []
+
+    mocked_data.reset_mock()
+    fileobj = StringIO()
+    m.write_coveragepy_data(data_file=fileobj)
+    mocked_data.write_file.call_args_list == []
+    mocked_data.write_fileobj.call_args_list == [mocker.call(fileobj)]
