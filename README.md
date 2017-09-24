@@ -67,7 +67,11 @@ coverage reporting platforms like <https://codecov.io/> or
   It has an advanced test setup (including Docker based builds), and looking at
   tis setup could be helpful when setting up covimerage for your
   plugin/project.
-  See <https://github.com/neomake/neomake/pull/1600>.
+
+  - [Neomake's coverage report on codecov.io](https://codecov.io/gh/neomake/neomake/tree/master)
+  - [PR/change to integrate it in
+    Neomake](https://github.com/neomake/neomake/pull/1600) (Neomake's test
+    setup is rather advanced, so do not let that scare you!)
 
 ## Links
 
