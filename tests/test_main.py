@@ -5,7 +5,7 @@ import coverage
 import pytest
 
 
-def test_main():
+def test_main_import():
     from covimerage import __main__  # noqa: F401
 
 
