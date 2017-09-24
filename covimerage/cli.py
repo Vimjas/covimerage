@@ -15,13 +15,13 @@ except NameError:
 @click.version_option()
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
-def cli(verbose, quiet):
+def main(verbose, quiet):
     if verbose - quiet:
         logger = logging.getLogger('covimerage')
         logger.setLevel(logger.level - (verbose - quiet) * 10)
 
 
-@cli.command()
+@main.command()
 @click.argument('filename', required=True, nargs=-1)
 def write_coverage(filename):
     """Parse FILENAME (output from Vim's :profile)."""
@@ -38,7 +38,7 @@ def write_coverage(filename):
     m.write_coveragepy_data()
 
 
-@cli.command()
+@main.command()
 @click.argument('cmd', required=False)
 @click.option('--vim', required=False, default='nvim')
 @click.option('--vimrc', required=False, default='NORC')
