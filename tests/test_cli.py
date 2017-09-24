@@ -1,9 +1,10 @@
-from covimerage.__version__ import __version__
-from covimerage import cli
-import pytest
-
 import os
 from subprocess import call
+
+import pytest
+
+from covimerage import cli
+from covimerage.__version__ import __version__
 
 
 def test_cli():
@@ -29,8 +30,7 @@ def test_cli_call(capfd):
     out, err = capfd.readouterr()
     err_lines = err.splitlines()
     assert err_lines[0] == 'Usage: covimerage [OPTIONS] COMMAND [ARGS]...'
-    # click after 6.7 (9cfea14) includes:
-    # 'Try "covimerage --help" for help.'
+    # click after 6.7 (9cfea14) includes: 'Try "covimerage --help" for help.'
     assert err_lines[-2:] == [
         '',
         'Error: No such command "file not found".']
@@ -41,7 +41,7 @@ def test_cli_call(capfd):
     err_lines = err.splitlines()
     assert err_lines == [
         'Error: Could not open file file not found: '
-        "No such file or directory"]
+        'No such file or directory']
     assert out == ''
 
 

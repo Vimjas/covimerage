@@ -433,7 +433,7 @@ def coverage_init(reg, options):
         _split_lines = None
 
         def __repr__(self):
-            return "<PythonFileReporter {0!r}>".format(self.filename)
+            return '<CovimerageFileReporter {0!r}>'.format(self.filename)
 
         @property
         def split_lines(self):

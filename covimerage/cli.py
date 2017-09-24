@@ -4,7 +4,6 @@ import click
 
 from covimerage import MergedProfiles, Profile
 
-
 try:
     FileNotFoundError
 except NameError:
