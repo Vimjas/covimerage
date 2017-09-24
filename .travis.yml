@@ -1,16 +1,45 @@
 sudo: false
 language: python
-python: 3.6
 branches:
   only:
     - master
     - develop
 
+matrix:
+  include:
+    # This has Python 3.6, 3.5 and 2.7.
+    - env: TOXENV=py36,py36-integration,py35,py35-integration,py27,py27-integration,checkqa
+      python: 3.6
+    - env: TOXENV=py34-codecov,py34-integration-codecov
+      python: 3.4
+    - env: TOXENV=py33-codecov,py33-integration-codecov
+      python: 3.3
+
 install:
-  - pip install tox
+  - pip install codecov coveralls tox
 
 script:
   - pyenv versions
-  # Make Python 3.5 available.
-  - pyenv shell 2.7:3.5:3.6
-  - tox -e py27-codecov,py35,py36-codecov,checkqa,integration-codecov
+  # Make Python 3.5 available (with python: 3.6).
+  - |
+    if [ "$TRAVIS_PYTHON_VERSION" = 3.6 ]; then
+      pyenv shell 2.7:3.5:3.6
+    fi
+  - tox
+
+after_success:
+  - |
+    set -x
+    for c in $(find .tox/py* -name 'codecov-coverage.*'); do
+      prof_name=${c##*/codecov-coverage.}
+      prof_name=${prof_name%-codecov}
+      prof_flags=${prof_name//-/ }
+      COVERAGE_FILE="$c" coverage xml
+      travis_retry codecov -X search gcov pycov -f coverage.xml --required \
+        --name "$prof_name" --flags $prof_flags
+
+      if [[ "$prof_name" = py36 ]]; then
+        coveralls
+      fi
+    done
+    set +x
