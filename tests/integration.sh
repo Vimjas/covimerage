@@ -11,26 +11,29 @@ fi
 set -ex
 
 prof=$(mktemp)
-${VIM:-vim} --noplugin -Nu tests/test_plugin/vimrc -i NONE \
-  --cmd "let g:prof_fname = '$prof'" \
-  -c 'call test_plugin#integration#func1()' -c q
+(cd "$TESTS_SRC_DIR"
+  ${VIM:-vim} --noplugin -Nu tests/test_plugin/vimrc -i NONE \
+    --cmd "let g:prof_fname = '$prof'" \
+    -c 'call test_plugin#integration#func1()' -c q)
 
 covimerage write_coverage "$prof"
 
 cat > .coveragerc <<EOF
 [run]
 plugins = covimerage
+data_file = $PWD/.coverage
 EOF
 
 cat > .coveragerc.outer <<EOF
 [run]
-data_file = .coverage.outer
+data_file = $PWD/.coverage.outer
 branch = true
-source = covimerage,tests
+source = covimerage
 EOF
 
+tmp_dir="$PWD"
 # Fails if there is no data to report.
-out=$(coverage run --rcfile=.coveragerc.outer -m coverage report)
+out=$(cd "$TESTS_SRC_DIR" && coverage run --rcfile="$tmp_dir/.coveragerc.outer" -m coverage report --rcfile="$tmp_dir/.coveragerc")
 
 expected='Name                                                     Stmts   Miss  Cover
 ----------------------------------------------------------------------------
@@ -45,4 +48,5 @@ fi
 coverage annotate
 find . -name '*,cover' -ls
 
-diff -u ./tests/test_plugin/autoload/test_plugin/integration.vim,cover tests/fixtures/integration.sh.cover-output.txt
+diff -u "$TESTS_SRC_DIR/tests/test_plugin/autoload/test_plugin/integration.vim,cover" \
+  "$TESTS_SRC_DIR/tests/fixtures/integration.sh.cover-output.txt"
