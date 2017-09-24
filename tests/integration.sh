@@ -32,7 +32,6 @@ if [ "$out" != "$expected" ]; then
 fi
 
 coverage annotate
+find . -name '*,cover' -ls
 
 diff -u ./tests/test_plugin/autoload/test_plugin/integration.vim,cover tests/fixtures/integration.sh.cover-output.txt
-
-find . -name '*,cover'
