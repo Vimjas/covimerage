@@ -4,7 +4,7 @@ test:
 VIM:=$(shell command -v nvim || echo vim)
 
 test_integration:
-	tox -e test_integration
+	tox -e integration
 
 # Fixture generation.
 fixtures: tests/fixtures/test_plugin.vim.profile

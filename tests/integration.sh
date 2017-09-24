@@ -3,6 +3,11 @@
 # This should be run through tox ("make test_integration") to not touch local
 # .coverage files.
 
+if [ -f .coveragerc ]; then
+  echo "This should be run from a temporary dir. Please use tox -e integration." >&2
+  exit 1
+fi
+
 set -ex
 
 prof=$(mktemp)
