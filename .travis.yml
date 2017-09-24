@@ -38,12 +38,18 @@ after_success:
       prof_name=${c##*/codecov-coverage.}
       prof_name=${prof_name%-codecov}
       prof_flags=${prof_name//-/ }
+      echo COVERAGE_FILE="$c" coverage xml
       COVERAGE_FILE="$c" coverage xml
       travis_retry codecov -X search gcov pycov -f coverage.xml --required \
         --name "$prof_name" --flags $prof_flags
-
-      if [[ "$prof_name" = py36 ]]; then
-        coveralls
-      fi
+      COVERAGE_FILE="$c" coverage report -m
     done
+
+    if [ "$TRAVIS_PYTHON_VERSION" = 3.6 ]; then
+      echo "Uploading Python 3.6 coverage to coveralls..."
+      coverage combine .tox/py36-integration-codecov/tmp/codecov-coverage* \
+        .tox/py36-codecov/tmp/codecov-coverage*
+      coveralls
+      coverage report -m
+    fi
     set +x
