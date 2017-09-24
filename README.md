@@ -45,8 +45,10 @@ covimerage)).
 
 ### 3. Include the covimerage plugin in .coveragerc
 
-You need to add following in your .coveragerc to call the FileReporter
-plugin (this is basically all the `.coveragerc` you will need):
+You need to add the following in your .coveragerc (which Coverage.py uses)
+to call the FileReporter plugin.
+This is basically all the `.coveragerc` you will need, but you could use
+other settings here (for Coverage.py), e.g. to omit some files:
 
 ```
 [run]
