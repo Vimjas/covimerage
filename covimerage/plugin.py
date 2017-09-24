@@ -1,5 +1,6 @@
-import coverage
 import re
+
+import coverage
 
 
 class FileReporter(coverage.FileReporter):
