@@ -30,7 +30,8 @@ def test_cli_call(capfd):
     err_lines = err.splitlines()
     assert err_lines == [
         'Usage: covimerage [OPTIONS] COMMAND [ARGS]...',
-        'Try "covimerage --help" for help.',
+        # With click after 6.7.
+        # 'Try "covimerage --help" for help.',
         '',
         'Error: No such command "file not found".']
     assert out == ''
