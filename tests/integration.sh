@@ -3,7 +3,7 @@
 # This should be run through tox ("make test_integration") to not touch local
 # .coverage files.
 
-set -e
+set -ex
 
 prof=$(mktemp)
 ${VIM:-vim} --noplugin -Nu tests/test_plugin/vimrc -i NONE \
