@@ -8,6 +8,8 @@ compatible with [Coverage.py](http://coverage.readthedocs.io/).
 **NOTE:** this `develop` branch will be squash-merged into master after some
 stabilization (1-2 weeks).
 
+[![codecov](https://codecov.io/gh/Vimjas/covimerage/branch/develop/graph/badge.svg)](https://codecov.io/gh/Vimjas/covimerage/branch/develop)
+
 ## Installation
 
 Covimerage is experimental/new, so please install it from its develop branch.
