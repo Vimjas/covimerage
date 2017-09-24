@@ -8,10 +8,9 @@ import logging
 import re
 import sys
 
-logging.basicConfig(format='%(message)s',
-                    handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger('covimerage')
 logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
