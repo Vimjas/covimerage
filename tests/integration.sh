@@ -11,15 +11,21 @@ ${VIM:-vim} --noplugin -Nu tests/test_plugin/vimrc -i NONE \
   -c 'call test_plugin#integration#func1()' -c q
 
 covimerage write_coverage "$prof"
-# cat .coverage
 
 cat > .coveragerc <<EOF
 [run]
 plugins = covimerage
 EOF
 
+cat > .coveragerc.outer <<EOF
+[run]
+data_file = .coverage.outer
+branch = true
+source = covimerage,tests
+EOF
+
 # Fails if there is no data to report.
-out=$(coverage report)
+out=$(coverage run --rcfile=.coveragerc.outer -m coverage report)
 
 expected='Name                                                     Stmts   Miss  Cover
 ----------------------------------------------------------------------------
