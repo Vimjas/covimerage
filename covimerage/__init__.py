@@ -244,9 +244,9 @@ class Profile(object):
                     found.append((script, script_lnum))
         if found:
             if len(found) > 1:
-                import pdb
-                pdb.set_trace()
-                assert 0, 'Only one source is found'
+                logger.warning('Found multiple sources for function %s (%s).',
+                               func, (', '.join('%s:%d' % (f[0].path, f[1])
+                                                for f in found)))
             return found[0]
         return None
 
