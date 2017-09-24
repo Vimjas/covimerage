@@ -64,7 +64,7 @@ build/coverage.pytest: $(shell find covimerage tests -name '*.py') | build
 	COVERAGE_FILE=$@ tox -e coverage.pytest
 
 build/coverage.integration: tests/integration.sh $(shell find covimerage tests -name '*.py') | build
-	tox -e coverage.integration
+	tox -e integration
 	cp -a .tox/coverage.integration/tmp/.coverage.outer $@
 
 build/coverage: build/coverage.pytest build/coverage.integration
