@@ -8,7 +8,7 @@ if [ -f .coveragerc ] || [ -f .coverage ]; then
   exit 1
 fi
 
-set -ex
+set -e
 
 prof=$(mktemp)
 (cd "$TESTS_SRC_DIR"
