@@ -1,5 +1,6 @@
 sudo: false
 language: python
+python: 3.6
 branches:
   only:
     - master
@@ -7,13 +8,16 @@ branches:
 
 matrix:
   include:
-    # This has Python 3.6, 3.5 and 2.7.
-    - env: TOXENV=py36,py36-integration,py35,py35-integration,py27,py27-integration,checkqa
+    - env: TOXENV=py36-codecov,py36-integration-codecov,checkqa-codecov
       python: 3.6
+    - env: TOXENV=py35-codecov,py35-integration-codecov
+      python: 3.5
     - env: TOXENV=py34-codecov,py34-integration-codecov
       python: 3.4
     - env: TOXENV=py33-codecov,py33-integration-codecov
       python: 3.3
+    - env: TOXENV=py27-codecov,py27-integration-codecov
+      python: 2.7
 
 install:
   - pip install codecov coveralls tox
