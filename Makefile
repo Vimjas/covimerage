@@ -45,11 +45,14 @@ tests/fixtures/%.profile: tests/test_plugin/%.vim
 #
 # Use `make coverage-diff` to diff coverage diff to the old state
 # (recorded via `make coverage-save`).
-coverage: build/coverage
-	coverage report -m
+
+MAIN_COVERAGE:=build/coverage
+
+coverage: $(MAIN_COVERAGE)
+	COVERAGE_FILE=$< coverage report -m
 
 coverage-save: | build
-	cp -a .coverage build/coverage.old
+	cp -a $(MAIN_COVERAGE) build/coverage.old
 
 coverage-diff: build/covreport.old
 coverage-diff: build/covreport.new
@@ -65,9 +68,9 @@ build/coverage.pytest: $(shell find covimerage tests -name '*.py') | build
 
 build/coverage.integration: tests/integration.sh $(shell find covimerage tests -name '*.py') | build
 	tox -e integration
-	cp -a .tox/coverage.integration/tmp/.coverage.outer $@
+	cp -a .tox/integration/tmp/.coverage.outer $@
 
-build/coverage: build/coverage.pytest build/coverage.integration
+$(MAIN_COVERAGE): build/coverage.pytest build/coverage.integration
 	cd build \
 	  && cp -a coverage.pytest coverage.pytest.tmp \
 	  && cp -a coverage.integration coverage.integration.tmp \
@@ -77,10 +80,10 @@ build/coverage.old:
 	$(MAKE) coverage-save
 
 build/covreport.old: build/coverage.old | build
-	COVERAGE_FILE=$< coverage report -m > $@
+	COVERAGE_FILE=$< coverage report -m > $@ || { ret=$$?; cat $@; exit $$ret; }
 
-build/covreport.new: build/coverage | build
-	COVERAGE_FILE=$< coverage report -m > $@
+build/covreport.new: $(MAIN_COVERAGE) | build
+	COVERAGE_FILE=$< coverage report -m > $@ || { ret=$$?; cat $@; exit $$ret; }
 # }}}
 
 build:
