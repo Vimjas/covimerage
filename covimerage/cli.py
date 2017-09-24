@@ -31,7 +31,7 @@ def write_coverage(filename):
         try:
             p.parse()
         except FileNotFoundError as exc:
-            raise click.FileError(f, exc)
+            raise click.FileError(f, exc.strerror)
         profiles.append(p)
 
     m = MergedProfiles(profiles)

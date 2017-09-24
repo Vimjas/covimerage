@@ -41,7 +41,7 @@ def test_cli_call(capfd):
     err_lines = err.splitlines()
     assert err_lines == [
         'Error: Could not open file file not found: '
-        "[Errno 2] No such file or directory: 'file not found'"]
+        "No such file or directory"]
     assert out == ''
 
 
