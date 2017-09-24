@@ -10,6 +10,7 @@ install:
   - pip install tox
 
 script:
+  - pyenv versions
   # Make Python 3.5 available.
   - pyenv shell 2.7:3.5:3.6
   - tox -e py27-codecov,py35,py36-codecov,checkqa,integration-codecov
