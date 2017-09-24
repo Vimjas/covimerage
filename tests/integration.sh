@@ -29,7 +29,6 @@ data_file = ${COVERAGE_FILE:-$PWD/.coverage.outer}
 branch = true
 source = covimerage
 EOF
-cat .coveragerc.outer
 COVERAGE_RUN_OUTER="env -u COVERAGE_FILE coverage run -a --rcfile=$PWD/.coveragerc.outer"
 
 # Test write_coverage.
