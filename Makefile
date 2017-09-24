@@ -39,3 +39,49 @@ $(PROFILES_TO_MERGE): test_plugin/merged_profiles.vim test_plugin/merged_profile
 tests/fixtures/%.profile: tests/test_plugin/%.vim
 	$(VIM) --noplugin -Nu tests/t.vim --cmd 'let g:prof_fname = "$@"' -c 'source $<' -c q
 	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  /test_plugin:' $@
+
+
+# Helpers to generate (combined) coverage and show a diff {{{
+#
+# Use `make coverage-diff` to diff coverage diff to the old state
+# (recorded via `make coverage-save`).
+coverage: build/coverage
+	coverage report -m
+
+coverage-save: | build
+	cp -a .coverage build/coverage.old
+
+coverage-diff: build/covreport.old
+coverage-diff: build/covreport.new
+coverage-diff:
+	@diff --color=always -u $^ | /usr/share/git/diff-highlight/diff-highlight | sed 1,3d
+	@#git --no-pager diff --no-index --color-words build/covreport.old build/covreport.new | sed 1,5d
+	@# git --no-pager diff --color --no-index build/covreport.old build/covreport.new | sed 1,5d | diff-so-fancy
+
+.PHONY: coverage coverage-save coverage-diff
+
+build/coverage.pytest: $(shell find covimerage tests -name '*.py') | build
+	COVERAGE_FILE=$@ tox -e coverage.pytest
+
+build/coverage.integration: tests/integration.sh $(shell find covimerage tests -name '*.py') | build
+	tox -e coverage.integration
+	cp -a .tox/coverage.integration/tmp/.coverage.outer $@
+
+build/coverage: build/coverage.pytest build/coverage.integration
+	cd build \
+	  && cp -a coverage.pytest coverage.pytest.tmp \
+	  && cp -a coverage.integration coverage.integration.tmp \
+	  && COVERAGE_FILE=coverage coverage combine coverage.pytest.tmp coverage.integration.tmp
+
+build/coverage.old:
+	$(MAKE) coverage-save
+
+build/covreport.old: build/coverage.old | build
+	COVERAGE_FILE=$< coverage report -m > $@
+
+build/covreport.new: build/coverage | build
+	COVERAGE_FILE=$< coverage report -m > $@
+# }}}
+
+build:
+	mkdir -p $@
