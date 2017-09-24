@@ -20,7 +20,7 @@ matrix:
       python: 2.7
 
 install:
-  - pip install codecov coveralls tox
+  - pip install codecov tox
 
 script:
   - pyenv versions
@@ -38,7 +38,6 @@ after_success:
       prof_name=${c##*/codecov-coverage.}
       prof_name=${prof_name%-codecov}
       prof_flags=${prof_name//-/ }
-      echo COVERAGE_FILE="$c" coverage xml
       COVERAGE_FILE="$c" coverage xml
       travis_retry codecov -X search gcov pycov -f coverage.xml --required \
         --name "$prof_name" --flags $prof_flags
@@ -49,6 +48,7 @@ after_success:
       echo "Uploading Python 3.6 coverage to coveralls..."
       coverage combine .tox/py36-integration-codecov/tmp/codecov-coverage* \
         .tox/py36-codecov/tmp/codecov-coverage*
+      pip install coveralls
       coveralls
       coverage report -m
     fi
