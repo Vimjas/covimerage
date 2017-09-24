@@ -431,43 +431,6 @@ def parse_count_and_times(line):
 
 
 def coverage_init(reg, options):
-    import coverage
-
-    class FileReporter(coverage.FileReporter):
-        # Empty (whitespace only), comments, continued, or `end` statements.
-        RE_NON_EXECED = re.compile(r'^\s*("|\\|end|$)')
-        RE_EXCLUDED = re.compile(
-            r'"\s*(pragma|PRAGMA)[:\s]?\s*(no|NO)\s*(cover|COVER)')
-
-        _split_lines = None
-
-        def __repr__(self):
-            return '<CovimerageFileReporter {0!r}>'.format(self.filename)
-
-        @property
-        def split_lines(self):
-            if self._split_lines is None:
-                self._split_lines = self.source().splitlines()
-            return self._split_lines
-
-        def lines(self):
-            lines = []
-            for lnum, l in enumerate(self.split_lines, start=1):
-                if self.RE_NON_EXECED.match(l):
-                    continue
-                lines.append(lnum)
-            return set(lines)
-
-        def excluded_lines(self):
-            lines = []
-            for lnum, l in enumerate(self.split_lines, start=1):
-                # TODO: exclude until end of block (by using vimlparser?!)
-                if self.RE_EXCLUDED.search(l):
-                    lines.append(lnum)
-            return set(lines)
-
-    class CoveragePlugin(coverage.CoveragePlugin):
-        def file_reporter(self, filename):
-            return FileReporter(filename)
+    from covimerage.plugin import CoveragePlugin
 
     reg.add_file_tracer(CoveragePlugin())
