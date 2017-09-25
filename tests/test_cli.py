@@ -17,6 +17,13 @@ def test_cli():
     assert excinfo.value.code == 1
 
 
+@pytest.mark.parametrize('arg', ('-V', '--version'))
+def test_cli_version(arg, runner):
+    result = runner.invoke(cli.main, [arg])
+    assert result.output == 'covimerage, version %s\n' % __version__
+    assert result.exit_code == 0
+
+
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
     out, err = capfd.readouterr()
