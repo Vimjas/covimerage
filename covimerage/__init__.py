@@ -41,7 +41,6 @@ class Script(object):
     # List of line numbers for dict functions that have been mapped already.
     mapped_dict_functions = attr.ib(default=attr.Factory(set), repr=False,
                                     hash=False)
-    # func_to_lnums = attr.ib(default=attr.Factory(partial(defaultdict, list)))
     func_to_lnums = attr.ib(default=attr.Factory(dict), repr=False, hash=False)
 
     def parse_script_line(self, lnum, line):
@@ -56,26 +55,6 @@ class Script(object):
             elif f.startswith('g:'):
                 f = f[2:]
             self.func_to_lnums.setdefault(f, []).append(lnum)
-            # if f not in self.func_to_lnums:
-            #     self.func_to_lnums = [lnum]
-            # else:
-            #     self.func_to_lnums[f].append(lnum)
-
-    # def get_script_lines_for_func_lines(func_lnum):
-    #     lines = join_script_lines(self.lines)
-    #
-    #
-    # source_lnum_to_joined_lnum = {}
-    # def join_script_lines(self):
-    #     """Join lines from scripts to match lines from functions."""
-    #     source_lnums = []
-    #     for i, l in enumerate(self.lines, start=1):
-    #         source_lnums.append(i)
-    #         m = re.match(RE_CONTINUING_LINE, l)
-    #         if m:
-    #             continue
-    #         self.joined_[i] = joined_lnum
-    #         if buf:
 
 
 @attr.s
@@ -249,25 +228,6 @@ class Profile(object):
                                                 for f in found)))
             return found[0]
         return None
-
-        # funcname = func.name
-        # m = re.match('^<SNR>\d+_', funcname)
-        # if m:
-        #     funcname = '(?:s:|<SID>)' + funcname[m.end():]
-        # elif funcname.isdigit():
-        #     # This is an anonymous function, which we need to lookup based on
-        #     # its source contents.
-        #     return self.get_anon_func_script_line(func)
-        # else:
-        #     funcname = '(?:g:)?' + funcname
-        #
-        # found = []
-        # for s in self.scripts:
-        #     for [lnum, line] in s.lines.items():
-        #         if re.search(RE_FUNC_PREFIX + '{}\('.format(funcname),
-        #                      line.line):
-        #             found += (s, lnum)
-        # return found
 
     @staticmethod
     def source_contains_func(script, script_lnum, func):
