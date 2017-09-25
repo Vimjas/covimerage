@@ -24,6 +24,17 @@ def test_cli_version(arg, runner):
     assert result.exit_code == 0
 
 
+@pytest.mark.parametrize('arg', ('-h', '--help'))
+def test_cli_help(arg, runner):
+    result = runner.invoke(cli.main, [arg])
+    assert result.output.startswith('Usage:')
+    assert result.exit_code == 0
+
+    result = runner.invoke(cli.main, ['write_coverage', arg])
+    assert result.output.startswith('Usage:')
+    assert result.exit_code == 0
+
+
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
     out, err = capfd.readouterr()
