@@ -38,28 +38,3 @@ def write_coverage(filename):
 
     m = MergedProfiles(profiles)
     m.write_coveragepy_data()
-
-
-@main.command()
-@click.argument('cmd', required=False)
-@click.option('--vim', required=False, default='nvim')
-@click.option('--vimrc', required=False, default='NORC')
-def run(cmd, vim, vimrc):
-    from subprocess import run
-
-    if True or not vimrc:
-        vimrc = 'tests/test_plugin/vimrc'
-
-    # if cmd:
-    #     import pdb
-    #     pdb.set_trace()
-
-    cmd = [vim, '--noplugin', '-N',
-           '-u', vimrc,
-           '--cmd', 'profile start /tmp/covimerage.profile',
-           '--cmd', 'profile! file ./**',
-           '-c', 'call test_plugin#integration#func1()',
-           '-cq']
-
-    print(cmd)
-    run(cmd)
