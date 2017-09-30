@@ -67,6 +67,14 @@ class Function(object):
 class MergedProfiles(object):
     profiles = attr.ib(default=attr.Factory(list))
 
+    _coveragepy_data = None
+
+    def __setattr__(self, name, value):
+        """Invalidate cache if profiles get changed."""
+        if name == 'profiles':
+            self._coveragepy_data = None
+        super(MergedProfiles, self).__setattr__(name, value)
+
     @property
     def scripts(self):
         return itertools.chain.from_iterable(p.scripts for p in self.profiles)
@@ -102,7 +110,7 @@ class MergedProfiles(object):
                     lines[s.path] = copy.copy(s_lines)
         return lines
 
-    def get_coveragepy_data(self):
+    def _get_coveragepy_data(self):
         import coverage
 
         cov_data = coverage.data.CoverageData()
@@ -121,6 +129,13 @@ class MergedProfiles(object):
         cov_data.add_lines(cov_dict)
         cov_data.add_file_tracers(cov_file_tracers)
         return cov_data
+
+    def get_coveragepy_data(self):
+        if self._coveragepy_data is not None:
+            return self._coveragepy_data
+        else:
+            self._coveragepy_data = self._get_coveragepy_data()
+        return self._coveragepy_data
 
     def write_coveragepy_data(self, data_file='.coverage'):
         from click.utils import string_types

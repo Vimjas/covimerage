@@ -325,3 +325,23 @@ def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(mocker):
     m.write_coveragepy_data(data_file=fileobj)
     mocked_data.write_file.call_args_list == []
     mocked_data.write_fileobj.call_args_list == [mocker.call(fileobj)]
+
+
+def test_mergedprofiles_caches_coveragepy_data(mocker):
+    from covimerage import MergedProfiles, Profile
+
+    m = MergedProfiles([])
+    spy = mocker.spy(m, '_get_coveragepy_data')
+
+    m.get_coveragepy_data()
+    assert spy.call_count == 1
+    m.get_coveragepy_data()
+    assert spy.call_count == 1
+
+    m.profiles += [Profile('foo')]
+    m.get_coveragepy_data()
+    assert spy.call_count == 2
+
+    m.profiles = [Profile('bar')]
+    m.get_coveragepy_data()
+    assert spy.call_count == 3
