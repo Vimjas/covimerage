@@ -1,20 +1,17 @@
 #!/usr/bin/env python
-import attr
 import copy
-# from collections import defaultdict
-# from functools import partial
 import itertools
 import logging
 import re
-import sys
 
-logger = logging.getLogger('covimerage')
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+import attr
 
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
 RE_CONTINUING_LINE = r'\s*\\'
+
+logger = logging.getLogger('covimerage')
+logger.setLevel(logging.INFO)
 
 
 @attr.s
