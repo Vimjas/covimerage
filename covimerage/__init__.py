@@ -198,8 +198,9 @@ class Profile(object):
             for s, lnum in found:
                 if lnum in s.mapped_dict_functions:
                     # More likely to happen with merged profiles.
-                    LOGGER.debug('Found already mapped dict function again (%s:%d).',
-                                 s.path, lnum)
+                    LOGGER.debug(
+                        'Found already mapped dict function again (%s:%d).',
+                        s.path, lnum)
                     continue
                 s.mapped_dict_functions.add(lnum)
                 return (s, lnum)
