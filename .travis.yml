@@ -8,7 +8,7 @@ branches:
 
 matrix:
   include:
-    - env: TOXENV=py36-codecov,py36-integration-codecov,checkqa-codecov
+    - env: TOXENV=py36-codecov,py36-integration-codecov,checkqa
       python: 3.6
     - env: TOXENV=py35-codecov,py35-integration-codecov
       python: 3.5
