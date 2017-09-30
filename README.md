@@ -13,12 +13,10 @@ stabilization (1-2 weeks).
 
 ## Installation
 
-Covimerage is experimental/new, so please install it from its develop branch.
-
-NOTE: please consider using a virtualenv / or `pip install --user …`.
+You can install covimerage using pip:
 
 ```sh
-pip install https://github.com/Vimjas/covimerage/archive/develop.zip
+pip install covimerage
 ```
 
 ## Usage
@@ -37,7 +35,7 @@ This makes Neovim/Vim then write a file with profiling information.
 ### 2. Call covimerage on the output file(s)
 
 ```sh
-covimerage /tmp/vim-profile.txt
+covimerage write_coverage /tmp/vim-profile.txt
 ```
 
 This will create a `.coverage` file (marking entries for processing by a
@@ -46,8 +44,8 @@ covimerage)).
 
 ### 3. Include the covimerage plugin in .coveragerc
 
-You need to add the following in your .coveragerc (which Coverage.py uses)
-to call the FileReporter plugin.
+When using `coverage` on the generated output (data file), you need to add
+the `covimerage` plugin to the `.coveragerc` file (which Coverage.py uses).
 This is basically all the `.coveragerc` you will need, but you could use
 other settings here (for Coverage.py), e.g. to omit some files:
 
