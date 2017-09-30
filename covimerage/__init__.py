@@ -3,6 +3,7 @@ import copy
 import itertools
 import logging
 import re
+import sys
 
 import attr
 
@@ -12,6 +13,7 @@ RE_CONTINUING_LINE = r'\s*\\'
 
 logger = logging.getLogger('covimerage')
 logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @attr.s
