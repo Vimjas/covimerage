@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+"""The main covimerage module."""
 import copy
 import itertools
 import logging
@@ -11,24 +11,19 @@ RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
 RE_CONTINUING_LINE = r'\s*\\'
 
-logger = logging.getLogger('covimerage')
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER = logging.getLogger('covimerage')
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @attr.s
 class Line(object):
+    """A source code line."""
     line = attr.ib()
     count = attr.ib(default=None)
     total_time = attr.ib(default=None)
     self_time = attr.ib(default=None)
     _parsed_line = None
-
-    # @property
-    # def count(self):
-    #     if not self._parsed_line:
-    #         self._parsed_line = parse_count_and_times(self.line)
-    #     return self._parsed_line[0]
 
 
 @attr.s(hash=True)
@@ -144,7 +139,7 @@ class MergedProfiles(object):
 
         cov_data = self.get_coveragepy_data()
 
-        logger.info('Writing coverage file %s.', data_file)
+        LOGGER.info('Writing coverage file %s.', data_file)
         if isinstance(data_file, string_types):
             cov_data.write_file(data_file)
         else:
@@ -165,54 +160,59 @@ class Profile(object):
     def lines(self):
         return {s: s.lines for s in self.scripts}
 
+    def _get_anon_func_script_line(self, func):
+        len_func_lines = len(func.lines)
+        found = []
+        for s in self.scripts:
+            for lnum in s.dict_functions:
+                script_lnum = lnum + 1
+                len_script_lines = len(s.lines)
+
+                func_lnum = 0
+                script_is_func = True
+                script_line = s.lines[script_lnum].line
+                while (script_lnum <= len_script_lines and
+                       func_lnum < len_func_lines):
+                    script_lnum += 1
+                    next_line = s.lines[script_lnum].line
+                    m = re.match(RE_CONTINUING_LINE, next_line)
+                    if m:
+                        script_line += next_line[m.end():]
+                        continue
+                    func_lnum += 1
+                    if script_line != func.lines[func_lnum].line:
+                        script_is_func = False
+                        break
+                    script_line = s.lines[script_lnum].line
+
+                if script_is_func:
+                    found.append((s, lnum))
+
+        if found:
+            if len(found) > 1:
+                LOGGER.warning(
+                    'Found multiple sources for anonymous function %s (%s).',
+                    func.name, (', '.join('%s:%d' % (f[0].path, f[1])
+                                         for f in found)))
+
+            for s, lnum in found:
+                if lnum in s.mapped_dict_functions:
+                    # More likely to happen with merged profiles.
+                    LOGGER.debug('Found already mapped dict function again (%s:%d).',
+                                 s.path, lnum)
+                    continue
+                s.mapped_dict_functions.add(lnum)
+                return (s, lnum)
+            return found[0]
+
     def get_anon_func_script_line(self, func):
         funcname = func.name
         try:
             return self.anonymous_functions[funcname]
         except KeyError:
-            len_func_lines = len(func.lines)
-            found = []
-            for s in self.scripts:
-                for lnum in s.dict_functions:
-                    script_lnum = lnum + 1
-                    len_script_lines = len(s.lines)
-
-                    func_lnum = 0
-                    script_is_func = True
-                    script_line = s.lines[script_lnum].line
-                    while (script_lnum <= len_script_lines and
-                           func_lnum < len_func_lines):
-                        script_lnum += 1
-                        next_line = s.lines[script_lnum].line
-                        m = re.match(RE_CONTINUING_LINE, next_line)
-                        if m:
-                            script_line += next_line[m.end():]
-                            continue
-                        func_lnum += 1
-                        if script_line != func.lines[func_lnum].line:
-                            script_is_func = False
-                            break
-                        script_line = s.lines[script_lnum].line
-
-                    if script_is_func:
-                        found.append((s, lnum))
-
-            if found:
-                if len(found) > 1:
-                    logger.warning(
-                        'Found multiple sources for anonymous function %s (%s).',  # noqa
-                        funcname, (', '.join('%s:%d' % (f[0].path, f[1])
-                                             for f in found)))
-
-                for s, lnum in found:
-                    if lnum in s.mapped_dict_functions:
-                        # More likely to happen with merged profiles.
-                        logger.debug('Found already mapped dict function again (%s:%d).', s.path, lnum)  # noqa
-                        continue
-                    s.mapped_dict_functions.add(lnum)
-                    self.anonymous_functions[funcname] = (s, lnum)
-                    return (s, lnum)
-                return found[0]
+            (script, lnum) = self._get_anon_func_script_line(func)
+            self.anonymous_functions[func.name] = (script, lnum)
+        return self.anonymous_functions[funcname]
 
     def find_func_in_source(self, func):
         funcname = func.name
@@ -221,7 +221,7 @@ class Profile(object):
             # its source contents.
             return self.get_anon_func_script_line(func)
 
-        m = re.match('^<SNR>\d+_', funcname)
+        m = re.match(r'^<SNR>\d+_', funcname)
         if m:
             funcname = 's:' + funcname[m.end():]
 
@@ -237,7 +237,7 @@ class Profile(object):
                     found.append((script, script_lnum))
         if found:
             if len(found) > 1:
-                logger.warning('Found multiple sources for function %s (%s).',
+                LOGGER.warning('Found multiple sources for function %s (%s).',
                                func, (', '.join('%s:%d' % (f[0].path, f[1])
                                                 for f in found)))
             return found[0]
@@ -284,7 +284,7 @@ class Profile(object):
                     # lnum = 0
                     break
 
-        logger.debug('Parsing file: %s', self.fname)
+        LOGGER.debug('Parsing file: %s', self.fname)
         with open(self.fname, 'r') as fo:
             for line in fo:
                 line = line.rstrip('\r\n')
@@ -293,7 +293,7 @@ class Profile(object):
                         func_name = in_function.name
                         script_line = self.find_func_in_source(in_function)
                         if not script_line:
-                            logger.error('Could not find source for function: %s', func_name)  # noqa
+                            LOGGER.error('Could not find source for function: %s', func_name)  # noqa
                             in_function = False
                             continue
 
@@ -369,7 +369,7 @@ class Profile(object):
                 elif line.startswith('SCRIPT  '):
                     fname = line[8:]
                     in_script = Script(fname)
-                    logger.debug('Parsing script %s', in_script)
+                    LOGGER.debug('Parsing script %s', in_script)
                     self.scripts.append(in_script)
                     skip_to_count_header()
                     lnum = 0
@@ -377,7 +377,7 @@ class Profile(object):
                 elif line.startswith('FUNCTION  '):
                     func_name = line[10:-2]
                     in_function = Function(name=func_name)
-                    logger.debug('Parsing function %s', in_function)
+                    LOGGER.debug('Parsing function %s', in_function)
                     skip_to_count_header()
                     lnum = 0
 
