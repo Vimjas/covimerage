@@ -193,7 +193,7 @@ class Profile(object):
                 LOGGER.warning(
                     'Found multiple sources for anonymous function %s (%s).',
                     func.name, (', '.join('%s:%d' % (f[0].path, f[1])
-                                         for f in found)))
+                                          for f in found)))
 
             for s, lnum in found:
                 if lnum in s.mapped_dict_functions:
