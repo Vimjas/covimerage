@@ -334,7 +334,8 @@ def test_merged_profiles_get_coveragepy_data():
     assert repr(cov_data) == '<CoverageData lines={0} arcs=None tracers={0} runs=[0]>'  # noqa: E501
 
 
-def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(mocker):
+def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(
+        mocker, caplog):
     from covimerage import MergedProfiles
 
     m = MergedProfiles([])
@@ -350,6 +351,10 @@ def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(mocker):
     m.write_coveragepy_data(data_file=fileobj)
     mocked_data.write_file.call_args_list == []
     mocked_data.write_fileobj.call_args_list == [mocker.call(fileobj)]
+    msgs = [r.message for r in caplog.records]
+    assert msgs == [
+        'Writing coverage file .coverage.',
+        'Writing coverage file %s.' % fileobj]
 
 
 def test_mergedprofiles_caches_coveragepy_data(mocker):
