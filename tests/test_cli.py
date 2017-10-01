@@ -118,7 +118,6 @@ def test_cli_writecoverage_datafile(runner):
 
     f.seek(0)
     cov = CoverageWrapper(data_file=f)
-    assert cov.data.measured_files() == [
-        '/test_plugin/conditional_function.vim']
-    assert cov.data.lines('/test_plugin/conditional_function.vim') == [
-        3, 8, 9, 11, 13, 14, 15, 17, 23]
+    assert cov.lines == {
+        '/test_plugin/conditional_function.vim': [
+            3, 8, 9, 11, 13, 14, 15, 17, 23]}

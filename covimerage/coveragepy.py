@@ -7,11 +7,13 @@ import coverage
 from .logging import LOGGER
 
 
-@attr.s
+@attr.s(frozen=True)
 class CoverageWrapper(object):
     """Wrap Coveragepy related functionality."""
     data = attr.ib(default=None)
     data_file = attr.ib(default=None)
+
+    _cached_cov_obj = None
 
     def __attrs_post_init__(self):
         if self.data is None:
@@ -22,26 +24,29 @@ class CoverageWrapper(object):
                 cov_data.read_file(self.data_file)
             else:
                 cov_data.read_fileobj(self.data_file)
-            self.data = cov_data
+            object.__setattr__(self, 'data', cov_data)
         elif self.data_file is not None:
             raise TypeError('data and data_file are mutually exclusive.')
 
     @property
+    def lines(self):
+        data = self.data
+        return {f: sorted(data.lines(f)) for f in data.measured_files()}
+
+    @property
     def _cov_obj(self):
+        if not self._cached_cov_obj:
+            object.__setattr__(self, '_cached_cov_obj', self._get_cov_obj())
+        return self._cached_cov_obj
+
+    def _get_cov_obj(self):
         cov_config = coverage.config.CoverageConfig()
         cov_config.plugins = ['covimerage']
 
         cov_coverage = coverage.Coverage(config_file=False)
         cov_coverage.config = cov_config
         cov_coverage._init()
-
-        if self.data is None:
-            cov_data = coverage.data.CoverageData()
-            if isinstance(self.data_file, string_types):
-                cov_data.read_file(self.data_file)
-            else:
-                cov_data.read_fileobj(self.data_file)
-            self.data = cov_data
+        cov_coverage.data = self.data
         return cov_coverage
 
     def report(self, report_file=None, show_missing=None,
