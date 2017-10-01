@@ -134,6 +134,9 @@ class MergedProfiles(object):
         from click.utils import string_types
 
         cov_data = self.get_coveragepy_data()
+        if not cov_data.line_counts():
+            LOGGER.warning('Not writing coverage file: no data to report!')
+            return False
 
         if isinstance(data_file, string_types):
             LOGGER.info('Writing coverage file %s.', data_file)
@@ -145,6 +148,7 @@ class MergedProfiles(object):
                 filename = str(data_file)
             LOGGER.info('Writing coverage file %s.', filename)
             cov_data.write_fileobj(data_file)
+        return True
 
 
 @attr.s

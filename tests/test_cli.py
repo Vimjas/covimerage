@@ -1,3 +1,7 @@
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import os
 from subprocess import call
 
@@ -63,35 +67,54 @@ def test_cli_call(capfd):
     assert out == ''
 
 
-# TODO: test with another command?!
-def test_cli_call_verbosity_runner(runner):
-    result = runner.invoke(cli.main, ['write_coverage', os.devnull])
-    assert result.output == 'Writing coverage file .coverage.\n'
-    # assert result.stderr == 'Writing coverage file .coverage.\n'
-    assert result.exit_code == 0
-
-
-# TODO: test with another command?!
 def test_cli_call_verbosity_fd(capfd, mocker):
-    assert call(['covimerage', 'write_coverage', os.devnull]) == 0
+    assert call(['covimerage', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
-    assert err.splitlines() == ['Writing coverage file .coverage.']
+    assert err.splitlines() == [
+        'Not writing coverage file: no data to report!',
+        'Error: No data to report.']
 
-    call(['covimerage', '-v', 'write_coverage', os.devnull])
+    assert call(['covimerage', '-v', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
     assert err.splitlines() == [
         'Parsing file: /dev/null',
-        'Writing coverage file .coverage.']
+        'Not writing coverage file: no data to report!',
+        'Error: No data to report.']
 
-    call(['covimerage', '-vq', 'write_coverage', os.devnull])
+    assert call(['covimerage', '-vq', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
     assert err.splitlines() == [
-        'Writing coverage file .coverage.']
+        'Not writing coverage file: no data to report!',
+        'Error: No data to report.']
 
-    call(['covimerage', '-vqq', 'write_coverage', os.devnull])
+    assert call(['covimerage', '-qq', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
-    assert err == ''
+    assert err == 'Error: No data to report.\n'
+
+
+def test_cli_writecoverage_without_data(runner):
+    result = runner.invoke(cli.main, ['write_coverage', os.devnull])
+    assert result.output == '\n'.join([
+        'Not writing coverage file: no data to report!',
+        'Error: No data to report.',
+        ''])
+    assert result.exit_code == 1
+
+
+def test_cli_writecoverage_datafile(runner):
+    f = StringIO()
+    result = runner.invoke(cli.main, ['write_coverage', '--data-file', f,
+                           'tests/fixtures/conditional_function.profile'])
+    assert result.output == '\n'.join([
+        'Writing coverage file %s.' % f,
+        ''])
+    assert result.exit_code == 0
+
+    f.seek(0)
+    assert f.readlines() == [
+        "!coverage.py: This is a private format, don't read it "
+        'directly!{"lines":{"/test_plugin/conditional_function.vim":[3,8,9,11,13,14,17,23]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']  # noqa: E501

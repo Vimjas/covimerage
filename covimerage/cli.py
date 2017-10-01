@@ -22,8 +22,13 @@ def main(verbose, quiet):
 
 @main.command()
 @click.argument('filename', required=True, nargs=-1)
-def write_coverage(filename):
-    """Parse FILENAME (output from Vim's :profile)."""
+@click.option('--data-file', required=False, show_default=True,
+              default='.coverage', type=click.File(mode='w'))
+def write_coverage(filename, data_file):
+    """
+    Parse FILENAME (output from Vim's :profile) and write it into DATA_FILE
+    (Coverage.py compatible).
+    """
     profiles = []
     for f in filename:
         p = Profile(f)
@@ -34,4 +39,5 @@ def write_coverage(filename):
         profiles.append(p)
 
     m = MergedProfiles(profiles)
-    m.write_coveragepy_data()
+    if not m.write_coveragepy_data(data_file=data_file):
+        raise click.ClickException('No data to report.')
