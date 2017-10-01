@@ -360,7 +360,9 @@ class Profile(object):
                 try:
                     count, total_time, self_time = parse_count_and_times(line)
                 except Exception as exc:
-                    LOGGER.warning('Could not parse count/times from line: %s (%s:%d).', line, self.fname, plnum)
+                    LOGGER.warning(
+                        'Could not parse count/times from line: %s (%s:%d).',
+                        line, self.fname, plnum)
                     continue
                 source_line = line[28:]
 
