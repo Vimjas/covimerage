@@ -63,24 +63,33 @@ def test_cli_call(capfd):
     assert out == ''
 
 
-def test_cli_call_verbosity(capfd):
+# TODO: test with another command?!
+def test_cli_call_verbosity_runner(runner):
+    result = runner.invoke(cli.main, ['write_coverage', os.devnull])
+    assert result.output == 'Writing coverage file .coverage.\n'
+    # assert result.stderr == 'Writing coverage file .coverage.\n'
+    assert result.exit_code == 0
+
+
+# TODO: test with another command?!
+def test_cli_call_verbosity_fd(capfd, mocker):
     assert call(['covimerage', 'write_coverage', os.devnull]) == 0
     out, err = capfd.readouterr()
-    assert out.splitlines() == ['Writing coverage file .coverage.']
-    assert err == ''
+    assert out == ''
+    assert err.splitlines() == ['Writing coverage file .coverage.']
 
     call(['covimerage', '-v', 'write_coverage', os.devnull])
     out, err = capfd.readouterr()
-    assert out.splitlines() == [
+    assert out == ''
+    assert err.splitlines() == [
         'Parsing file: /dev/null',
         'Writing coverage file .coverage.']
-    assert err == ''
 
     call(['covimerage', '-vq', 'write_coverage', os.devnull])
     out, err = capfd.readouterr()
-    assert out.splitlines() == [
+    assert out == ''
+    assert err.splitlines() == [
         'Writing coverage file .coverage.']
-    assert err == ''
 
     call(['covimerage', '-vqq', 'write_coverage', os.devnull])
     out, err = capfd.readouterr()

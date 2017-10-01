@@ -1,17 +1,14 @@
-import logging
-
 import click
 
 from covimerage import MergedProfiles, Profile
 from covimerage.__version__ import __version__
 
+from .logging import LOGGER
+
 try:
     FileNotFoundError
 except NameError:
     FileNotFoundError = IOError
-
-
-logger = logging.getLogger('covimerage')
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
@@ -20,7 +17,7 @@ logger = logging.getLogger('covimerage')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
 def main(verbose, quiet):
     if verbose - quiet:
-        logger.setLevel(logger.level - (verbose - quiet) * 10)
+        LOGGER.setLevel(LOGGER.level - (verbose - quiet) * 10)
 
 
 @main.command()

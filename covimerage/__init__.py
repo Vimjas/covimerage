@@ -1,19 +1,15 @@
 """The main covimerage module."""
 import copy
 import itertools
-import logging
 import re
-import sys
 
 import attr
+
+from .logging import LOGGER
 
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
 RE_CONTINUING_LINE = r'\s*\\'
-
-LOGGER = logging.getLogger('covimerage')
-LOGGER.setLevel(logging.INFO)
-LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @attr.s
@@ -139,10 +135,15 @@ class MergedProfiles(object):
 
         cov_data = self.get_coveragepy_data()
 
-        LOGGER.info('Writing coverage file %s.', data_file)
         if isinstance(data_file, string_types):
+            LOGGER.info('Writing coverage file %s.', data_file)
             cov_data.write_file(data_file)
         else:
+            try:
+                filename = data_file.name
+            except AttributeError:
+                filename = str(data_file)
+            LOGGER.info('Writing coverage file %s.', filename)
             cov_data.write_fileobj(data_file)
 
 
