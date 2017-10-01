@@ -93,5 +93,5 @@ def test_cli_call_verbosity_fd(capfd, mocker):
 
     call(['covimerage', '-vqq', 'write_coverage', os.devnull])
     out, err = capfd.readouterr()
-    assert out.splitlines() == []
+    assert out == ''
     assert err == ''
