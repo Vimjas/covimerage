@@ -1,6 +1,64 @@
 import re
 
+import attr
+from click.utils import string_types
 import coverage
+
+from .logging import LOGGER
+
+
+@attr.s
+class CoverageWrapper(object):
+    """Wrap Coveragepy related functionality."""
+    data = attr.ib(default=None)
+    data_file = attr.ib(default=None)
+
+    def __attrs_post_init__(self):
+        if self.data is None:
+            if not self.data_file:
+                raise TypeError('data or data_file needs to be provided.')
+            cov_data = coverage.data.CoverageData()
+            if isinstance(self.data_file, string_types):
+                cov_data.read_file(self.data_file)
+            else:
+                cov_data.read_fileobj(self.data_file)
+            self.data = cov_data
+        elif self.data_file is not None:
+            raise TypeError('data and data_file are mutually exclusive.')
+
+    @property
+    def _cov_obj(self):
+        cov_config = coverage.config.CoverageConfig()
+        cov_config.plugins = ['covimerage']
+
+        cov_coverage = coverage.Coverage(config_file=False)
+        cov_coverage.config = cov_config
+        cov_coverage._init()
+
+        if self.data is None:
+            cov_data = coverage.data.CoverageData()
+            if isinstance(self.data_file, string_types):
+                cov_data.read_file(self.data_file)
+            else:
+                cov_data.read_fileobj(self.data_file)
+            self.data = cov_data
+        return cov_coverage
+
+    def report(self, report_file=None, show_missing=None,
+               include=None, omit=None, skip_covered=None):
+        try:
+            self._cov_obj.report(
+                file=report_file, show_missing=show_missing, include=include,
+                omit=omit, skip_covered=None)
+        except coverage.CoverageException as exc:
+            LOGGER.warning('Exception from coverage: %r', exc)
+            if exc.args == ('No data to report.',):
+                return False
+            raise
+
+    def reportxml(self, report_file=None, include=None, omit=None):
+        self._cov_obj.xml_report(
+            outfile=report_file, include=include, omit=omit)
 
 
 class FileReporter(coverage.FileReporter):
