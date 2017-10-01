@@ -1,8 +1,7 @@
 import click
 
-from covimerage import MergedProfiles, Profile
-from covimerage.__version__ import __version__
-
+from . import MergedProfiles, Profile
+from .__version__ import __version__
 from .logging import LOGGER
 
 try:

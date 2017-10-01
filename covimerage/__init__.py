@@ -425,6 +425,6 @@ def parse_count_and_times(line):
 
 
 def coverage_init(reg, options):
-    from covimerage.coveragepy import CoveragePlugin
+    from .coveragepy import CoveragePlugin
 
     reg.add_file_tracer(CoveragePlugin())

@@ -1,3 +1,3 @@
 if __name__ == '__main__':
-    from covimerage.cli import main
+    from .cli import main
     main()
