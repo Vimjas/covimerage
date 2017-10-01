@@ -1,4 +1,8 @@
+import sys
+
 import pytest
+
+PY2 = sys.version_info[0] == 2
 
 
 def test_logging_error_causes_exception(capfd):
@@ -8,6 +12,14 @@ def test_logging_error_causes_exception(capfd):
         LOGGER.info('Wrong:', 'no %s')
     assert excinfo.value.args[0] == 'Internal logging error'
     out, err = capfd.readouterr()
-    assert err.splitlines()[-2:] == [
-        "Message: 'Wrong:'",
-        "Arguments: ('no %s',)"]
+
+    lines = err.splitlines()
+    assert any((l.startswith('Traceback') for l in lines))
+
+    if PY2:
+        assert lines[-1].startswith('Logged from file test_logging.py, line ')
+        assert 'TypeError: not all arguments converted during string formatting' in lines  # noqa: E501
+    else:
+        assert lines[-2:] == [
+            "Message: 'Wrong:'",
+            "Arguments: ('no %s',)"]
