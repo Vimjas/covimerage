@@ -106,6 +106,8 @@ def test_cli_writecoverage_without_data(runner):
 
 
 def test_cli_writecoverage_datafile(runner):
+    from covimerage.coveragepy import CoverageWrapper
+
     f = StringIO()
     result = runner.invoke(cli.main, ['write_coverage', '--data-file', f,
                            'tests/fixtures/conditional_function.profile'])
@@ -115,6 +117,8 @@ def test_cli_writecoverage_datafile(runner):
     assert result.exit_code == 0
 
     f.seek(0)
-    assert f.readlines() == [
-        "!coverage.py: This is a private format, don't read it "
-        'directly!{"lines":{"/test_plugin/conditional_function.vim":[3,8,9,11,13,14,15,17,23]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']  # noqa: E501
+    cov = CoverageWrapper(data_file=f)
+    assert cov.data.measured_files() == [
+        '/test_plugin/conditional_function.vim']
+    assert cov.data.lines('/test_plugin/conditional_function.vim') == [
+        3, 8, 9, 11, 13, 14, 15, 17, 23]
