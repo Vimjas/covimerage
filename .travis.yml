@@ -6,6 +6,10 @@ branches:
     - master
     - develop
 
+env:
+  global:
+    - PYTEST_ADDOPTS='-vv --tb=auto --showlocals'
+
 matrix:
   include:
     - env: TOXENV=py36-codecov,py36-integration-codecov,checkqa
