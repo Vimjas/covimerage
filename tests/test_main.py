@@ -276,7 +276,7 @@ def test_conditional_functions(caplog):
         (N, ''),
         (1, 'if Foo()'),
         (1, '  function Bar()'),
-        (0, '    echom 1'),
+        (1, '    echom 1'),
         (N, '  endfunction'),
         (1, 'else'),
         (N, '  function Bar()'),
@@ -284,7 +284,7 @@ def test_conditional_functions(caplog):
         (N, '  endfunction'),
         (N, 'endif'),
         (N, ''),
-        (1, 'Bar()')]
+        (1, 'call Bar()')]
 
 
 def test_merged_profiles():

@@ -117,4 +117,4 @@ def test_cli_writecoverage_datafile(runner):
     f.seek(0)
     assert f.readlines() == [
         "!coverage.py: This is a private format, don't read it "
-        'directly!{"lines":{"/test_plugin/conditional_function.vim":[3,8,9,11,13,14,17,23]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']  # noqa: E501
+        'directly!{"lines":{"/test_plugin/conditional_function.vim":[3,8,9,11,13,14,15,17,23]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']  # noqa: E501

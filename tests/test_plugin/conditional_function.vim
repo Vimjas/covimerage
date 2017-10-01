@@ -20,4 +20,4 @@ else
   endfunction
 endif
 
-Bar()
+call Bar()
