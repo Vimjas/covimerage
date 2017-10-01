@@ -1,4 +1,7 @@
-from io import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import logging
 
 import coverage
@@ -71,6 +74,28 @@ def test_profile_parse():
         7: Line(line='endfunction', count=None, total_time=None,
                 self_time=None),
         8: Line(line='', count=None, total_time=None, self_time=None)}
+
+
+def test_profile_parse_handles_cannot_open_file(caplog):
+    from covimerage import Profile
+
+    file_object = StringIO('\n'.join([
+        'SCRIPT  /tmp/nvimDG3tAV/801',
+        'Sourced 1 time',
+        'Total time:   0.046577',
+        ' Self time:   0.000136',
+        '',
+        'count  total (s)   self (s)',
+        'Cannot open file!',
+    ]))
+    p = Profile('fake')
+    p._parse(file_object)
+
+    assert len(p.scripts) == 1
+    assert len(p.scripts[0].lines) == 0
+    msgs = [r.message for r in caplog.records]
+    assert msgs == [
+        'Could not parse count/times from line: Cannot open file! (fake:7).']
 
 
 def test_find_func_in_source():

@@ -275,113 +275,125 @@ class Profile(object):
         return True
 
     def parse(self):
+        if not self.fname:
+            raise ValueError('fname is not provided.')
+        LOGGER.debug('Parsing file: %s', self.fname)
+        with open(self.fname, 'r') as file_object:
+            return self._parse(file_object)
+
+    def _parse(self, file_object):
         in_script = False
         in_function = False
-        lnum = 0
+        plnum = lnum = 0
 
         def skip_to_count_header():
+            skipped = 0
             while True:
-                next_line = next(fo)
+                next_line = next(file_object)
+                skipped += 1
                 if next_line.startswith('count'):
-                    # lnum = 0
                     break
+            return skipped
 
-        LOGGER.debug('Parsing file: %s', self.fname)
-        with open(self.fname, 'r') as fo:
-            for line in fo:
-                line = line.rstrip('\r\n')
-                if line == '':
-                    if in_function:
-                        func_name = in_function.name
-                        script_line = self.find_func_in_source(in_function)
-                        if not script_line:
-                            LOGGER.error('Could not find source for function: %s', func_name)  # noqa
-                            in_function = False
-                            continue
+        for line in file_object:
+            plnum += 1
+            line = line.rstrip('\r\n')
+            if line == '':
+                if in_function:
+                    func_name = in_function.name
+                    script_line = self.find_func_in_source(in_function)
+                    if not script_line:
+                        LOGGER.error('Could not find source for function: %s', func_name)  # noqa
+                        in_function = False
+                        continue
 
-                        # Assign counts from function to script.
-                        script, script_lnum = script_line
-                        for [f_lnum, f_line] in in_function.lines.items():
-                            s_line = script.lines[script_lnum + f_lnum]
+                    # Assign counts from function to script.
+                    script, script_lnum = script_line
+                    for [f_lnum, f_line] in in_function.lines.items():
+                        s_line = script.lines[script_lnum + f_lnum]
 
-                            # XXX: might not be the same, since function lines
-                            # are joined, while script lines might be spread
-                            # across several lines (prefixed with \).
-                            script_source = s_line.line
-                            if script_source != f_line.line:
-                                while True:
-                                    try:
-                                        peek = script.lines[script_lnum +
-                                                            f_lnum + 1]
-                                    except KeyError:
-                                        pass
-                                    else:
-                                        m = re.match(RE_CONTINUING_LINE, peek.line)  # noqa
-                                        if m:
-                                            script_source += peek.line[m.end():]  # noqa
-                                            script_lnum += 1
-                                            # script_lines.append(peek)
-                                            continue
-                                    if script_source == f_line.line:
-                                        break
-
-                                    assert 0, 'Script line matches function line.'  # noqa
-
-                            if f_line.count is not None:
-                                if s_line.count:
-                                    s_line.count += f_line.count
+                        # XXX: might not be the same, since function lines
+                        # are joined, while script lines might be spread
+                        # across several lines (prefixed with \).
+                        script_source = s_line.line
+                        if script_source != f_line.line:
+                            while True:
+                                try:
+                                    peek = script.lines[script_lnum +
+                                                        f_lnum + 1]
+                                except KeyError:
+                                    pass
                                 else:
-                                    s_line.count = f_line.count
-                            if f_line.self_time:
-                                if s_line.self_time:
-                                    s_line.self_time += f_line.self_time
-                                else:
-                                    s_line.self_time = f_line.self_time
-                            if f_line.total_time:
-                                if s_line.total_time:
-                                    s_line.total_time += f_line.total_time
-                                else:
-                                    s_line.total_time = f_line.total_time
+                                    m = re.match(RE_CONTINUING_LINE, peek.line)  # noqa
+                                    if m:
+                                        script_source += peek.line[m.end():]  # noqa
+                                        script_lnum += 1
+                                        # script_lines.append(peek)
+                                        continue
+                                if script_source == f_line.line:
+                                    break
 
-                    in_script = False
-                    in_function = False
-                    continue
+                                assert 0, 'Script line matches function line.'  # noqa
 
-                if in_script or in_function:
-                    lnum += 1
+                        if f_line.count is not None:
+                            if s_line.count:
+                                s_line.count += f_line.count
+                            else:
+                                s_line.count = f_line.count
+                        if f_line.self_time:
+                            if s_line.self_time:
+                                s_line.self_time += f_line.self_time
+                            else:
+                                s_line.self_time = f_line.self_time
+                        if f_line.total_time:
+                            if s_line.total_time:
+                                s_line.total_time += f_line.total_time
+                            else:
+                                s_line.total_time = f_line.total_time
+
+                in_script = False
+                in_function = False
+                continue
+
+            if in_script or in_function:
+                lnum += 1
+                try:
                     count, total_time, self_time = parse_count_and_times(line)
-                    source_line = line[28:]
+                except Exception as exc:
+                    LOGGER.warning('Could not parse count/times from line: %s (%s:%d).', line, self.fname, plnum)
+                    continue
+                source_line = line[28:]
 
-                    if in_script:
-                        in_script.lines[lnum] = Line(
-                            line=source_line, count=count,
-                            total_time=total_time, self_time=self_time)
-                        if count or lnum == 1:
-                            # Parse line 1 always, as a workaround for
-                            # https://github.com/vim/vim/issues/2103.  # noqa
-                            in_script.parse_script_line(lnum, source_line)
-                    elif in_function:
-                        if count is None:
-                            # Functions do not have continued lines, assume 0.
-                            count = 0
-                        line = Line(line=source_line, count=count,
-                                    total_time=total_time, self_time=self_time)
-                        in_function.lines[lnum] = line
+                if in_script:
+                    in_script.lines[lnum] = Line(
+                        line=source_line, count=count,
+                        total_time=total_time, self_time=self_time)
+                    if count or lnum == 1:
+                        # Parse line 1 always, as a workaround for
+                        # https://github.com/vim/vim/issues/2103.  # noqa
+                        in_script.parse_script_line(lnum, source_line)
+                elif in_function:
+                    if count is None:
+                        # Functions do not have continued lines, assume 0.
+                        count = 0
+                    line = Line(line=source_line, count=count,
+                                total_time=total_time, self_time=self_time)
+                    in_function.lines[lnum] = line
 
-                elif line.startswith('SCRIPT  '):
-                    fname = line[8:]
-                    in_script = Script(fname)
-                    LOGGER.debug('Parsing script %s', in_script)
-                    self.scripts.append(in_script)
-                    skip_to_count_header()
-                    lnum = 0
+            elif line.startswith('SCRIPT  '):
+                fname = line[8:]
+                in_script = Script(fname)
+                LOGGER.debug('Parsing script %s', in_script)
+                self.scripts.append(in_script)
+                plnum += skip_to_count_header()
+                lnum = 0
 
-                elif line.startswith('FUNCTION  '):
-                    func_name = line[10:-2]
-                    in_function = Function(name=func_name)
-                    LOGGER.debug('Parsing function %s', in_function)
-                    skip_to_count_header()
-                    lnum = 0
+            elif line.startswith('FUNCTION  '):
+                func_name = line[10:-2]
+                in_function = Function(name=func_name)
+                LOGGER.debug('Parsing function %s', in_function)
+                plnum += skip_to_count_header()
+                lnum = 0
 
 
 def parse_count_and_times(line):
