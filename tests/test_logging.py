@@ -2,8 +2,6 @@ import sys
 
 import pytest
 
-PY2 = sys.version_info[0] == 2
-
 
 def test_logging_error_causes_exception(capfd):
     from covimerage import LOGGER
@@ -16,10 +14,8 @@ def test_logging_error_causes_exception(capfd):
     lines = err.splitlines()
     assert any((l.startswith('Traceback') for l in lines))
 
-    if PY2:
-        assert lines[-1].startswith('Logged from file test_logging.py, line ')
-        assert 'TypeError: not all arguments converted during string formatting' in lines  # noqa: E501
-    else:
+    if not lines[-1].startswith('Logged from file test_logging.py, line '):
         assert lines[-2:] == [
             "Message: 'Wrong:'",
             "Arguments: ('no %s',)"]
+    assert 'TypeError: not all arguments converted during string formatting' in lines  # noqa: E501
