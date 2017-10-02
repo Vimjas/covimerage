@@ -52,6 +52,67 @@ def test_cli_help(arg, runner):
     assert result.exit_code == 0
 
 
+def test_cli_run_with_args_fd(capfd):
+    ret = call(['covimerage', 'run', '--profile-file', '/doesnotexist',
+                'echo', '--', '--no-profile', '%sMARKER'])
+    assert ret == 1
+    out, err = capfd.readouterr()
+    lines = err.splitlines()
+    assert lines == [
+    "Running cmd: ['echo', '--', '--no-profile', '%sMARKER', '--cmd', 'profile start /doesnotexist', '--cmd', 'profile! file ./*']",  # noqa: E501
+        'Error: The profile file (/doesnotexist) has not been created.']
+
+
+def test_cli_run_subprocess_exception(runner, mocker):
+    result = runner.invoke(cli.run, [os.devnull])
+    out = result.output.splitlines()
+    assert out[-1].startswith("Error: Failed to run ['/dev/null', '--cmd',")
+    assert out[-1].endswith("']: [Errno 13] Permission denied")
+    assert result.exit_code == 1
+
+
+def test_cli_run_args(runner, mocker):
+    m = mocker.patch('subprocess.call')
+    result = runner.invoke(
+        cli.run, ['--no-profile', 'printf', '--headless'])
+    assert m.call_args[0] == (['printf', '--headless'],)
+    assert result.output.splitlines() == [
+        "Running cmd: ['printf', '--headless']",
+        'Command exited non-zero: 1.']
+
+    result = runner.invoke(
+        cli.run, ['--no-profile', '--', 'printf', '--headless'])
+    assert m.call_args[0] == (['printf', '--headless'],)
+    assert result.output.splitlines() == [
+        "Running cmd: ['printf', '--headless']",
+        'Command exited non-zero: 1.']
+
+    result = runner.invoke(
+        cli.run, ['--no-profile', 'printf', '--', '--headless'])
+    assert m.call_args[0] == (['printf', '--', '--headless'],)
+    assert result.output.splitlines() == [
+        "Running cmd: ['printf', '--', '--headless']",
+        'Command exited non-zero: 1.']
+
+
+def test_cli_run_report_fd(capfd, mocker):
+    args = ['vim', '-es', '-Nu', 'tests/test_plugin/conditional_function.vim',
+            '-c q']
+    assert call(['covimerage', 'run'] + args) == 0
+    out, err = capfd.readouterr()
+
+    assert out.splitlines() == [
+        'Name                                         Stmts   Miss  Cover',
+        '----------------------------------------------------------------',
+        'tests/test_plugin/conditional_function.vim      13      5    62%']
+
+    err_lines = err.splitlines()
+    assert err_lines[0].startswith("Running cmd: ['vim', '-es', '-Nu', 'tests/test_plugin/conditional_function.vim', '-c q', '--cmd', 'profile start ")
+    assert err_lines[0].endswith("', '--cmd', 'profile! file ./*']")
+    assert err_lines[-1].startswith('Parsing profile file ')
+    assert len(err_lines) == 2
+
+
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
     out, err = capfd.readouterr()
