@@ -26,14 +26,6 @@ common: &common
               codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
               COVERAGE_FILE="$c" coverage report -m
             done
-
-            if [[ "$CIRCLE_JOB" = py36 ]]; then
-              echo "Uploading Python 3.6 coverage to coveralls..."
-              coverage combine .tox/py36-codecov/tmp/codecov-coverage*
-              coverage report -m
-              pip install --user coveralls
-              coveralls || true
-            fi
             set +x
           fi
 jobs:
