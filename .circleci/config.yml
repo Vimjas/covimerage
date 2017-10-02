@@ -42,35 +42,35 @@ jobs:
     docker:
       - image: circleci/python:3.6
         environment:
-          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+          TOXENV=py36-codecov,py36-integration-codecov
 
   py35:
     <<: *common
     docker:
       - image: circleci/python:3.5
         environment:
-          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+          TOXENV=py35-codecov,py35-integration-codecov
 
   py34:
     <<: *common
     docker:
       - image: circleci/python:3.4
         environment:
-          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+          TOXENV=py34-codecov,py34-integration-codecov
 
   py33:
     <<: *common
     docker:
       - image: circleci/python:3.3
         environment:
-          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+          TOXENV=py33-codecov,py33-integration-codecov
 
   py27:
     <<: *common
     docker:
       - image: circleci/python:2.7
         environment:
-          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+          TOXENV=py27-codecov,py27-integration-codecov
 
   checkqa:
     <<: *common
