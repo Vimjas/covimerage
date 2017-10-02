@@ -1,0 +1,88 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+
+common: &common
+  working_directory: ~/repo
+  steps:
+    - checkout
+    - restore_cache:
+        keys:
+          - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
+          - v1-deps-
+    - run:
+        name: run tox
+        command: tox -e $CIRCLE_JOB
+    - save_cache:
+        paths:
+          - .tox
+        key: v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
+    - run:
+        name: upload coverage results
+        command: |
+          if [[ "$TOXENV" != checkqa ]]; then
+            pip install codecov
+            set -x
+            for c in $(find .tox/py* -name 'codecov-coverage.*'); do
+              prof_name=${c##*/codecov-coverage.}
+              prof_name=${prof_name%-codecov}
+              prof_flags=${prof_name//-/ }
+              COVERAGE_FILE="$c" coverage xml
+              travis_retry codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
+              COVERAGE_FILE="$c" coverage report -m
+            done
+
+            if [ "$TRAVIS_PYTHON_VERSION" = 3.6 ]; then
+              echo "Uploading Python 3.6 coverage to coveralls..."
+              coverage combine .tox/py36-integration-codecov/tmp/codecov-coverage* \
+                .tox/py36-codecov/tmp/codecov-coverage*
+              pip install coveralls
+              coveralls
+              coverage report -m
+            fi
+            set +x
+          fi
+
+  py36:
+    <<: *common
+    docker:
+      - image: circleci/python:3.6
+        environment:
+          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+
+  py35:
+    <<: *common
+    docker:
+      - image: circleci/python:3.5
+        environment:
+          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+
+  py34:
+    <<: *common
+    docker:
+      - image: circleci/python:3.4
+        environment:
+          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+
+  py33:
+    <<: *common
+    docker:
+      - image: circleci/python:3.3
+        environment:
+          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+
+  py27:
+    <<: *common
+    docker:
+      - image: circleci/python:2.7
+        environment:
+          TOXENV=$CIRCLE_JOB-codecov,$CIRCLE_JOB-integration-codecov
+
+  checkqa:
+    <<: *common
+    docker:
+      - image: circleci/python:3.6
+        environment:
+          TOXENV=checkqa
