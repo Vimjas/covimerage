@@ -44,7 +44,7 @@ common: &common
             fi
             set +x
           fi
-
+jobs:
   py36:
     <<: *common
     docker:
