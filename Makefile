@@ -66,15 +66,7 @@ coverage-diff:
 build/coverage.pytest: $(shell find covimerage tests -name '*.py') | build
 	COVERAGE_FILE=$@ tox -e coverage.pytest
 
-build/coverage.integration: tests/integration.sh $(shell find covimerage tests -name '*.py') | build
-	tox -e integration
-	cp -a .tox/integration/tmp/.coverage.outer $@
-
-$(MAIN_COVERAGE): build/coverage.pytest build/coverage.integration
-	cd build \
-	  && cp -a coverage.pytest coverage.pytest.tmp \
-	  && cp -a coverage.integration coverage.integration.tmp \
-	  && COVERAGE_FILE=coverage coverage combine coverage.pytest.tmp coverage.integration.tmp
+$(MAIN_COVERAGE): build/coverage.pytest
 
 build/coverage.old:
 	$(MAKE) coverage-save

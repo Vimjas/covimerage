@@ -12,15 +12,15 @@ env:
 
 matrix:
   include:
-    - env: TOXENV=py36-codecov,py36-integration-codecov
+    - env: TOXENV=py36-codecov
       python: 3.6
-    - env: TOXENV=py35-codecov,py35-integration-codecov
+    - env: TOXENV=py35-codecov
       python: 3.5
-    - env: TOXENV=py34-codecov,py34-integration-codecov
+    - env: TOXENV=py34-codecov
       python: 3.4
-    - env: TOXENV=py33-codecov,py33-integration-codecov
+    - env: TOXENV=py33-codecov
       python: 3.3
-    - env: TOXENV=py27-codecov,py27-integration-codecov
+    - env: TOXENV=py27-codecov
       python: 2.7
     - env: TOXENV=checkqa
       python: 3.6
@@ -53,8 +53,6 @@ after_success:
 
       if [ "$TRAVIS_PYTHON_VERSION" = 3.6 ]; then
         echo "Uploading Python 3.6 coverage to coveralls..."
-        coverage combine .tox/py36-integration-codecov/tmp/codecov-coverage* \
-          .tox/py36-codecov/tmp/codecov-coverage*
         pip install coveralls
         coveralls
         coverage report -m
