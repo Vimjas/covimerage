@@ -26,6 +26,7 @@ common: &common
               COVERAGE_FILE="$c" coverage report -m
             done
 
+            # XXX
             if [ "$TRAVIS_PYTHON_VERSION" = 3.6 ]; then
               echo "Uploading Python 3.6 coverage to coveralls..."
               coverage combine .tox/py36-integration-codecov/tmp/codecov-coverage* \
@@ -42,35 +43,35 @@ jobs:
     docker:
       - image: circleci/python:3.6
         environment:
-          TOXENV=py36-codecov,py36-integration-codecov
+          TOXENV=py36-codecov
 
   py35:
     <<: *common
     docker:
       - image: circleci/python:3.5
         environment:
-          TOXENV=py35-codecov,py35-integration-codecov
+          TOXENV=py35-codecov
 
   py34:
     <<: *common
     docker:
       - image: circleci/python:3.4
         environment:
-          TOXENV=py34-codecov,py34-integration-codecov
+          TOXENV=py34-codecov
 
   py33:
     <<: *common
     docker:
       - image: circleci/python:3.3
         environment:
-          TOXENV=py33-codecov,py33-integration-codecov
+          TOXENV=py33-codecov
 
   py27:
     <<: *common
     docker:
       - image: circleci/python:2.7
         environment:
-          TOXENV=py27-codecov,py27-integration-codecov
+          TOXENV=py27-codecov
 
   checkqa:
     <<: *common
