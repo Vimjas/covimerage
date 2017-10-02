@@ -12,9 +12,8 @@ common: &common
         keys:
           - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
           - v1-deps-
-    - run:
-        name: run tox
-        command: tox -e $CIRCLE_JOB
+    - run: pip install --user tox
+    - run:  ~/.local/bin/tox -e $CIRCLE_JOB
     - save_cache:
         paths:
           - .tox
@@ -23,14 +22,15 @@ common: &common
         name: upload coverage results
         command: |
           if [[ "$TOXENV" != checkqa ]]; then
-            pip install codecov
+            # XXX: use bash script?!
+            pip install --user codecov
             set -x
             for c in $(find .tox/py* -name 'codecov-coverage.*'); do
               prof_name=${c##*/codecov-coverage.}
               prof_name=${prof_name%-codecov}
               prof_flags=${prof_name//-/ }
               COVERAGE_FILE="$c" coverage xml
-              travis_retry codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
+              ~/.local/bin/codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
               COVERAGE_FILE="$c" coverage report -m
             done
 
@@ -38,9 +38,9 @@ common: &common
               echo "Uploading Python 3.6 coverage to coveralls..."
               coverage combine .tox/py36-integration-codecov/tmp/codecov-coverage* \
                 .tox/py36-codecov/tmp/codecov-coverage*
-              pip install coveralls
-              coveralls
-              coverage report -m
+              pip install --user coveralls
+              ~/.local/bin/coveralls
+              ~/.local/bin/coverage report -m
             fi
             set +x
           fi
@@ -86,3 +86,14 @@ jobs:
       - image: circleci/python:3.6
         environment:
           TOXENV=checkqa
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - py36
+      - py35
+      - py34
+      - py33
+      - py27
+      - checkqa
