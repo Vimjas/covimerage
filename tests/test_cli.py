@@ -4,11 +4,24 @@ except ImportError:
     from io import StringIO
 import os
 from subprocess import call
+import sys
 
 import pytest
 
 from covimerage import cli
 from covimerage.__version__ import __version__
+
+
+def test_dunder_main_run(capfd):
+    assert call([sys.executable, '-m', 'covimerage']) == 0
+    out, err = capfd.readouterr()
+    assert out.startswith('Usage: __main__')
+
+
+def test_dunder_main_run_help(capfd):
+    assert call([sys.executable, '-m', 'covimerage', '--version']) == 0
+    out, err = capfd.readouterr()
+    assert out == 'covimerage, version %s\n' % __version__
 
 
 def test_cli():
