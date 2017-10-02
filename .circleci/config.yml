@@ -28,10 +28,10 @@ common: &common
 
             if [[ "$CIRCLE_JOB" = py36 ]]; then
               echo "Uploading Python 3.6 coverage to coveralls..."
-              pip install --user coveralls
-              COVERAGE_FILE="$c" ~/.local/bin/coverage xml
-              ~/.local/bin/coveralls
+              mv ./.tox/py36-codecov/tmp/codecov-coverage.py36-codecov .coverage
               ~/.local/bin/coverage report -m
+              pip install --user coveralls
+              ~/.local/bin/coveralls || true
             fi
             set +x
           fi
