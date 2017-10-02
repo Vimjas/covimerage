@@ -216,9 +216,11 @@ class Profile(object):
         try:
             return self.anonymous_functions[funcname]
         except KeyError:
-            (script, lnum) = self._get_anon_func_script_line(func)
-            self.anonymous_functions[func.name] = (script, lnum)
-        return self.anonymous_functions[funcname]
+            f_info = self._get_anon_func_script_line(func)
+            if f_info is not None:
+                (script, lnum) = f_info
+                self.anonymous_functions[func.name] = (script, lnum)
+                return self.anonymous_functions[funcname]
 
     def find_func_in_source(self, func):
         funcname = func.name
