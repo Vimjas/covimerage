@@ -47,7 +47,7 @@ after_success:
         prof_name=${prof_name%-codecov}
         prof_flags=${prof_name//-/ }
         COVERAGE_FILE="$c" coverage xml
-        travis_retry codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
+        travis_retry codecov --required -X search gcov pycov -f coverage.xml --flags travis $prof_flags
         COVERAGE_FILE="$c" coverage report -m
       done
 
