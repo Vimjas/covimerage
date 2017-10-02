@@ -53,6 +53,7 @@ after_success:
 
       if [ "$TRAVIS_PYTHON_VERSION" = 3.6 ]; then
         echo "Uploading Python 3.6 coverage to coveralls..."
+        coverage combine .tox/py36-codecov/tmp/codecov-coverage*
         pip install coveralls
         coveralls
         coverage report -m
