@@ -88,7 +88,7 @@ setup(
     },
     install_requires=REQUIRED,
     extras_require={
-        'testing': ['pytest', 'pytest-catchlog', 'pytest-mock'],
+        'testing': ['pytest', 'pytest-catchlog', 'pytest-cov', 'pytest-mock'],
         'dev': ['pdbpp'],
     },
     include_package_data=True,
