@@ -4,6 +4,7 @@ import attr
 from click.utils import string_types
 import coverage
 
+from ._compat import FileNotFoundError
 from .logging import LOGGER
 
 
@@ -61,9 +62,11 @@ class CoverageWrapper(object):
                 return False
             raise
 
-    def reportxml(self, report_file=None, include=None, omit=None):
+    def reportxml(self, report_file=None, include=None, omit=None,
+                  ignore_errors=None):
         self._cov_obj.xml_report(
-            outfile=report_file, include=include, omit=omit)
+            outfile=report_file, include=include, omit=omit,
+            ignore_errors=ignore_errors)
 
 
 class FileReporter(coverage.FileReporter):
@@ -80,7 +83,11 @@ class FileReporter(coverage.FileReporter):
     @property
     def split_lines(self):
         if self._split_lines is None:
-            self._split_lines = self.source().splitlines()
+            try:
+                self._split_lines = self.source().splitlines()
+            except FileNotFoundError as exc:
+                LOGGER.warning('%s', exc)
+                raise coverage.misc.NoSource(str(exc))
         return self._split_lines
 
     # NOTE: should be done before already, to end up in .coverage already.

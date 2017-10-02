@@ -2,12 +2,8 @@ import click
 
 from . import MergedProfiles, Profile
 from .__version__ import __version__
+from ._compat import FileNotFoundError
 from .logging import LOGGER
-
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})

@@ -10,8 +10,13 @@ import pytest
 def test_filereporter():
     from covimerage.coveragepy import FileReporter
 
-    f = FileReporter('filename')
-    assert repr(f) == "<CovimerageFileReporter 'filename'>"
+    f = FileReporter('/doesnotexist')
+    assert repr(f) == "<CovimerageFileReporter '/doesnotexist'>"
+
+    with pytest.raises(coverage.misc.NoSource) as excinfo:
+        f.lines()
+    assert excinfo.value.args == (
+        "[Errno 2] No such file or directory: '/doesnotexist'",)
 
 
 @pytest.fixture
