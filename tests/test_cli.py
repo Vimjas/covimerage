@@ -122,7 +122,7 @@ def test_cli_run_report_fd(capfd, mocker, tmpdir):
         profile_lines = f.readlines()
         profile_lines[0] = 'SCRIPT  tests/test_plugin/conditional_function.vim\n'
 
-    tmp_profile_fname = tmpdir.join('tmp.profile')
+    tmp_profile_fname = str(tmpdir.join('tmp.profile'))
     with open(tmp_profile_fname, 'w') as f:
         f.writelines(profile_lines)
     args = ['--no-wrap-profile', '--profile-file', tmp_profile_fname, 'true']
