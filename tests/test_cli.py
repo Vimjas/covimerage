@@ -222,3 +222,86 @@ def test_cli_writecoverage_datafile(runner):
     assert cov.lines == {
         '/test_plugin/conditional_function.vim': [
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
+
+
+def test_merged_conditionals(runner, capfd, tmpdir):
+    tmpfile = str(tmpdir.join('.coverage'))
+    result = runner.invoke(cli.main, [
+        'write_coverage', '--data-file', tmpfile,
+        'tests/fixtures/merged_conditionals-0.profile',
+        'tests/fixtures/merged_conditionals-1.profile',
+        'tests/fixtures/merged_conditionals-2.profile'])
+    assert result.output == '\n'.join([
+        'Writing coverage file %s.' % tmpfile,
+        ''])
+    assert result.exit_code == 0
+
+    coveragerc = str(tmpdir.join('.coveragerc'))
+    with open(coveragerc, 'w') as f:
+        f.write('[run]\nplugins = covimerage')
+
+    call(['env', 'COVERAGE_FILE=%s' % tmpfile,
+          'coverage', 'annotate', '--rcfile', coveragerc,
+          '--directory', tmpdir])
+    out, err = capfd.readouterr()
+    with open(os.path.join(tmpdir,
+                           'tests_test_plugin_merged_conditionals_vim,cover'),
+              'r') as annotated_file:
+        annotated_lines = annotated_file.read().splitlines()
+    assert annotated_lines == [
+        '> " Generate profile output for merged profiles.',
+        "> let cond = get(g:, 'test_conditional', 0)",
+        '  ',
+        '> if cond == 1',
+        '>   let foo = 1',
+        '> elseif cond == 2',
+        '>   let foo = 2',
+        '> elseif cond == 3',
+        '!   let foo = 3',
+        '! else',
+        ">   let foo = 'else'",
+        '> endif',
+        '  ',
+        '> function F(...)',
+        '>   if a:1 == 1',
+        '>     let foo = 1',
+        '>   elseif a:1 == 2',
+        '>     let foo = 2',
+        '>   elseif a:1 == 3',
+        '!     let foo = 3',
+        '!   else',
+        ">     let foo = 'else'",
+        '>   endif',
+        '> endfunction',
+        '  ',
+        '> call F(cond)',
+    ]
+
+
+def test_report_profile_or_data_file(runner, tmpdir):
+    from covimerage.cli import DEFAULT_COVERAGE_DATA_FILE
+
+    result = runner.invoke(cli.main, [
+        'report', '--data-file', '/does/not/exist'])
+    assert result.output.splitlines()[-1] == \
+        'Error: Invalid value for "--data-file": Could not open file: /does/not/exist: No such file or directory'  # noqa: E501
+    assert result.exit_code == 2
+
+    with tmpdir.as_cwd():
+        result = runner.invoke(cli.main, ['report'])
+    assert result.output.splitlines()[-1] == \
+        'Error: Invalid value for "--data-file": Could not open file: %s: No such file or directory' % DEFAULT_COVERAGE_DATA_FILE  # noqa: E501
+    assert result.exit_code == 2
+
+    result = runner.invoke(cli.main, ['report', '/does/not/exist'])
+    assert result.output.splitlines()[-1] == \
+        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'  # noqa: E501
+    assert result.exit_code == 2
+
+    result = runner.invoke(cli.main, [
+        'report', 'tests/fixtures/merged_conditionals-0.profile'])
+    assert result.output.splitlines() == [
+        'Name                                        Stmts   Miss  Cover',
+        '---------------------------------------------------------------',
+        'tests/test_plugin/merged_conditionals.vim      19     12    37%']
+    assert result.exit_code == 0

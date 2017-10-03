@@ -5,6 +5,7 @@ import os
 import re
 
 import attr
+from click.utils import string_types
 
 from .logging import LOGGER
 
@@ -132,8 +133,6 @@ class MergedProfiles(object):
         return self._coveragepy_data
 
     def write_coveragepy_data(self, data_file='.coverage'):
-        from click.utils import string_types
-
         cov_data = self.get_coveragepy_data()
         if not cov_data.line_counts():
             LOGGER.warning('Not writing coverage file: no data to report!')
@@ -157,6 +156,15 @@ class Profile(object):
     fname = attr.ib()
     scripts = attr.ib(default=attr.Factory(list))
     anonymous_functions = attr.ib(default=attr.Factory(dict))
+
+    def __attrs_post_init__(self):
+        if isinstance(self.fname, string_types):
+            pass
+        else:
+            try:
+                self.fname = self.fname.name
+            except AttributeError:
+                self.fname = str(self.fname)
 
     @property
     def scriptfiles(self):
@@ -282,8 +290,6 @@ class Profile(object):
         return True
 
     def parse(self):
-        if not self.fname:
-            raise ValueError('fname is not provided.')
         LOGGER.debug('Parsing file: %s', self.fname)
         with open(self.fname, 'r') as file_object:
             return self._parse(file_object)

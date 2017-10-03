@@ -7,6 +7,9 @@ test_integration:
 	tox -e integration
 
 # Fixture generation.
+PROFILES_TO_MERGE_COND:=tests/fixtures/merged_conditionals-0.profile \
+	tests/fixtures/merged_conditionals-1.profile \
+	tests/fixtures/merged_conditionals-2.profile
 fixtures: tests/fixtures/test_plugin.vim.profile
 fixtures: tests/fixtures/test_plugin.nvim.profile
 fixtures: tests/fixtures/dict_function.profile
@@ -15,6 +18,7 @@ fixtures: tests/fixtures/dict_function_with_continued_lines.profile
 fixtures: tests/fixtures/dict_function_used_twice.profile
 fixtures: tests/fixtures/continued_lines.profile
 fixtures: tests/fixtures/conditional_function.profile
+fixtures: $(PROFILES_TO_MERGE_COND)
 
 # TODO: cleanup.  Should be handled by the generic rule at the bottom.
 tests/fixtures/dict_function.profile: tests/test_plugin/dict_function.vim
@@ -35,6 +39,18 @@ PROFILES_TO_MERGE:=tests/fixtures/merge-1.profile tests/fixtures/merge-2.profile
 $(PROFILES_TO_MERGE): test_plugin/merged_profiles.vim test_plugin/merged_profiles-init.vim Makefile
 	$(VIM) -Nu test_plugin/merged_profiles-init.vim -c q
 	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  /test_plugin:' $(PROFILES_TO_MERGE)
+
+PROFILES_TO_MERGE_COND:=tests/fixtures/merged_conditionals-0.profile \
+	tests/fixtures/merged_conditionals-1.profile \
+	tests/fixtures/merged_conditionals-2.profile
+$(PROFILES_TO_MERGE_COND): tests/test_plugin/merged_conditionals.vim Makefile
+	for cond in 0 1 2; do \
+	  $(VIM) --noplugin -Nu tests/t.vim \
+	    --cmd "let g:prof_fname = 'tests/fixtures/merged_conditionals-$$cond.profile'" \
+	    --cmd "let test_conditional = $$cond" \
+			-c "source $<" -c q; \
+	done
+	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  tests/test_plugin:' $(PROFILES_TO_MERGE_COND)
 
 tests/fixtures/%.profile: tests/test_plugin/%.vim
 	$(VIM) --noplugin -Nu tests/t.vim --cmd 'let g:prof_fname = "$@"' -c 'source $<' -c q

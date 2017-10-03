@@ -15,6 +15,9 @@ def test_main_import():
 def test_profile_repr_lines():
     from covimerage import Line, Profile, Script
 
+    with pytest.raises(TypeError):
+        Profile()
+
     p = Profile('profile-path')
     s = Script('script-path')
     p.scripts.append(s)
