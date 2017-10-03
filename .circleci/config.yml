@@ -16,16 +16,11 @@ common: &common
           if [[ "$TOXENV" != checkqa ]]; then
             # XXX: use bash script?!
             PATH=$HOME/.local/bin:$PATH
-            pip install --user codecov
-            set -x
-            for c in $(find .tox/py* -name 'codecov-coverage.*'); do
-              prof_name=${c##*/codecov-coverage.}
-              prof_name=${prof_name%-codecov}
-              prof_flags=${prof_name//-/ }
-              COVERAGE_FILE="$c" coverage xml
-              codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
-              COVERAGE_FILE="$c" coverage report -m
-            done
+            pip install --user codecov coveralls
+            coverage xml
+            codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
+            coverage report -m
+            coveralls
             set +x
           fi
 jobs:
@@ -34,35 +29,35 @@ jobs:
     docker:
       - image: circleci/python:3.6
         environment:
-          TOXENV=py36-codecov
+          TOXENV=py36-coverage
 
   py35:
     <<: *common
     docker:
       - image: circleci/python:3.5
         environment:
-          TOXENV=py35-codecov
+          TOXENV=py35-coverage
 
   py34:
     <<: *common
     docker:
       - image: circleci/python:3.4
         environment:
-          TOXENV=py34-codecov
+          TOXENV=py34-coverage
 
   py33:
     <<: *common
     docker:
       - image: circleci/python:3.3
         environment:
-          TOXENV=py33-codecov
+          TOXENV=py33-coverage
 
   py27:
     <<: *common
     docker:
       - image: circleci/python:2.7
         environment:
-          TOXENV=py27-codecov
+          TOXENV=py27-coverage
 
   checkqa:
     <<: *common
