@@ -24,10 +24,20 @@ def test_dunder_main_run_help(capfd):
     assert out == 'covimerage, version %s\n' % __version__
 
 
-def test_cli():
-    with pytest.raises(SystemExit) as excinfo:
-        cli.write_coverage(['tests/fixtures/conditional_function.profile'])
-    assert excinfo.value.code == 0
+@pytest.fixture(autouse=True)
+def no_coverage_data_in_cwd():
+    yield
+    if os.path.exists('.coverage'):
+        pytest.fail('Test created a .coverage data file.  Use a tmpdir.')
+
+
+def test_cli(tmpdir):
+    with tmpdir.as_cwd() as old_dir:
+        with pytest.raises(SystemExit) as excinfo:
+            cli.write_coverage([os.path.join(old_dir,
+                                'tests/fixtures/conditional_function.profile')])
+        assert excinfo.value.code == 0
+        assert os.path.exists('.coverage')
 
     with pytest.raises(SystemExit) as excinfo:
         cli.write_coverage(['file not found'])
