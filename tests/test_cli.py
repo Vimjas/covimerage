@@ -41,7 +41,7 @@ def test_cli(tmpdir):
     with tmpdir.as_cwd() as old_dir:
         with pytest.raises(SystemExit) as excinfo:
             cli.write_coverage([os.path.join(
-                old_dir, 'tests/fixtures/conditional_function.profile')])
+                str(old_dir), 'tests/fixtures/conditional_function.profile')])
         assert excinfo.value.code == 0
         assert os.path.exists('.coverage')
 
