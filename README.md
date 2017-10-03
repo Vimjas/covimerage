@@ -57,8 +57,8 @@ plugins = covimerage
 ### 4. Create the report(s)
 
 You can now call e.g. `coverage report -m`, and you should be able to use
-coverage reporting platforms like <https://codecov.io/>, which are basically
-using `coverage xml`.
+coverage reporting platforms like <https://codecov.io/> or
+<https://coveralls.io>, which are basically using `coverage xml`.
 
 ## Reference implementation
 
