@@ -242,12 +242,10 @@ def test_merged_conditionals(runner, capfd, tmpdir):
 
     call(['env', 'COVERAGE_FILE=%s' % tmpfile,
           'coverage', 'annotate', '--rcfile', coveragerc,
-          '--directory', tmpdir])
+          '--directory', str(tmpdir)])
     out, err = capfd.readouterr()
-    with open(os.path.join(tmpdir,
-                           'tests_test_plugin_merged_conditionals_vim,cover'),
-              'r') as annotated_file:
-        annotated_lines = annotated_file.read().splitlines()
+    ann_fname = 'tests_test_plugin_merged_conditionals_vim,cover'
+    annotated_lines = tmpdir.join(ann_fname).read().splitlines()
     assert annotated_lines == [
         '> " Generate profile output for merged profiles.',
         "> let cond = get(g:, 'test_conditional', 0)",
