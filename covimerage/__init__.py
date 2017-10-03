@@ -1,6 +1,7 @@
 """The main covimerage module."""
 import copy
 import itertools
+import os
 import re
 
 import attr
@@ -110,8 +111,8 @@ class MergedProfiles(object):
         cov_dict = {}
         cov_file_tracers = {}
 
-        # TODO: should be absolute fname?!  (tests / verify with coveragepy)
         for fname, lines in self.lines.items():
+            fname = os.path.abspath(fname)
             cov_dict[fname] = {
                 # lnum: line.count for lnum, line in lines.items()
                 # XXX: coveragepy does not support hit counts?!

@@ -48,8 +48,8 @@ def write_coverage(filename, data_file):
     allow_interspersed_args=False,
 ))
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-@click.option('--profile/--no-profile', required=False, default=True,
-              show_default=True,
+@click.option('--wrap-profile/--no-wrap-profile', required=False,
+              default=True, show_default=True,
               help='Wrap VIM cmd with options to create a PROFILE_FILE.')
 @click.option('--profile-file', required=False, type=click.File('w'),
               metavar='PROFILE_FILE', show_default=True,
@@ -59,11 +59,11 @@ def write_coverage(filename, data_file):
 @click.option('--report/--no-report', is_flag=True, default=True,
               help='Automatically report.  This avoids having to write an intermediate data file.')  # noqa: E501
 @click.option('--report-file', type=click.File('w'),
-              help='Automatically report.  This avoids having to write an intermediate data file.')  # noqa: E501
+              help='Report output file.  Defaults to stdout.')
 @click.option('--report-options', required=False,
               help='Options to be passed on to `covimerage report`.')
 @click.pass_context
-def run(ctx, args, profile, profile_file, write_data, data_file,
+def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
         report, report_file, report_options):
     """
     Run VIM wrapped with :profile instructions.
@@ -87,7 +87,7 @@ def run(ctx, args, profile, profile_file, write_data, data_file,
             report_opts = {}
 
     args = list(args)
-    if profile:
+    if wrap_profile:
         if not profile_file:
             # TODO: remove it automatically in the end?
             profile_file_name = tempfile.mktemp(prefix='covimerage.profile.')
@@ -95,6 +95,8 @@ def run(ctx, args, profile, profile_file, write_data, data_file,
             profile_file_name = profile_file.name
         args += ['--cmd', 'profile start %s' % profile_file_name,
                  '--cmd', 'profile! file ./*']
+    else:
+        profile_file_name = profile_file.name if profile_file else None
     cmd = args
     LOGGER.info('Running cmd: %s', cmd)
 
@@ -106,7 +108,7 @@ def run(ctx, args, profile, profile_file, write_data, data_file,
     if exit_code != 0:
         LOGGER.error('Command exited non-zero: %d.', exit_code)
 
-    if profile:
+    if profile_file_name:
         if not os.path.exists(profile_file_name):
             msg = 'The profile file (%s) has not been created.'
             raise click.exceptions.ClickException(msg % profile_file_name)

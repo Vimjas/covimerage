@@ -26,10 +26,15 @@ def test_dunder_main_run_help(capfd):
 
 @pytest.fixture(autouse=True)
 def no_coverage_data_in_cwd():
+    fname = '.coverage'
+    old_coverage = os.stat(fname) if os.path.exists(fname) else None
     yield
-    if os.path.exists('.coverage'):
-        pytest.fail('Test created a .coverage data file.  Use a tmpdir.')
-
+    if os.path.exists(fname):
+        if old_coverage is None:
+            pytest.fail('Test created a .coverage data file.  Use a tmpdir.')
+        elif old_coverage != os.stat('.coverage'):
+            pytest.fail('Test changed an existing .coverage data file. '
+                        'Use a tmpdir.')
 
 def test_cli(tmpdir):
     with tmpdir.as_cwd() as old_dir:
@@ -84,43 +89,54 @@ def test_cli_run_subprocess_exception(runner, mocker):
 def test_cli_run_args(runner, mocker):
     m = mocker.patch('subprocess.call')
     result = runner.invoke(
-        cli.run, ['--no-profile', 'printf', '--headless'])
+        cli.run, ['--no-wrap-profile', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--headless']",
         'Command exited non-zero: 1.']
 
     result = runner.invoke(
-        cli.run, ['--no-profile', '--', 'printf', '--headless'])
+        cli.run, ['--no-wrap-profile', '--', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--headless']",
         'Command exited non-zero: 1.']
 
     result = runner.invoke(
-        cli.run, ['--no-profile', 'printf', '--', '--headless'])
+        cli.run, ['--no-wrap-profile', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
         'Command exited non-zero: 1.']
 
 
-def test_cli_run_report_fd(capfd, mocker):
-    args = ['vim', '-es', '-Nu', 'tests/test_plugin/conditional_function.vim',
-            '-c q']
-    assert call(['covimerage', 'run'] + args) == 0
+# def test_cli_run_report(runner, mocker):
+#     args = ['vim', '-Nu', 'tests/test_plugin/conditional_function.vim']
+#     result = runner.invoke(cli.run, args)
+
+
+def test_cli_run_report_fd(capfd, mocker, tmpdir):
+    profile_fname = 'tests/fixtures/conditional_function.profile'
+    with open(profile_fname, 'r') as f:
+        profile_lines = f.readlines()
+        profile_lines[0] = 'SCRIPT  tests/test_plugin/conditional_function.vim\n'
+
+    tmp_profile_fname = tmpdir.join('tmp.profile')
+    with open(tmp_profile_fname, 'w') as f:
+        f.writelines(profile_lines)
+    args = ['--no-wrap-profile', '--profile-file', tmp_profile_fname, 'true']
+    exit_code = call(['covimerage', 'run'] + args)
     out, err = capfd.readouterr()
+    assert exit_code == 0, err
 
     assert out.splitlines() == [
         'Name                                         Stmts   Miss  Cover',
         '----------------------------------------------------------------',
         'tests/test_plugin/conditional_function.vim      13      5    62%']
 
-    err_lines = err.splitlines()
-    assert err_lines[0].startswith("Running cmd: ['vim', '-es', '-Nu', 'tests/test_plugin/conditional_function.vim', '-c q', '--cmd', 'profile start ")
-    assert err_lines[0].endswith("', '--cmd', 'profile! file ./*']")
-    assert err_lines[-1].startswith('Parsing profile file ')
-    assert len(err_lines) == 2
+    assert err.splitlines() == [
+        "Running cmd: ['true']",
+        'Parsing profile file %s.' % tmp_profile_fname]
 
 
 def test_cli_call(capfd):
