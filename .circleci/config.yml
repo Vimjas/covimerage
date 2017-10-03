@@ -20,7 +20,8 @@ common: &common
             coverage xml
             codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
             coverage report -m
-            coveralls
+            # Coveralls fails for now (https://github.com/lemurheavy/coveralls-public/issues/1018).
+            coveralls || true
             set +x
           fi
 jobs:
