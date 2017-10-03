@@ -120,7 +120,7 @@ def test_cli_run_report_fd(capfd, mocker, tmpdir):
     profile_fname = 'tests/fixtures/conditional_function.profile'
     with open(profile_fname, 'r') as f:
         profile_lines = f.readlines()
-        profile_lines[0] = 'SCRIPT  tests/test_plugin/conditional_function.vim\n'
+    profile_lines[0] = 'SCRIPT  tests/test_plugin/conditional_function.vim\n'
 
     tmp_profile_fname = str(tmpdir.join('tmp.profile'))
     with open(tmp_profile_fname, 'w') as f:
