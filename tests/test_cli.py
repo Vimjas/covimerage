@@ -100,7 +100,7 @@ def test_cli_run_args(runner, mocker, devnull):
 
     result = runner.invoke(cli.run, [
         '--no-wrap-profile', '--no-report', '--profile-file', devnull,
-        'printf', '--', '--headless'])
+        '--no-write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
@@ -134,6 +134,8 @@ def test_cli_run_args(runner, mocker, devnull):
 
 
 def test_cli_run_report_fd(capfd, tmpdir):
+    from covimerage import DEFAULT_COVERAGE_DATA_FILE
+
     profile_fname = 'tests/fixtures/conditional_function.profile'
     with open(profile_fname, 'r') as f:
         profile_lines = f.readlines()
@@ -154,7 +156,8 @@ def test_cli_run_report_fd(capfd, tmpdir):
 
     assert err.splitlines() == [
         "Running cmd: ['true']",
-        'Parsing profile file %s.' % tmp_profile_fname]
+        'Parsing profile file %s.' % tmp_profile_fname,
+        'Writing coverage file %s.' % DEFAULT_COVERAGE_DATA_FILE]
 
 
 def test_cli_call(capfd):

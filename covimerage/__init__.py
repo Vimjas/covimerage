@@ -10,6 +10,7 @@ from click.utils import string_types
 from .logging import LOGGER
 from .utils import get_fname_and_fobj_and_str
 
+DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
 RE_CONTINUING_LINE = r'\s*\\'
