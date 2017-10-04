@@ -74,15 +74,9 @@ class CoverageWrapper(object):
 
     def report(self, report_file=None, show_missing=None,
                include=None, omit=None, skip_covered=None):
-        try:
-            self._cov_obj.report(
-                file=report_file, show_missing=show_missing, include=include,
-                omit=omit, skip_covered=None)
-        except coverage.CoverageException as exc:
-            LOGGER.warning('Exception from coverage: %r', exc)
-            if exc.args == ('No data to report.',):
-                return False
-            raise
+        self._cov_obj.report(
+            file=report_file, show_missing=show_missing, include=include,
+            omit=omit, skip_covered=None)
 
     def reportxml(self, report_file=None, include=None, omit=None,
                   ignore_errors=None):
