@@ -3,7 +3,7 @@ import logging
 import coverage
 import pytest
 
-from covimerage._compat import StringIO
+from covimerage._compat import FileNotFoundError, StringIO
 
 
 def test_main_import():
