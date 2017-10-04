@@ -8,7 +8,7 @@ compatible with [Coverage.py](http://coverage.readthedocs.io/).
 **NOTE:** this `develop` branch will be squash-merged into master after some
 stabilization (1-2 weeks).
 
-[![Build Status](https://travis-ci.org/Vimjas/covimerage.svg?branch=develop)](https://travis-ci.org/Vimjas/covimerage)
+[![CircleCI](https://circleci.com/gh/Vimjas/covimerage.svg?style=svg)](https://circleci.com/gh/Vimjas/covimerage)
 [![codecov](https://codecov.io/gh/Vimjas/covimerage/branch/develop/graph/badge.svg)](https://codecov.io/gh/Vimjas/covimerage/branch/develop)
 
 ## Installation
