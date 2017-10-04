@@ -4,7 +4,6 @@ import click
 
 from . import MergedProfiles, Profile
 from .__version__ import __version__
-from ._compat import FileNotFoundError
 from .coveragepy import CoverageWrapper
 from .logging import LOGGER
 
