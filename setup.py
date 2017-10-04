@@ -96,6 +96,7 @@ setup(
         ],
         'dev': [
             'pdbpp',
+            'pytest-pdb',
         ],
     },
     include_package_data=True,
