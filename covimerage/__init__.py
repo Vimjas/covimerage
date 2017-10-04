@@ -8,6 +8,7 @@ import attr
 from click.utils import string_types
 
 from .logging import LOGGER
+from .utils import get_fname_and_fobj_and_str
 
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
@@ -158,13 +159,8 @@ class Profile(object):
     anonymous_functions = attr.ib(default=attr.Factory(dict))
 
     def __attrs_post_init__(self):
-        if isinstance(self.fname, string_types):
-            pass
-        else:
-            try:
-                self.fname = self.fname.name
-            except AttributeError:
-                self.fname = str(self.fname)
+        self.fname, self.fobj, self.fstr = get_fname_and_fobj_and_str(
+            self.fname)
 
     @property
     def scriptfiles(self):
@@ -290,7 +286,9 @@ class Profile(object):
         return True
 
     def parse(self):
-        LOGGER.debug('Parsing file: %s', self.fname)
+        LOGGER.debug('Parsing file: %s', self.fstr)
+        if self.fobj:
+            return self._parse(self.fobj)
         with open(self.fname, 'r') as file_object:
             return self._parse(file_object)
 
@@ -375,7 +373,7 @@ class Profile(object):
                 except Exception as exc:
                     LOGGER.warning(
                         'Could not parse count/times from line: %s (%s:%d).',
-                        line, self.fname, plnum)
+                        line, self.fstr, plnum)
                     continue
                 source_line = line[28:]
 

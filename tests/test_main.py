@@ -1,11 +1,9 @@
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import logging
 
 import coverage
 import pytest
+
+from covimerage._compat import StringIO
 
 
 def test_main_import():
@@ -26,6 +24,27 @@ def test_profile_repr_lines():
     l = Line('line1')
     s.lines[1] = l
     assert repr(p.lines) == ("{Script(path='script-path'): {1: %r}}" % l)
+
+
+def test_profile_fname_or_fobj(caplog, devnull):
+    from covimerage import Profile
+
+    with pytest.raises(FileNotFoundError) as excinfo:
+        Profile('/does/not/exist').parse()
+    assert str(excinfo.value) == \
+        "[Errno 2] No such file or directory: '/does/not/exist'"
+
+    with caplog.at_level(logging.NOTSET, logger='covimerage'):
+        Profile(devnull).parse()
+    msgs = [(r.levelname, r.message) for r in caplog.records]
+    assert msgs == [('DEBUG', 'Parsing file: /dev/null')]
+
+    fileobj = StringIO('')
+    with caplog.at_level(logging.NOTSET, logger='covimerage'):
+        Profile(fileobj).parse()
+    msgs = [(r.levelname, r.message) for r in caplog.records]
+    assert msgs[-1] == ('DEBUG', 'Parsing file: %s' % fileobj)
+    assert len(msgs) == 2
 
 
 def test_parse_count_and_times():
@@ -158,10 +177,10 @@ def test_profile_parse_dict_function():
 def test_profile_parse_dict_function_with_same_source(caplog):
     from covimerage import Profile
 
-    caplog.set_level(logging.NOTSET, logger='covimerage')
     fname = 'tests/fixtures/dict_function_with_same_source.profile'
-    p = Profile(fname)
-    p.parse()
+    with caplog.at_level(logging.NOTSET, logger='covimerage'):
+        p = Profile(fname)
+        p.parse()
 
     assert len(p.scripts) == 1
 
