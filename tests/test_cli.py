@@ -24,19 +24,6 @@ def test_dunder_main_run_help(capfd):
     assert out == 'covimerage, version %s\n' % __version__
 
 
-@pytest.fixture(autouse=True)
-def no_coverage_data_in_cwd():
-    fname = '.coverage'
-    old_coverage = os.stat(fname) if os.path.exists(fname) else None
-    yield
-    if os.path.exists(fname):
-        if old_coverage is None:
-            pytest.fail('Test created a .coverage data file.  Use a tmpdir.')
-        elif old_coverage != os.stat('.coverage'):
-            pytest.fail('Test changed an existing .coverage data file. '
-                        'Use a tmpdir.')
-
-
 def test_cli(tmpdir):
     with tmpdir.as_cwd() as old_dir:
         with pytest.raises(SystemExit) as excinfo:
