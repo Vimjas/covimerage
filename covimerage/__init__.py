@@ -385,7 +385,7 @@ class Profile(object):
                         # Parse line 1 always, as a workaround for
                         # https://github.com/vim/vim/issues/2103.  # noqa
                         in_script.parse_script_line(lnum, source_line)
-                elif in_function:
+                else:
                     if count is None:
                         # Functions do not have continued lines, assume 0.
                         count = 0

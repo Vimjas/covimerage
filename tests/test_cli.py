@@ -74,7 +74,7 @@ def test_cli_run_subprocess_exception(runner, mocker):
     assert result.exit_code == 1
 
 
-def test_cli_run_args(runner, mocker):
+def test_cli_run_args(runner, mocker, devnull):
     m = mocker.patch('subprocess.call')
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', 'printf', '--headless'])
@@ -97,13 +97,42 @@ def test_cli_run_args(runner, mocker):
         "Running cmd: ['printf', '--', '--headless']",
         'Command exited non-zero: 1.']
 
+    result = runner.invoke(cli.run, [
+        '--no-wrap-profile', '--no-report', '--profile-file', devnull,
+        'printf', '--', '--headless'])
+    assert m.call_args[0] == (['printf', '--', '--headless'],)
+    assert result.output.splitlines() == [
+        "Running cmd: ['printf', '--', '--headless']",
+        'Command exited non-zero: 1.']
 
-# def test_cli_run_report(runner, mocker):
-#     args = ['vim', '-Nu', 'tests/test_plugin/conditional_function.vim']
-#     result = runner.invoke(cli.run, args)
+    result = runner.invoke(cli.run, [
+        '--no-wrap-profile', '--no-report', '--profile-file', devnull,
+        '--write-data', 'printf', '--', '--headless'])
+    assert m.call_args[0] == (['printf', '--', '--headless'],)
+    assert result.output.splitlines() == [
+        "Running cmd: ['printf', '--', '--headless']",
+        'Command exited non-zero: 1.',
+        'Parsing profile file /dev/null.',
+        'Not writing coverage file: no data to report!']
+
+    f = StringIO()
+    profile_file = 'tests/fixtures/conditional_function.profile'
+    result = runner.invoke(cli.run, [
+        '--no-wrap-profile', '--no-report',
+        '--profile-file', profile_file,
+        '--write-data', '--data-file', f,
+        'printf', '--', '--headless'])
+    assert m.call_args[0] == (['printf', '--', '--headless'],)
+    assert result.output.splitlines() == [
+        "Running cmd: ['printf', '--', '--headless']",
+        'Command exited non-zero: 1.',
+        'Parsing profile file %s.' % profile_file,
+        'Writing coverage file %r.' % f]
+    f.seek(0)
+    assert f.read().startswith('!coverage.py:')
 
 
-def test_cli_run_report_fd(capfd, mocker, tmpdir):
+def test_cli_run_report_fd(capfd, tmpdir):
     profile_fname = 'tests/fixtures/conditional_function.profile'
     with open(profile_fname, 'r') as f:
         profile_lines = f.readlines()
@@ -155,7 +184,7 @@ def test_cli_call(capfd):
     assert out == ''
 
 
-def test_cli_call_verbosity_fd(capfd, mocker):
+def test_cli_call_verbosity_fd(capfd):
     assert call(['covimerage', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
