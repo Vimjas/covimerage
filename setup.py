@@ -15,9 +15,9 @@ from setuptools import setup, Command
 # Package meta-data.
 NAME = 'covimerage'
 DESCRIPTION = 'Generate coverage information for Vim scripts.'
-# URL = 'https://github.com/me/myproject'
+URL = 'https://github.com/Vimjas/covimerage'
 # EMAIL = 'me@example.com'
-# AUTHOR = 'Awesome Soul'
+AUTHOR = 'Daniel Hahler'
 
 # What packages are required for this module to be executed?
 REQUIRED = ['attrs', 'click', 'coverage']
@@ -79,9 +79,9 @@ setup(
     version=about['__version__'],
     description=DESCRIPTION,
     # long_description=long_description,
-    # author=AUTHOR,
+    author=AUTHOR,
     # author_email=EMAIL,
-    # url=URL,
+    url=URL,
     packages=['covimerage'],
     entry_points={
         'console_scripts': ['covimerage=covimerage.cli:main'],
