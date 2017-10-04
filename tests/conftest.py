@@ -5,14 +5,14 @@ from click.testing import CliRunner
 import pytest
 
 
-@pytest.fixture(scope='function', autouse=True)
+@pytest.fixture(autouse=True)
 def ensure_no_coverage_data_changed_in_cwd():
-    fnames = glob('.coverage*')
+    fnames = glob('.coverage')
     old_coverage = {
         fname: os.stat(fname) if os.path.exists(fname) else None
         for fname in fnames}
     yield
-    new_fnames = glob('.coverage*')
+    new_fnames = glob('.coverage')
     for new_fname in new_fnames:  # pragma: no cover
         old_stat = old_coverage.get(new_fname)
         if old_stat is None:
