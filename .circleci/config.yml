@@ -30,7 +30,7 @@ common: &common
     - save_cache:
         paths:
           - .tox
-          - $HOME/.cache/pip
+          - ~/.cache/pip
         key: v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
 jobs:
   py36:
