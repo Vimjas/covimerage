@@ -13,7 +13,7 @@ class CoverageWrapperException(click.ClickException):
     """Inherit from ClickException for automatic handling."""
     def format_message(self):
         """Append information about original exception if any."""
-        msg = super().format_message()
+        msg = super(CoverageWrapperException, self).format_message()
         if self.__context__:
             return '%s (%r)' % (msg, self.__context__)
         return msg
