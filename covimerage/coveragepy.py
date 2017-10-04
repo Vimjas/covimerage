@@ -11,11 +11,15 @@ from .utils import get_fname_and_fobj_and_str
 
 class CoverageWrapperException(click.ClickException):
     """Inherit from ClickException for automatic handling."""
+    def __init__(self, message, orig_exc=None):
+        self.orig_exc = orig_exc
+        super(CoverageWrapperException, self).__init__(message)
+
     def format_message(self):
         """Append information about original exception if any."""
         msg = super(CoverageWrapperException, self).format_message()
-        if getattr(self, '__context__', None):
-            return '%s (%r)' % (msg, self.__context__)
+        if self.orig_exc:
+            return '%s (%r)' % (msg, self.orig_exc)
         return msg
 
 
@@ -40,7 +44,8 @@ class CoverageWrapper(object):
                     cov_data.read_file(self.data_file)
             except coverage.CoverageException as exc:
                 raise CoverageWrapperException(
-                    'Coverage could not read data_file: %s' % fname)
+                    'Coverage could not read data_file: %s' % fname,
+                    orig_exc=exc)
             else:
                 object.__setattr__(self, 'data', cov_data)
         elif self.data_file is not None:

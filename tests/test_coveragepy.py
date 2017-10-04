@@ -53,6 +53,6 @@ def test_coveragewrapperexception():
     with pytest.raises(CoverageWrapperException) as excinfo:
         try:
             raise Exception('orig')
-        except Exception:
-            raise CoverageWrapperException('bar')
+        except Exception as orig_exc:
+            raise CoverageWrapperException('bar', orig_exc=orig_exc)
     assert excinfo.value.format_message() == "bar (Exception('orig',))"
