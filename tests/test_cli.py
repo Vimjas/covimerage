@@ -24,7 +24,7 @@ def test_dunder_main_run_help(capfd):
     assert out == 'covimerage, version %s\n' % __version__
 
 
-def test_cli(tmpdir):
+def test_cli(runner, tmpdir):
     with tmpdir.as_cwd() as old_dir:
         with pytest.raises(SystemExit) as excinfo:
             cli.write_coverage([os.path.join(
@@ -32,9 +32,10 @@ def test_cli(tmpdir):
         assert excinfo.value.code == 0
         assert os.path.exists('.coverage')
 
-    with pytest.raises(SystemExit) as excinfo:
-        cli.write_coverage(['file not found'])
-    assert excinfo.value.code == 1
+    result = runner.invoke(cli.main, ['write_coverage', '/does/not/exist'])
+    assert result.output.splitlines()[-1].startswith(
+        'Error: Invalid value for "profile_file": Could not open file:')
+    assert result.exit_code == 2
 
 
 @pytest.mark.parametrize('arg', ('-V', '--version'))
@@ -175,12 +176,11 @@ def test_cli_call(capfd):
         'Error: No such command "file not found".']
     assert out == ''
 
-    assert call(['covimerage', 'write_coverage', 'file not found']) == 1
+    assert call(['covimerage', 'write_coverage', 'file not found']) == 2
     out, err = capfd.readouterr()
     err_lines = err.splitlines()
-    assert err_lines == [
-        'Error: Could not open file file not found: '
-        'No such file or directory']
+    assert err_lines[-1] == (
+        'Error: Invalid value for "profile_file": Could not open file: file not found: No such file or directory')  # noqa: E501
     assert out == ''
 
 

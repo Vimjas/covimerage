@@ -71,6 +71,12 @@ class MergedProfiles(object):
             self._coveragepy_data = None
         super(MergedProfiles, self).__setattr__(name, value)
 
+    def add_profile_files(self, *profile_files):
+        for f in profile_files:
+            p = Profile(f)
+            p.parse()
+            self.profiles.append(p)
+
     @property
     def scripts(self):
         return itertools.chain.from_iterable(p.scripts for p in self.profiles)

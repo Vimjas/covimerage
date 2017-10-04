@@ -21,24 +21,16 @@ def main(verbose, quiet):
 
 
 @main.command()
-@click.argument('filename', required=True, nargs=-1)
+@click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
 @click.option('--data-file', required=False, show_default=True,
               default='.coverage', type=click.File(mode='w'))
-def write_coverage(filename, data_file):
+def write_coverage(profile_file, data_file):
     """
-    Parse FILENAME (output from Vim's :profile) and write it into DATA_FILE
+    Parse PROFILE_FILE (output from Vim's :profile) and write it into DATA_FILE
     (Coverage.py compatible).
     """
-    profiles = []
-    for f in filename:
-        p = Profile(f)
-        try:
-            p.parse()
-        except FileNotFoundError as exc:
-            raise click.FileError(f, exc.strerror)
-        profiles.append(p)
-
-    m = MergedProfiles(profiles)
+    m = MergedProfiles()
+    m.add_profile_files(*profile_file)
     if not m.write_coveragepy_data(data_file=data_file):
         raise click.ClickException('No data to report.')
 
@@ -140,8 +132,7 @@ def report_data_file_cb(ctx, param, value):
 
 
 @main.command()
-@click.argument('profile_file', type=click.File('r'), required=False,
-                nargs=-1)
+@click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
 @click.option('--data-file', required=False, callback=report_data_file_cb,
               default=DEFAULT_COVERAGE_DATA_FILE, show_default=True,
               help='DATA_FILE to use in case PROFILE_FILE is not provided.')
@@ -165,16 +156,8 @@ def report(profile_file, data_file, show_missing, include, omit, skip_covered):
     """
     if profile_file:
         data_file = None
-        profiles = []
-        for f in profile_file:
-            p = Profile(f)
-            try:
-                p.parse()
-            except FileNotFoundError as exc:
-                raise click.FileError(f, exc.strerror)
-            profiles.append(p)
-
-        m = MergedProfiles(profiles)
+        m = MergedProfiles()
+        m.add_profile_files(*profile_file)
         data = m.get_coveragepy_data()
     else:
         data = None
