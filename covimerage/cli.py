@@ -4,7 +4,6 @@ import click
 
 from . import MergedProfiles, Profile
 from .__version__ import __version__
-from ._compat import FileNotFoundError
 from .coveragepy import CoverageWrapper
 from .logging import LOGGER
 
@@ -21,24 +20,16 @@ def main(verbose, quiet):
 
 
 @main.command()
-@click.argument('filename', required=True, nargs=-1)
+@click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
 @click.option('--data-file', required=False, show_default=True,
               default='.coverage', type=click.File(mode='w'))
-def write_coverage(filename, data_file):
+def write_coverage(profile_file, data_file):
     """
-    Parse FILENAME (output from Vim's :profile) and write it into DATA_FILE
+    Parse PROFILE_FILE (output from Vim's :profile) and write it into DATA_FILE
     (Coverage.py compatible).
     """
-    profiles = []
-    for f in filename:
-        p = Profile(f)
-        try:
-            p.parse()
-        except FileNotFoundError as exc:
-            raise click.FileError(f, exc.strerror)
-        profiles.append(p)
-
-    m = MergedProfiles(profiles)
+    m = MergedProfiles()
+    m.add_profile_files(*profile_file)
     if not m.write_coveragepy_data(data_file=data_file):
         raise click.ClickException('No data to report.')
 
@@ -131,9 +122,19 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                     report_file=report_file, **report_opts)
 
 
+def report_data_file_cb(ctx, param, value):
+    """Use click.File for data_file only if it is used, to prevent an error
+    if it does not exist (click tries to open it always)."""
+    if ctx.params.get('profile_file', ()):
+        return value
+    return click.File('r').convert(value, param, ctx)
+
+
 @main.command()
-@click.option('--data-file', required=False, type=click.File('r'),
-              default=DEFAULT_COVERAGE_DATA_FILE, show_default=True)
+@click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
+@click.option('--data-file', required=False, callback=report_data_file_cb,
+              default=DEFAULT_COVERAGE_DATA_FILE, show_default=True,
+              help='DATA_FILE to use in case PROFILE_FILE is not provided.')
 @click.option('--show-missing', '-m', is_flag=True, default=False,
               help='Show line numbers of statements in each file that were not executed.')  # noqa: E501
 @click.option('--include', required=False,
@@ -142,14 +143,24 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
               help='Omit files whose paths match one of these patterns. Accepts shell-style wildcards, which must be quoted.')  # noqa: E501
 @click.option('--skip-covered', is_flag=True, default=False,
               help='Skip files with 100% coverage.')
-def report(data_file, show_missing, include, omit, skip_covered):
+def report(profile_file, data_file, show_missing, include, omit, skip_covered):
     """
     A wrapper around `coverage report`.
 
     This will automatically add covimerage as a plugin, and then just forwards
     most options.
+
+    If PROFILE_FILE is provided this gets parsed, otherwise DATA_FILE is
+    being used.
     """
-    CoverageWrapper(data_file=data_file).report(
+    if profile_file:
+        data_file = None
+        m = MergedProfiles()
+        m.add_profile_files(*profile_file)
+        data = m.get_coveragepy_data()
+    else:
+        data = None
+    CoverageWrapper(data=data, data_file=data_file).report(
         show_missing=show_missing, include=include, omit=omit,
         skip_covered=skip_covered)
 

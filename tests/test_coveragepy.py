@@ -24,8 +24,8 @@ def coverage_fileobj():
     return StringIO('\n'.join(['!coverage.py: This is a private format, don\'t read it directly!{"lines":{"/test_plugin/conditional_function.vim":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']))  # noqa: E501
 
 
-def test_coveragewrapper(coverage_fileobj):
-    from covimerage.coveragepy import CoverageWrapper
+def test_coveragewrapper(coverage_fileobj, devnull):
+    from covimerage.coveragepy import CoverageWrapper, CoverageWrapperException
 
     with pytest.raises(TypeError):
         CoverageWrapper()
@@ -43,3 +43,21 @@ def test_coveragewrapper(coverage_fileobj):
 
     assert isinstance(cov._cov_obj, coverage.control.Coverage)
     assert cov._cov_obj.data is cov.data
+
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        CoverageWrapper(data_file=devnull.name)
+    assert excinfo.value.args == (
+        'Coverage could not read data_file: /dev/null',)
+
+
+def test_coveragewrapperexception():
+    from covimerage.coveragepy import CoverageWrapperException
+
+    assert CoverageWrapperException('foo').format_message() == 'foo'
+
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        try:
+            raise Exception('orig')
+        except Exception as orig_exc:
+            raise CoverageWrapperException('bar', orig_exc=orig_exc)
+    assert excinfo.value.format_message() == "bar (Exception('orig',))"

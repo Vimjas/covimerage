@@ -5,8 +5,10 @@ import os
 import re
 
 import attr
+from click.utils import string_types
 
 from .logging import LOGGER
+from .utils import get_fname_and_fobj_and_str
 
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
@@ -68,6 +70,12 @@ class MergedProfiles(object):
         if name == 'profiles':
             self._coveragepy_data = None
         super(MergedProfiles, self).__setattr__(name, value)
+
+    def add_profile_files(self, *profile_files):
+        for f in profile_files:
+            p = Profile(f)
+            p.parse()
+            self.profiles.append(p)
 
     @property
     def scripts(self):
@@ -132,8 +140,6 @@ class MergedProfiles(object):
         return self._coveragepy_data
 
     def write_coveragepy_data(self, data_file='.coverage'):
-        from click.utils import string_types
-
         cov_data = self.get_coveragepy_data()
         if not cov_data.line_counts():
             LOGGER.warning('Not writing coverage file: no data to report!')
@@ -157,6 +163,10 @@ class Profile(object):
     fname = attr.ib()
     scripts = attr.ib(default=attr.Factory(list))
     anonymous_functions = attr.ib(default=attr.Factory(dict))
+
+    def __attrs_post_init__(self):
+        self.fname, self.fobj, self.fstr = get_fname_and_fobj_and_str(
+            self.fname)
 
     @property
     def scriptfiles(self):
@@ -282,9 +292,9 @@ class Profile(object):
         return True
 
     def parse(self):
-        if not self.fname:
-            raise ValueError('fname is not provided.')
-        LOGGER.debug('Parsing file: %s', self.fname)
+        LOGGER.debug('Parsing file: %s', self.fstr)
+        if self.fobj:
+            return self._parse(self.fobj)
         with open(self.fname, 'r') as file_object:
             return self._parse(file_object)
 
@@ -369,7 +379,7 @@ class Profile(object):
                 except Exception as exc:
                     LOGGER.warning(
                         'Could not parse count/times from line: %s (%s:%d).',
-                        line, self.fname, plnum)
+                        line, self.fstr, plnum)
                     continue
                 source_line = line[28:]
 
@@ -381,7 +391,7 @@ class Profile(object):
                         # Parse line 1 always, as a workaround for
                         # https://github.com/vim/vim/issues/2103.  # noqa
                         in_script.parse_script_line(lnum, source_line)
-                elif in_function:
+                else:
                     if count is None:
                         # Functions do not have continued lines, assume 0.
                         count = 0

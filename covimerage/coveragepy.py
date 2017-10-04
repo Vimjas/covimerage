@@ -1,11 +1,26 @@
 import re
 
 import attr
-from click.utils import string_types
+import click
 import coverage
 
 from ._compat import FileNotFoundError
 from .logging import LOGGER
+from .utils import get_fname_and_fobj_and_str
+
+
+class CoverageWrapperException(click.ClickException):
+    """Inherit from ClickException for automatic handling."""
+    def __init__(self, message, orig_exc=None):
+        self.orig_exc = orig_exc
+        super(CoverageWrapperException, self).__init__(message)
+
+    def format_message(self):
+        """Append information about original exception if any."""
+        msg = super(CoverageWrapperException, self).format_message()
+        if self.orig_exc:
+            return '%s (%r)' % (msg, self.orig_exc)
+        return msg
 
 
 @attr.s(frozen=True)
@@ -21,11 +36,18 @@ class CoverageWrapper(object):
             if not self.data_file:
                 raise TypeError('data or data_file needs to be provided.')
             cov_data = coverage.data.CoverageData()
-            if isinstance(self.data_file, string_types):
-                cov_data.read_file(self.data_file)
+            fname, fobj, _ = get_fname_and_fobj_and_str(self.data_file)
+            try:
+                if fobj:
+                    cov_data.read_fileobj(self.data_file)
+                else:
+                    cov_data.read_file(self.data_file)
+            except coverage.CoverageException as exc:
+                raise CoverageWrapperException(
+                    'Coverage could not read data_file: %s' % fname,
+                    orig_exc=exc)
             else:
-                cov_data.read_fileobj(self.data_file)
-            object.__setattr__(self, 'data', cov_data)
+                object.__setattr__(self, 'data', cov_data)
         elif self.data_file is not None:
             raise TypeError('data and data_file are mutually exclusive.')
 
@@ -52,15 +74,9 @@ class CoverageWrapper(object):
 
     def report(self, report_file=None, show_missing=None,
                include=None, omit=None, skip_covered=None):
-        try:
-            self._cov_obj.report(
-                file=report_file, show_missing=show_missing, include=include,
-                omit=omit, skip_covered=None)
-        except coverage.CoverageException as exc:
-            LOGGER.warning('Exception from coverage: %r', exc)
-            if exc.args == ('No data to report.',):
-                return False
-            raise
+        self._cov_obj.report(
+            file=report_file, show_missing=show_missing, include=include,
+            omit=omit, skip_covered=None)
 
     def reportxml(self, report_file=None, include=None, omit=None,
                   ignore_errors=None):

@@ -1,3 +1,15 @@
+from covimerage import get_fname_and_fobj_and_str
+from covimerage._compat import StringIO
+
+
+def test_get_fname_and_fobj_and_str(devnull):
+    F = get_fname_and_fobj_and_str
+    assert F('foo') == ('foo', None, 'foo')
+    assert F(None) == (None, None, 'None')
+    assert F(devnull) == ('/dev/null', devnull, '/dev/null')
+    s = StringIO('')
+    assert F(s) == (None, s, str(s))
+
 # Not used currently, but inlined.
 # from covimerage import join_script_lines
 
