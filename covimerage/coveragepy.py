@@ -14,7 +14,7 @@ class CoverageWrapperException(click.ClickException):
     def format_message(self):
         """Append information about original exception if any."""
         msg = super(CoverageWrapperException, self).format_message()
-        if self.__context__:
+        if getattr(self, '__context__', None):
             return '%s (%r)' % (msg, self.__context__)
         return msg
 
