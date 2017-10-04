@@ -134,8 +134,6 @@ def test_cli_run_args(runner, mocker, devnull):
 
 
 def test_cli_run_report_fd(capfd, tmpdir):
-    from covimerage import DEFAULT_COVERAGE_DATA_FILE
-
     profile_fname = 'tests/fixtures/conditional_function.profile'
     with open(profile_fname, 'r') as f:
         profile_lines = f.readlines()
