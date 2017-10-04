@@ -287,9 +287,9 @@ def test_report_profile_or_data_file(runner, tmpdir):
 
     result = runner.invoke(cli.main, [
         'report', '--data-file', os.devnull])
-    assert result.output.splitlines()[-2:] == [
-        'Exception from coverage: CoverageException("Doesn\'t seem to be a coverage.py data file",)',  # noqa: E501
-        'Error: Coverage could not read data_file: /dev/null']
+    cov_exc = 'CoverageException("Doesn\'t seem to be a coverage.py data file",)'  # noqa: E501
+    assert result.output.splitlines()[-1] == \
+        'Error: Coverage could not read data_file: /dev/null (%s)' % cov_exc
     assert result.exit_code == 1
 
     with tmpdir.as_cwd():

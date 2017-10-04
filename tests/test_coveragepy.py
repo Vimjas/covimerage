@@ -43,3 +43,16 @@ def test_coveragewrapper(coverage_fileobj):
 
     assert isinstance(cov._cov_obj, coverage.control.Coverage)
     assert cov._cov_obj.data is cov.data
+
+
+def test_coveragewrapperexception():
+    from covimerage.coveragepy import CoverageWrapperException
+
+    assert CoverageWrapperException('foo').format_message() == 'foo'
+
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        try:
+            raise Exception('orig')
+        except Exception:
+            raise CoverageWrapperException('bar')
+    assert excinfo.value.format_message() == "bar (Exception('orig',))"

@@ -1,11 +1,22 @@
 import re
 
 import attr
-from click.utils import string_types
+import click
 import coverage
 
 from ._compat import FileNotFoundError
 from .logging import LOGGER
+from .utils import get_fname_and_fobj_and_str
+
+
+class CoverageWrapperException(click.ClickException):
+    """Inherit from ClickException for automatic handling."""
+    def format_message(self):
+        """Append information about original exception if any."""
+        msg = super().format_message()
+        if self.__context__:
+            return '%s (%r)' % (msg, self.__context__)
+        return msg
 
 
 @attr.s(frozen=True)
@@ -21,11 +32,17 @@ class CoverageWrapper(object):
             if not self.data_file:
                 raise TypeError('data or data_file needs to be provided.')
             cov_data = coverage.data.CoverageData()
-            if isinstance(self.data_file, string_types):
-                cov_data.read_file(self.data_file)
+            fname, fobj, _ = get_fname_and_fobj_and_str(self.data_file)
+            try:
+                if fobj:
+                    cov_data.read_fileobj(self.data_file)
+                else:
+                    cov_data.read_file(self.data_file)
+            except coverage.CoverageException as exc:
+                raise CoverageWrapperException(
+                    'Coverage could not read data_file: %s' % fname)
             else:
-                cov_data.read_fileobj(self.data_file)
-            object.__setattr__(self, 'data', cov_data)
+                object.__setattr__(self, 'data', cov_data)
         elif self.data_file is not None:
             raise TypeError('data and data_file are mutually exclusive.')
 
