@@ -134,10 +134,9 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
 def report_data_file_cb(ctx, param, value):
     """Use click.File for data_file only if it is used, to prevent an error
     if it does not exist (click tries to open it always)."""
-    if not ctx.params.get('profile_file', ()):
-        value = click.File('r').convert(value, param, ctx)
-        return param.convert()
-    return value
+    if ctx.params.get('profile_file', ()):
+        return value
+    return click.File('r').convert(value, param, ctx)
 
 
 @main.command()

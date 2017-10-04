@@ -285,6 +285,13 @@ def test_report_profile_or_data_file(runner, tmpdir):
         'Error: Invalid value for "--data-file": Could not open file: /does/not/exist: No such file or directory'  # noqa: E501
     assert result.exit_code == 2
 
+    result = runner.invoke(cli.main, [
+        'report', '--data-file', os.devnull])
+    assert result.output.splitlines()[-2:] == [
+        'Exception from coverage: CoverageException("Doesn\'t seem to be a coverage.py data file",)',  # noqa: E501
+        'Error: Coverage could not read data_file: /dev/null']
+    assert result.exit_code == 1
+
     with tmpdir.as_cwd():
         result = runner.invoke(cli.main, ['report'])
     assert result.output.splitlines()[-1] == \
