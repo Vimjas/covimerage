@@ -2,12 +2,10 @@ import os
 
 import click
 
-from . import MergedProfiles, Profile
+from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
 from .logging import LOGGER
-
-DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
@@ -45,8 +43,11 @@ def write_coverage(profile_file, data_file):
 @click.option('--profile-file', required=False, type=click.File('w'),
               metavar='PROFILE_FILE', show_default=True,
               help='File name for the PROFILE_FILE file.  By default a temporary file is used.')  # noqa: E501
-@click.option('--data-file', required=False, type=click.File('w'))
-@click.option('--write-data', '-w', is_flag=True, default=False)
+@click.option('--data-file', required=False, type=click.File('w'),
+              help='DATA_FILE to write into.', show_default=True)
+@click.option('--write-data/--no-write-data', is_flag=True,
+              default=True, show_default=True,
+              help='Write Coverage.py compatible DATA_FILE.')
 @click.option('--report/--no-report', is_flag=True, default=True,
               help='Automatically report.  This avoids having to write an intermediate data file.')  # noqa: E501
 @click.option('--report-file', type=click.File('w'),

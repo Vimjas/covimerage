@@ -1,20 +1,25 @@
+from glob import glob
 import os
 
 from click.testing import CliRunner
 import pytest
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(autouse=True)
 def ensure_no_coverage_data_changed_in_cwd():
-    fname = '.coverage'
-    old_coverage = os.stat(fname) if os.path.exists(fname) else None
+    fnames = glob('.coverage')
+    old_coverage = {
+        fname: os.stat(fname) if os.path.exists(fname) else None
+        for fname in fnames}
     yield
-    if os.path.exists(fname):  # pragma: no cover
-        if old_coverage is None:
-            pytest.fail('Test created a .coverage data file.  Use a tmpdir.')
-        elif old_coverage != os.stat('.coverage'):
-            pytest.fail('Test changed an existing .coverage data file. '
-                        'Use a tmpdir.')
+    new_fnames = glob('.coverage')
+    for new_fname in new_fnames:  # pragma: no cover
+        old_stat = old_coverage.get(new_fname)
+        if old_stat is None:
+            pytest.fail('Test created a data file: %s.' % new_fname)
+        elif old_stat != os.stat(new_fname):
+            pytest.fail('Test changed an existing data file: %s.' % (
+                new_fname))
 
 
 @pytest.fixture
