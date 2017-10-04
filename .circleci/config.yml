@@ -8,6 +8,10 @@ common: &common
   working_directory: ~/repo
   steps:
     - checkout
+    - restore_cache:
+        keys:
+          - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
+          - v1-deps-
     - run: pip install --user tox
     - run:  ~/.local/bin/tox
     - run:
@@ -23,6 +27,11 @@ common: &common
             coveralls
             set +x
           fi
+    - save_cache:
+        paths:
+          - .tox
+          - $HOME/.cache/pip
+        key: v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
 jobs:
   py36:
     <<: *common
