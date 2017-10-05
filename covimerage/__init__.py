@@ -321,7 +321,8 @@ class Profile(object):
                     func_name = in_function.name
                     script_line = self.find_func_in_source(in_function)
                     if not script_line:
-                        LOGGER.error('Could not find source for function: %s', func_name)  # noqa
+                        LOGGER.error('Could not find source for function: %s',
+                                     func_name)
                         in_function = False
                         continue
 
@@ -342,16 +343,16 @@ class Profile(object):
                                 except KeyError:
                                     pass
                                 else:
-                                    m = re.match(RE_CONTINUING_LINE, peek.line)  # noqa
+                                    m = re.match(RE_CONTINUING_LINE, peek.line)
                                     if m:
-                                        script_source += peek.line[m.end():]  # noqa
+                                        script_source += peek.line[m.end():]
                                         script_lnum += 1
                                         # script_lines.append(peek)
                                         continue
                                 if script_source == f_line.line:
                                     break
 
-                                assert 0, 'Script line matches function line.'  # noqa
+                                assert 0, 'Script line matches function line.'
 
                         if f_line.count is not None:
                             if s_line.count:
@@ -390,7 +391,7 @@ class Profile(object):
                         total_time=total_time, self_time=self_time)
                     if count or lnum == 1:
                         # Parse line 1 always, as a workaround for
-                        # https://github.com/vim/vim/issues/2103.  # noqa
+                        # https://github.com/vim/vim/issues/2103.
                         in_script.parse_script_line(lnum, source_line)
                 else:
                     if count is None:
