@@ -1,5 +1,24 @@
 from covimerage import get_fname_and_fobj_and_str
 from covimerage._compat import StringIO
+from covimerage.utils import build_vim_profile_args
+
+
+def test_build_vim_profile_args(devnull, tmpdir):
+    F = build_vim_profile_args
+
+    fname = devnull.name
+    dname = str(tmpdir)
+
+    assert F(fname, [fname]) == [
+        '--cmd', 'profile start %s' % fname,
+        '--cmd', 'profile! file %s' % fname]
+    assert F(fname, [dname]) == [
+        '--cmd', 'profile start %s' % fname,
+        '--cmd', 'profile! file %s/*' % dname]
+    assert F(fname, [fname, dname]) == [
+        '--cmd', 'profile start %s' % fname,
+        '--cmd', 'profile! file %s' % fname,
+        '--cmd', 'profile! file %s/*' % dname]
 
 
 def test_get_fname_and_fobj_and_str(devnull):

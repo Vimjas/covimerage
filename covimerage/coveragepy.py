@@ -76,7 +76,7 @@ class CoverageWrapper(object):
                include=None, omit=None, skip_covered=None):
         self._cov_obj.report(
             file=report_file, show_missing=show_missing, include=include,
-            omit=omit, skip_covered=None)
+            omit=omit, skip_covered=skip_covered)
 
     def reportxml(self, report_file=None, include=None, omit=None,
                   ignore_errors=None):

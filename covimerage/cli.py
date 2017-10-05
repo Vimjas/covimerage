@@ -6,6 +6,7 @@ from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
 from .logging import LOGGER
+from .utils import build_vim_profile_args
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
@@ -52,11 +53,14 @@ def write_coverage(profile_file, data_file):
               help='Automatically report.  This avoids having to write an intermediate data file.')  # noqa: E501
 @click.option('--report-file', type=click.File('w'),
               help='Report output file.  Defaults to stdout.')
+# TODO: rather handle this via real options, and pass them through?!
 @click.option('--report-options', required=False,
               help='Options to be passed on to `covimerage report`.')
+@click.option('--source', type=click.types.Path(exists=True), default=['.'],
+              multiple=True)
 @click.pass_context
 def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
-        report, report_file, report_options):
+        report, report_file, report_options, source):
     """
     Run VIM wrapped with :profile instructions.
 
@@ -85,8 +89,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             profile_file_name = tempfile.mktemp(prefix='covimerage.profile.')
         else:
             profile_file_name = profile_file.name
-        args += ['--cmd', 'profile start %s' % profile_file_name,
-                 '--cmd', 'profile! file ./*']
+        args += build_vim_profile_args(profile_file_name, source)
     else:
         profile_file_name = profile_file.name if profile_file else None
     cmd = args
@@ -108,7 +111,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             LOGGER.info('Parsing profile file %s.', profile_file_name)
             p = Profile(profile_file_name)
             p.parse()
-            m = MergedProfiles([p])
+            m = MergedProfiles([p], source=source)
 
             if write_data and not data_file:
                 data_file = DEFAULT_COVERAGE_DATA_FILE
@@ -119,8 +122,8 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                 cov_data = m.get_coveragepy_data()
                 if not cov_data:
                     raise click.ClickException('No data to report.')
-                CoverageWrapper(data=cov_data).report(
-                    report_file=report_file, **report_opts)
+                report_opts['data'] = cov_data
+                ctx.invoke(report_cmd, **report_opts)
 
 
 def report_data_file_cb(ctx, param, value):
@@ -134,17 +137,20 @@ def report_data_file_cb(ctx, param, value):
 @main.command()
 @click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
 @click.option('--data-file', required=False, callback=report_data_file_cb,
-              default=DEFAULT_COVERAGE_DATA_FILE, show_default=True,
-              help='DATA_FILE to use in case PROFILE_FILE is not provided.')
-@click.option('--show-missing', '-m', is_flag=True, default=False,
-              help='Show line numbers of statements in each file that were not executed.')  # noqa: E501
-@click.option('--include', required=False,
-              help='Include only files whose paths match one of these patterns. Accepts shell-style wildcards, which must be quoted.')  # noqa: E501
-@click.option('--omit', required=False,
-              help='Omit files whose paths match one of these patterns. Accepts shell-style wildcards, which must be quoted.')  # noqa: E501
+              default=DEFAULT_COVERAGE_DATA_FILE, show_default=True, help=(
+                  'DATA_FILE to use in case PROFILE_FILE is not provided.'))
+@click.option('--show-missing', '-m', is_flag=True, default=False, help=(
+    'Show line numbers of statements in each file that was not executed.'))
+@click.option('--include', required=False, multiple=True, help=(
+    'Include only files whose paths match one of these patterns. '
+    'Accepts shell-style wildcards, which must be quoted.'))
+@click.option('--omit', required=False, multiple=True, help=(
+    'Omit files whose paths match one of these patterns. '
+    'Accepts shell-style wildcards, which must be quoted.'))
 @click.option('--skip-covered', is_flag=True, default=False,
               help='Skip files with 100% coverage.')
-def report(profile_file, data_file, show_missing, include, omit, skip_covered):
+def report(profile_file, data_file, show_missing, include, omit, skip_covered,
+           data=None):
     """
     A wrapper around `coverage report`.
 
@@ -154,25 +160,28 @@ def report(profile_file, data_file, show_missing, include, omit, skip_covered):
     If PROFILE_FILE is provided this gets parsed, otherwise DATA_FILE is
     being used.
     """
-    if profile_file:
+    if data:
+        data_file = None
+    elif profile_file:
         data_file = None
         m = MergedProfiles()
         m.add_profile_files(*profile_file)
         data = m.get_coveragepy_data()
-    else:
-        data = None
     CoverageWrapper(data=data, data_file=data_file).report(
         show_missing=show_missing, include=include, omit=omit,
         skip_covered=skip_covered)
 
 
+# TODO: support / pass through --rcfile?!
 @main.command()
 @click.option('--data-file', required=False, type=click.File('r'),
               default=DEFAULT_COVERAGE_DATA_FILE, show_default=True)
-@click.option('--include', required=False,
-              help='Include only files whose paths match one of these patterns. Accepts shell-style wildcards, which must be quoted.')  # noqa: E501
-@click.option('--omit', required=False,
-              help='Omit files whose paths match one of these patterns. Accepts shell-style wildcards, which must be quoted.')  # noqa: E501
+@click.option('--include', required=False, multiple=True, help=(
+    'Include only files whose paths match one of these patterns. '
+    'Accepts shell-style wildcards, which must be quoted.'))
+@click.option('--omit', required=False, multiple=True, help=(
+    'Omit files whose paths match one of these patterns. '
+    'Accepts shell-style wildcards, which must be quoted.'))
 @click.option('--ignore-errors', is_flag=True, default=False,
               show_default=True, required=False,
               help='Ignore errors while reading source files.')
