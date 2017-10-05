@@ -52,9 +52,9 @@ $(PROFILES_TO_MERGE_COND): tests/test_plugin/merged_conditionals.vim Makefile
 	done
 	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  tests/test_plugin:' $(PROFILES_TO_MERGE_COND)
 
-tests/fixtures/%.profile: tests/test_plugin/%.vim
+tests/fixtures/%.profile: tests/test_plugin/%.vim Makefile
 	$(VIM) --noplugin -Nu tests/t.vim --cmd 'let g:prof_fname = "$@"' -c 'source $<' -c q
-	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  /test_plugin:' $@
+	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  tests/test_plugin:' $@
 
 
 # Helpers to generate (combined) coverage and show a diff {{{
