@@ -70,6 +70,13 @@ class PublishCommand(Command):
         sys.exit()
 
 
+DEPS_QA = [
+    'flake8',
+    'flake8-isort',
+    'flake8-quotes',
+]
+
+
 # Where the magic happens:
 setup(
     name=NAME,
@@ -94,7 +101,8 @@ setup(
         'dev': [
             'pdbpp',
             'pytest-pdb',
-        ],
+        ] + DEPS_QA,
+        'qa': DEPS_QA,
     },
     include_package_data=True,
     license='MIT',
