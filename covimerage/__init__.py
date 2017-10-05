@@ -63,6 +63,7 @@ class Function(object):
 @attr.s
 class MergedProfiles(object):
     profiles = attr.ib(default=attr.Factory(list))
+    source = attr.ib(default=attr.Factory(list))
 
     _coveragepy_data = None
 
@@ -113,6 +114,15 @@ class MergedProfiles(object):
                     lines[s.path] = copy.copy(s_lines)
         return lines
 
+    def find_executable_files(self, src_dir):
+        for i, (dirpath, dirnames, filenames) in enumerate(os.walk(src_dir)):
+            for filename in filenames:
+                # We're only interested in files that look like reasonable Vim
+                # files: Must end with .vim, and must not have certain funny
+                # characters that probably mean they are editor junk.
+                if re.match(r"^[^.#~!$@%^&*()+=,]+\.vim?$", filename):
+                    yield os.path.join(dirpath, filename)
+
     def _get_coveragepy_data(self):
         import coverage
 
@@ -120,13 +130,32 @@ class MergedProfiles(object):
         cov_dict = {}
         cov_file_tracers = {}
 
+        source_files = []
+        for source in self.source:
+            source = os.path.abspath(source)
+            if os.path.isfile(source):
+                source_files.append(source)
+            else:
+                source_files.extend(self.find_executable_files(source))
+        LOGGER.debug('source_files: %r', source_files)
+
         for fname, lines in self.lines.items():
             fname = os.path.abspath(fname)
+            if self.source and fname not in source_files:
+                LOGGER.info('Ignoring non-source: %s', fname)
+                continue
+
             cov_dict[fname] = {
                 # lnum: line.count for lnum, line in lines.items()
                 # XXX: coveragepy does not support hit counts?!
                 lnum: None for lnum, line in lines.items() if line.count
             }
+            cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
+        measured_files = cov_dict.keys()
+        non_measured_files = set(source_files) - set(measured_files)
+        for fname in non_measured_files:
+            LOGGER.debug('Non-measured file: %s', fname)
+            cov_dict[fname] = {}
             cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
 
         cov_data.add_lines(cov_dict)
@@ -140,6 +169,7 @@ class MergedProfiles(object):
             self._coveragepy_data = self._get_coveragepy_data()
         return self._coveragepy_data
 
+    # TODO: move to CoverageWrapper
     def write_coveragepy_data(self, data_file='.coverage'):
         cov_data = self.get_coveragepy_data()
         if not cov_data.line_counts():

@@ -108,6 +108,7 @@ def test_cli_run_args(runner, mocker, devnull):
 
     result = runner.invoke(cli.run, [
         '--no-wrap-profile', '--no-report', '--profile-file', devnull,
+        '--source', devnull.name,
         '--write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
@@ -144,6 +145,7 @@ def test_cli_run_report_fd(capfd, tmpdir):
         f.writelines(profile_lines)
     data_file = str(tmpdir.join('datafile'))
     args = ['--no-wrap-profile', '--profile-file', tmp_profile_fname,
+            '--source', 'tests/test_plugin/conditional_function.vim',
             '--data-file', data_file, 'true']
     exit_code = call(['covimerage', 'run'] + args)
     out, err = capfd.readouterr()
@@ -198,6 +200,7 @@ def test_cli_call_verbosity_fd(capfd):
     assert out == ''
     assert err.splitlines() == [
         'Parsing file: /dev/null',
+        'source_files: []',
         'Not writing coverage file: no data to report!',
         'Error: No data to report.']
 
@@ -237,7 +240,7 @@ def test_cli_writecoverage_datafile(runner):
     f.seek(0)
     cov = CoverageWrapper(data_file=f)
     assert cov.lines == {
-        '/test_plugin/conditional_function.vim': [
+        os.path.abspath('tests/test_plugin/conditional_function.vim'): [
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
 
 
