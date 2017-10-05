@@ -94,5 +94,9 @@ build/covreport.new: $(MAIN_COVERAGE) | build
 	COVERAGE_FILE=$< coverage report -m > $@ || { ret=$$?; cat $@; exit $$ret; }
 # }}}
 
+tags:
+	rg --files-with-matches . | ctags --links=no -L-
+.PHONY: tags
+
 build:
 	mkdir -p $@
