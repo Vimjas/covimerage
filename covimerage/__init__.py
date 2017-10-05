@@ -120,7 +120,7 @@ class MergedProfiles(object):
                 # We're only interested in files that look like reasonable Vim
                 # files: Must end with .vim, and must not have certain funny
                 # characters that probably mean they are editor junk.
-                if re.match(r"^[^.#~!$@%^&*()+=,]+\.vim?$", filename):
+                if re.match(r'^[^.#~!$@%^&*()+=,]+\.vim?$', filename):
                     yield os.path.join(dirpath, filename)
 
     def _get_coveragepy_data(self):
