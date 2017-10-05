@@ -1,12 +1,13 @@
 import os
 
-import click
 import click as c
 
 from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
 from .logging import LOGGER
+
+import click  # isort:skip
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
