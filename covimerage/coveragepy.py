@@ -5,7 +5,7 @@ import click
 import coverage
 
 from ._compat import FileNotFoundError
-from .logging import LOGGER
+from .logger import LOGGER
 from .utils import get_fname_and_fobj_and_str
 
 

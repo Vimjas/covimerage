@@ -5,7 +5,7 @@ import click
 from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
-from .logging import LOGGER
+from .logger import LOGGER
 from .utils import build_vim_profile_args
 
 
@@ -15,7 +15,7 @@ from .utils import build_vim_profile_args
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
 def main(verbose, quiet):
     if verbose - quiet:
-        LOGGER.setLevel(LOGGER.level - (verbose - quiet) * 10)
+        LOGGER.setLevel(max(10, LOGGER.level - (verbose - quiet) * 10))
 
 
 @main.command()
