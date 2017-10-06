@@ -20,11 +20,15 @@ common: &common
           if [[ "$TOXENV" != checkqa ]]; then
             # XXX: use bash script?!
             PATH=$HOME/.local/bin:$PATH
-            pip install --user codecov coveralls
+            pip install --user codecov
             coverage xml
-            codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
             coverage report -m
-            coveralls
+            codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
+
+            if [[ "$CIRCLE_JOB" == py36 ]]; then
+              pip install --user coveralls
+              coveralls
+            fi
             set +x
           fi
     - save_cache:
