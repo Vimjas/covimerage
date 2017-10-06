@@ -19,6 +19,38 @@ def test_filereporter():
         "[Errno 2] No such file or directory: '/doesnotexist'",)
 
 
+def test_filereporter_source_handles_latin1(tmpdir):
+    from covimerage.coveragepy import FileReporter
+
+    with tmpdir.as_cwd():
+        with open('iso.txt', 'wb') as f:
+            f.write(b'Hellstr\xf6m')
+        with open('utf8.txt', 'wb') as f:
+            f.write(b'Hellstr\xc3\xb6m')
+
+        assert FileReporter('iso.txt').source().encode(
+            'utf-8') == b'Hellstr\xc3\xb6m'
+        assert FileReporter('iso.txt').source().encode(
+            'utf-8') == b'Hellstr\xc3\xb6m'
+
+
+def test_filereporter_source_exception(mocker, devnull):
+    from covimerage.coveragepy import CoverageWrapperException, FileReporter
+
+    class CustomException(Exception):
+        pass
+
+    m = mocker.mock_open()
+    m.return_value.read.side_effect = CustomException
+    mocker.patch('covimerage.coveragepy.open', m)
+
+    f = FileReporter(devnull.name)
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        f.source()
+
+    assert isinstance(excinfo.value.orig_exc, CustomException)
+
+
 @pytest.fixture
 def coverage_fileobj():
     return StringIO('\n'.join(['!coverage.py: This is a private format, don\'t read it directly!{"lines":{"/test_plugin/conditional_function.vim":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']))  # noqa: E501
