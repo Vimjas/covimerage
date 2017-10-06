@@ -2,6 +2,8 @@ try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
+import sys
+
 import attr
 import coverage
 import pytest
@@ -34,8 +36,11 @@ def test_filereporter_source_handles_latin1(tmpdir):
             'utf-8') == b'Hellstr\xc3\xb6m'
 
 
+@pytest.mark.skipif(sys.version_info[0] == 3 and sys.version_info[1] < 5,
+                    reason='Failed to patch open with py33/py34.')
 def test_filereporter_source_exception(mocker, devnull):
     from covimerage.coveragepy import CoverageWrapperException, FileReporter
+    __import__('pdb').set_trace()
 
     class CustomException(Exception):
         pass
