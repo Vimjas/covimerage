@@ -43,35 +43,30 @@ jobs:
       - image: circleci/python:3.6
         environment:
           TOXENV=py36-coverage
-
   py35:
     <<: *common
     docker:
       - image: circleci/python:3.5
         environment:
           TOXENV=py35-coverage
-
   py34:
     <<: *common
     docker:
       - image: circleci/python:3.4
         environment:
           TOXENV=py34-coverage
-
   py33:
     <<: *common
     docker:
       - image: circleci/python:3.3
         environment:
           TOXENV=py33-coverage
-
   py27:
     <<: *common
     docker:
       - image: circleci/python:2.7
         environment:
           TOXENV=py27-coverage
-
   checkqa:
     <<: *common
     docker:
