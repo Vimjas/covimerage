@@ -96,14 +96,27 @@ class FileReporter(coverage.FileReporter):
     def __repr__(self):
         return '<CovimerageFileReporter {0!r}>'.format(self.filename)
 
+    def source(self):
+        try:
+            with open(self.filename, 'rb') as f:
+                source = f.read()
+                try:
+                    return source.decode('utf8')
+                except UnicodeDecodeError:
+                    LOGGER.debug('UnicodeDecodeError in %s for utf8. '
+                                 'Trying iso-8859-15.', self.filename)
+                    return source.decode('iso-8859-15')
+        except FileNotFoundError as exc:
+            LOGGER.warning('%s', exc)
+            raise coverage.misc.NoSource(str(exc))
+        except Exception as exc:
+            raise CoverageWrapperException(
+                'Could not read source for %s.' % self.filename, orig_exc=exc)
+
     @property
     def split_lines(self):
         if self._split_lines is None:
-            try:
-                self._split_lines = self.source().splitlines()
-            except FileNotFoundError as exc:
-                LOGGER.warning('%s', exc)
-                raise coverage.misc.NoSource(str(exc))
+            self._split_lines = self.source().splitlines()
         return self._split_lines
 
     # NOTE: should be done before already, to end up in .coverage already.

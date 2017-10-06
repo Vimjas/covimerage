@@ -2,6 +2,8 @@ try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
+import sys
+
 import attr
 import coverage
 import pytest
@@ -17,6 +19,40 @@ def test_filereporter():
         f.lines()
     assert excinfo.value.args == (
         "[Errno 2] No such file or directory: '/doesnotexist'",)
+
+
+def test_filereporter_source_handles_latin1(tmpdir):
+    from covimerage.coveragepy import FileReporter
+
+    with tmpdir.as_cwd():
+        with open('iso.txt', 'wb') as f:
+            f.write(b'Hellstr\xf6m')
+        with open('utf8.txt', 'wb') as f:
+            f.write(b'Hellstr\xc3\xb6m')
+
+        assert FileReporter('iso.txt').source().encode(
+            'utf-8') == b'Hellstr\xc3\xb6m'
+        assert FileReporter('iso.txt').source().encode(
+            'utf-8') == b'Hellstr\xc3\xb6m'
+
+
+@pytest.mark.skipif(sys.version_info[0] == 3 and sys.version_info[1] < 5,
+                    reason='Failed to patch open with py33/py34.')
+def test_filereporter_source_exception(mocker, devnull):
+    from covimerage.coveragepy import CoverageWrapperException, FileReporter
+
+    class CustomException(Exception):
+        pass
+
+    m = mocker.mock_open()
+    m.return_value.read.side_effect = CustomException
+    mocker.patch('covimerage.coveragepy.open', m)
+
+    f = FileReporter(devnull.name)
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        f.source()
+
+    assert isinstance(excinfo.value.orig_exc, CustomException)
 
 
 @pytest.fixture
