@@ -7,7 +7,7 @@ import re
 import attr
 from click.utils import string_types
 
-from .logging import LOGGER
+from .logger import LOGGER
 from .utils import get_fname_and_fobj_and_str
 
 DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'

@@ -204,6 +204,15 @@ def test_cli_call_verbosity_fd(capfd):
         'Not writing coverage file: no data to report!',
         'Error: No data to report.']
 
+    assert call(['covimerage', '-vvvv', 'write_coverage', os.devnull]) == 1
+    out, err = capfd.readouterr()
+    assert out == ''
+    assert err.splitlines() == [
+        'Parsing file: /dev/null',
+        'source_files: []',
+        'Not writing coverage file: no data to report!',
+        'Error: No data to report.']
+
     assert call(['covimerage', '-vq', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
