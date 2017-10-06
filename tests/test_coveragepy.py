@@ -40,7 +40,6 @@ def test_filereporter_source_handles_latin1(tmpdir):
                     reason='Failed to patch open with py33/py34.')
 def test_filereporter_source_exception(mocker, devnull):
     from covimerage.coveragepy import CoverageWrapperException, FileReporter
-    __import__('pdb').set_trace()
 
     class CustomException(Exception):
         pass
