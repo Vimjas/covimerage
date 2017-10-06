@@ -19,7 +19,24 @@ You can install covimerage using pip:
 pip install covimerage
 ```
 
-## Usage
+## Simple usage
+
+You can use `covimerage run` to wrap the call to Neovim/Vim with necessary
+boilerplate:
+
+```sh
+covimerage run vim -Nu test/vimrc -c 'Vader! test/**'
+```
+
+This will write the file `.coverage.covimerage` by default (use `--data-file`
+to configure it), which is compatible to Coverage.py.
+A report is automatically generated (on stdout).
+
+You can then call `covimerage xml` to create a `coverage.xml` file
+(Cobertura-compatible), which tools like [Codecov](https://codecov.io/)'s
+`codecov` tool can consume, e.g. via `codecov -f coverage.xml`.
+
+## Manual/advanced usage
 
 ### 1. Generate profile information for your Vim script(s)
 
@@ -38,7 +55,8 @@ This makes Neovim/Vim then write a file with profiling information.
 covimerage write_coverage /tmp/vim-profile.txt
 ```
 
-This will create a `.coverage` file (marking entries for processing by a
+This will create a file `.coverage` (the default for `--data-file`),
+with entries marked for processing by a
 [Coverage.py](http://coverage.readthedocs.io/) plugin (provided by
 covimerage)).
 
