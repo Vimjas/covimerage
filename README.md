@@ -90,6 +90,15 @@ coverage reporting platforms like <https://codecov.io/> or
     Neomake](https://github.com/neomake/neomake/pull/1600) (Neomake's test
     setup is rather advanced, so do not let that scare you!)
 
+## Caveats
+
+- Vim fails to cover profiling information for the first line of a
+  script.  A workaround is to actually document your file with a top-level
+  comment.
+
+  See https://github.com/Vimjas/covimerage/issues/1 /
+  https://github.com/vim/vim/issues/2103.
+
 ## Links
 
 - Discussion in Coverage.py's issue tracker:
