@@ -339,3 +339,18 @@ def test_report_profile_or_data_file(runner, tmpdir):
         '---------------------------------------------------------------',
         'tests/test_plugin/merged_conditionals.vim      19     12    37%']
     assert result.exit_code == 0
+
+
+def test_cli_xml(runner, tmpdir):
+    """Smoke test for the xml command."""
+    result = runner.invoke(cli.main, [
+        'write_coverage', '--data-file', str(tmpdir.join('.coverage')),
+        'tests/fixtures/merged_conditionals-0.profile'])
+    with tmpdir.as_cwd():
+        result = runner.invoke(cli.main, ['xml', '--data-file', '.coverage'])
+        assert result.exit_code == 0
+
+        with open('coverage.xml') as f:
+            xml = f.read()
+    assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
+        os.getcwd()) in xml
