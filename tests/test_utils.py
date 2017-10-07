@@ -1,9 +1,9 @@
-from covimerage import get_fname_and_fobj_and_str
 from covimerage._compat import StringIO
-from covimerage.utils import build_vim_profile_args
 
 
 def test_build_vim_profile_args(devnull, tmpdir):
+    from covimerage.utils import build_vim_profile_args
+
     F = build_vim_profile_args
 
     fname = devnull.name
@@ -22,6 +22,8 @@ def test_build_vim_profile_args(devnull, tmpdir):
 
 
 def test_get_fname_and_fobj_and_str(devnull):
+    from covimerage.utils import get_fname_and_fobj_and_str
+
     F = get_fname_and_fobj_and_str
     assert F('foo') == ('foo', None, 'foo')
     assert F(None) == (None, None, 'None')
