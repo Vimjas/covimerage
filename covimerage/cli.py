@@ -22,12 +22,15 @@ def main(verbose, quiet):
 @click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
 @click.option('--data-file', required=False, show_default=True,
               default=DEFAULT_COVERAGE_DATA_FILE, type=click.File(mode='w'))
-def write_coverage(profile_file, data_file):
+@click.option('--source', type=click.types.Path(exists=True), help=(
+    'Source files/dirs to include.  This is necessary to include completely '
+    'uncovered files.'), show_default=True, multiple=True)
+def write_coverage(profile_file, data_file, source):
     """
     Parse PROFILE_FILE (output from Vim's :profile) and write it into DATA_FILE
     (Coverage.py compatible).
     """
-    m = MergedProfiles()
+    m = MergedProfiles(source=source)
     m.add_profile_files(*profile_file)
     if not m.write_coveragepy_data(data_file=data_file):
         raise click.ClickException('No data to report.')
