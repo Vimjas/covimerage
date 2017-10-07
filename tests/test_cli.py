@@ -288,6 +288,27 @@ def test_cli_writecoverage_datafile(runner):
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
 
 
+def test_cli_writecoverage_source(runner):
+    from covimerage.coveragepy import CoverageWrapper
+
+    f = StringIO()
+    result = runner.invoke(cli.main, [
+        'write_coverage', '--data-file', f, '--source', '.',
+        'tests/fixtures/conditional_function.profile'])
+    assert result.output == '\n'.join([
+        'Writing coverage file %s.' % f,
+        ''])
+    assert result.exit_code == 0
+
+    f.seek(0)
+    cov = CoverageWrapper(data_file=f)
+    assert cov.lines[
+        os.path.abspath('tests/test_plugin/conditional_function.vim')] == [
+            3, 8, 9, 11, 13, 14, 15, 17, 23]
+    assert cov.lines[
+        os.path.abspath('tests/test_plugin/autoload/test_plugin.vim')] == []
+
+
 def test_merged_conditionals(runner, capfd, tmpdir):
     tmpfile = str(tmpdir.join('.coverage'))
     result = runner.invoke(cli.main, [
