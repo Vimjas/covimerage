@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from covimerage import cli
+from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli
 from covimerage.__version__ import __version__
 
 
@@ -30,7 +30,7 @@ def test_cli(runner, tmpdir):
             cli.write_coverage([os.path.join(
                 str(old_dir), 'tests/fixtures/conditional_function.profile')])
         assert excinfo.value.code == 0
-        assert os.path.exists('.coverage')
+        assert os.path.exists(DEFAULT_COVERAGE_DATA_FILE)
 
     result = runner.invoke(cli.main, ['write_coverage', '/does/not/exist'])
     assert result.output.splitlines()[-1].startswith(
