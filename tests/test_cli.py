@@ -376,6 +376,48 @@ def test_report_profile_or_data_file(runner, tmpdir):
     assert result.exit_code == 0
 
 
+def test_report_source(runner, tmpdir, devnull):
+    result = runner.invoke(cli.main, [
+        'report', '--source', '.', '/does/not/exist'])
+    assert result.output.splitlines()[-1] == \
+        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'  # noqa: E501
+    assert result.exit_code == 2
+
+    result = runner.invoke(cli.main, [
+        'report', '--source', '.', devnull.name])
+    out = result.output.splitlines()
+    assert any(l.startswith('tests/test_plugin/vimrc')  # pragma: no branch
+               for l in out)
+    testplugin_fname = 'tests/test_plugin/autoload/test_plugin.vim'
+    assert any(testplugin_fname in l for l in out)  # pragma: no branch
+    assert out[-1].startswith('TOTAL')
+    assert out[-1].endswith(' 0%')
+    assert result.exit_code == 0
+
+    result = runner.invoke(cli.main, [
+        'report', devnull.name, '--source', '.'])
+    out = result.output.splitlines()
+    assert any(testplugin_fname in l for l in out)  # pragma: no branch
+    assert out[-1].startswith('TOTAL')
+    assert out[-1].endswith(' 0%')
+    assert result.exit_code == 0
+
+    result = runner.invoke(cli.main, [
+        'report', '--source', '.'])
+    out = result.output.splitlines()
+    assert out[-1] == 'Error: --source can only be used with PROFILE_FILE.'
+    assert result.exit_code == 2
+
+    result = runner.invoke(cli.main, [
+        'report', '--source', 'tests/test_plugin/merged_conditionals.vim',
+        'tests/fixtures/merged_conditionals-0.profile'])
+    assert result.output.splitlines() == [
+        'Name                                        Stmts   Miss  Cover',
+        '---------------------------------------------------------------',
+        'tests/test_plugin/merged_conditionals.vim      19     12    37%']
+    assert result.exit_code == 0
+
+
 def test_cli_xml(runner, tmpdir):
     """Smoke test for the xml command."""
     result = runner.invoke(cli.main, [
