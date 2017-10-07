@@ -55,7 +55,7 @@ This makes Neovim/Vim then write a file with profiling information.
 covimerage write_coverage /tmp/vim-profile.txt
 ```
 
-This will create a file `.coverage` (the default for `--data-file`),
+This will create a file `.coverage.covimerage` (the default for `--data-file`),
 with entries marked for processing by a
 [Coverage.py](http://coverage.readthedocs.io/) plugin (provided by
 covimerage)).
@@ -70,6 +70,7 @@ other settings here (for Coverage.py), e.g. to omit some files:
 ```
 [run]
 plugins = covimerage
+data_file = .coverage.covimerage
 ```
 
 ### 4. Create the report(s)

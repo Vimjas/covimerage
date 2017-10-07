@@ -21,7 +21,7 @@ def main(verbose, quiet):
 @main.command()
 @click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
 @click.option('--data-file', required=False, show_default=True,
-              default='.coverage', type=click.File(mode='w'))
+              default=DEFAULT_COVERAGE_DATA_FILE, type=click.File(mode='w'))
 def write_coverage(profile_file, data_file):
     """
     Parse PROFILE_FILE (output from Vim's :profile) and write it into DATA_FILE
