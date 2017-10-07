@@ -1,3 +1,7 @@
 [run]
-source = covimerage,tests
+source = .
+include = covimerage/*,tests/*
 branch = true
+
+[report]
+show_missing = true
