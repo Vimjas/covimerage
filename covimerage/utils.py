@@ -1,4 +1,5 @@
 import os
+import re
 
 from click.utils import string_types
 
@@ -22,3 +23,23 @@ def build_vim_profile_args(profile_fname, sources):
             pattern = '%s'
         args += ['--cmd', 'profile! file %s' % (pattern % source)]
     return args
+
+
+def is_executable_filename(filename):
+    # We're only interested in files that look like reasonable Vim
+    # files:
+    # Must end with .vim or start with vim, and must not have
+    # certain funny characters that probably mean they are editor
+    # junk.
+    if re.match(r'^[^.#~!$@%^&*()+=,]+\.n?vim$', filename):
+        return True
+    if re.match(r'^.?vimrc[^.#~!$@%^&*()+=,]*$', filename):
+        return True
+    return False
+
+
+def find_executable_files(src_dir):
+    for i, (dirpath, dirnames, filenames) in enumerate(os.walk(src_dir)):
+        for filename in filenames:
+            if is_executable_filename(filename):
+                yield os.path.join(dirpath, filename)

@@ -75,7 +75,7 @@ def test_cli_run_subprocess_exception(runner, mocker):
     assert result.exit_code == 1
 
 
-def test_cli_run_args(runner, mocker, devnull):
+def test_cli_run_args(runner, mocker, devnull, tmpdir):
     m = mocker.patch('subprocess.call')
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', 'printf', '--headless'])
@@ -117,13 +117,41 @@ def test_cli_run_args(runner, mocker, devnull):
         'Parsing profile file /dev/null.',
         'Not writing coverage file: no data to report!']
 
+    # Write data with non-sources only.
     f = StringIO()
-    profile_file = 'tests/fixtures/conditional_function.profile'
-    result = runner.invoke(cli.run, [
-        '--no-wrap-profile', '--no-report',
-        '--profile-file', profile_file,
-        '--write-data', '--data-file', f,
-        'printf', '--', '--headless'])
+    with tmpdir.as_cwd() as old_dir:
+        profile_file = str(old_dir.join(
+            'tests/fixtures/conditional_function.profile'))
+        result = runner.invoke(cli.run, [
+            '--no-wrap-profile', '--no-report',
+            '--profile-file', profile_file,
+            '--write-data', '--data-file', f,
+            'printf', '--', '--headless'])
+    assert m.call_args[0] == (['printf', '--', '--headless'],)
+    assert result.output.splitlines() == [
+        "Running cmd: ['printf', '--', '--headless']",
+        'Command exited non-zero: 1.',
+        'Parsing profile file %s.' % profile_file,
+        'Ignoring non-source: %s' % str(tmpdir.join(
+            'tests/test_plugin/conditional_function.vim')),
+        'Not writing coverage file: no data to report!']
+    f.seek(0)
+    assert f.read() == ''
+
+    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file_content = open(
+        'tests/test_plugin/conditional_function.vim', 'r').read()
+    with tmpdir.as_cwd() as old_dir:
+        profile_file = str(old_dir.join(
+            'tests/fixtures/conditional_function.profile'))
+        tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+        tmpdir.join('not-profiled.vim').write('')
+        tmpdir.join('not-a-vim-file').write('')
+        result = runner.invoke(cli.run, [
+            '--no-wrap-profile', '--no-report',
+            '--profile-file', profile_file,
+            '--write-data', '--data-file', f,
+            'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
@@ -131,7 +159,14 @@ def test_cli_run_args(runner, mocker, devnull):
         'Parsing profile file %s.' % profile_file,
         'Writing coverage file %r.' % f]
     f.seek(0)
-    assert f.read().startswith('!coverage.py:')
+
+    from covimerage.coveragepy import CoverageWrapper
+    cov = CoverageWrapper(data_file=f)
+    expected = {
+        str(tmpdir.join('not-profiled.vim')): [],
+        str(tmpdir.join('tests/test_plugin/conditional_function.vim')): [
+            3, 8, 9, 11, 13, 14, 15, 17, 23]}
+    assert cov.lines == expected
 
 
 def test_cli_run_report_fd(capfd, tmpdir):
