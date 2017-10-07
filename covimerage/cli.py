@@ -134,11 +134,20 @@ def report_data_file_cb(ctx, param, value):
     return click.File('r').convert(value, param, ctx)
 
 
+def report_source_cb(ctx, param, value):
+    if value and not ctx.params.get('profile_file', ()):
+        raise click.exceptions.UsageError(
+            '--source can only be used with PROFILE_FILE.')
+    return value
+
+
 @main.command()
-@click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
-@click.option('--data-file', required=False, callback=report_data_file_cb,
-              default=DEFAULT_COVERAGE_DATA_FILE, show_default=True, help=(
-                  'DATA_FILE to use in case PROFILE_FILE is not provided.'))
+@click.argument('profile_file', type=click.File('r'), required=False, nargs=-1,
+                is_eager=True)
+@click.option('--data-file', required=False, show_default=True, help=(
+    'DATA_FILE to use in case PROFILE_FILE is not provided.'),
+              callback=report_data_file_cb,
+              default=DEFAULT_COVERAGE_DATA_FILE)
 @click.option('--show-missing', '-m', is_flag=True, default=False, help=(
     'Show line numbers of statements in each file that was not executed.'))
 @click.option('--include', required=False, multiple=True, help=(
@@ -149,8 +158,13 @@ def report_data_file_cb(ctx, param, value):
     'Accepts shell-style wildcards, which must be quoted.'))
 @click.option('--skip-covered', is_flag=True, default=False,
               help='Skip files with 100% coverage.')
+@click.option('--source', type=click.types.Path(exists=True), help=(
+    'Source dirs/files to include (only when PROFILE_FILE is used - otherwise '
+    'it is expected to be in the data already).'),
+              callback=report_source_cb,
+              show_default=True, default=None, multiple=True)
 def report(profile_file, data_file, show_missing, include, omit, skip_covered,
-           data=None):
+           source, data=None):
     """
     A wrapper around `coverage report`.
 
@@ -164,7 +178,7 @@ def report(profile_file, data_file, show_missing, include, omit, skip_covered,
         data_file = None
     elif profile_file:
         data_file = None
-        m = MergedProfiles()
+        m = MergedProfiles(source=source)
         m.add_profile_files(*profile_file)
         data = m.get_coveragepy_data()
     CoverageWrapper(data=data, data_file=data_file).report(
