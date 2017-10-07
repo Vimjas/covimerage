@@ -8,7 +8,7 @@ import attr
 from click.utils import string_types
 
 from .logger import LOGGER
-from .utils import get_fname_and_fobj_and_str
+from .utils import find_executable_files, get_fname_and_fobj_and_str
 
 DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'
 RE_FUNC_PREFIX = re.compile(
@@ -114,15 +114,6 @@ class MergedProfiles(object):
                     lines[s.path] = copy.copy(s_lines)
         return lines
 
-    def find_executable_files(self, src_dir):
-        for i, (dirpath, dirnames, filenames) in enumerate(os.walk(src_dir)):
-            for filename in filenames:
-                # We're only interested in files that look like reasonable Vim
-                # files: Must end with .vim, and must not have certain funny
-                # characters that probably mean they are editor junk.
-                if re.match(r'^[^.#~!$@%^&*()+=,]+\.vim?$', filename):
-                    yield os.path.join(dirpath, filename)
-
     def _get_coveragepy_data(self):
         import coverage
 
@@ -136,7 +127,7 @@ class MergedProfiles(object):
             if os.path.isfile(source):
                 source_files.append(source)
             else:
-                source_files.extend(self.find_executable_files(source))
+                source_files.extend(find_executable_files(source))
         LOGGER.debug('source_files: %r', source_files)
 
         for fname, lines in self.lines.items():
