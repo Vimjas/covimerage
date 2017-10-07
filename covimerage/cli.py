@@ -126,7 +126,8 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                 if not cov_data:
                     raise click.ClickException('No data to report.')
                 report_opts['data'] = cov_data
-                ctx.invoke(report_cmd, **report_opts)
+                ctx.invoke(report_cmd, report_file=report_file,
+                           **report_opts)
 
 
 def report_data_file_cb(ctx, param, value):
@@ -166,8 +167,10 @@ def report_source_cb(ctx, param, value):
     'it is expected to be in the data already).'),
               callback=report_source_cb,
               show_default=True, default=None, multiple=True)
+@click.option('--report-file', type=click.File('w'),
+              help='Report output file.  Defaults to stdout.')
 def report(profile_file, data_file, show_missing, include, omit, skip_covered,
-           source, data=None):
+           source, report_file, data=None):
     """
     A wrapper around `coverage report`.
 
@@ -185,6 +188,7 @@ def report(profile_file, data_file, show_missing, include, omit, skip_covered,
         m.add_profile_files(*profile_file)
         data = m.get_coveragepy_data()
     CoverageWrapper(data=data, data_file=data_file).report(
+        report_file=report_file,
         show_missing=show_missing, include=include, omit=omit,
         skip_covered=skip_covered)
 

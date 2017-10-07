@@ -194,6 +194,21 @@ def test_cli_run_report_fd(capfd, tmpdir):
         'Parsing profile file %s.' % tmp_profile_fname,
         'Writing coverage file %s.' % data_file]
 
+    # Same, but to some file.
+    ofname = str(tmpdir.join('ofname'))
+    exit_code = call(['covimerage', 'run', '--report-file', ofname] + args)
+    out, err = capfd.readouterr()
+    assert exit_code == 0, err
+    assert out == ''
+    assert err.splitlines() == [
+        "Running cmd: ['true']",
+        'Parsing profile file %s.' % tmp_profile_fname,
+        'Writing coverage file %s.' % data_file]
+    assert open(ofname).read().splitlines() == [
+        'Name                                         Stmts   Miss  Cover',
+        '----------------------------------------------------------------',
+        'tests/test_plugin/conditional_function.vim      13      5    62%']
+
 
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
