@@ -75,7 +75,12 @@ DEPS_QA = [
     'flake8-isort',
     'flake8-quotes',
 ]
-
+DEPS_TESTING = [
+    'pytest',
+    'pytest-catchlog',
+    'pytest-cov',
+    'pytest-mock',
+]
 
 # Where the magic happens:
 setup(
@@ -92,16 +97,11 @@ setup(
     },
     install_requires=REQUIRED,
     extras_require={
-        'testing': [
-            'pytest',
-            'pytest-catchlog',
-            'pytest-cov',
-            'pytest-mock',
-        ],
-        'dev': [
+        'testing': DEPS_TESTING,
+        'dev': DEPS_TESTING + DEPS_QA + [
             'pdbpp',
             'pytest-pdb',
-        ] + DEPS_QA,
+        ],
         'qa': DEPS_QA,
     },
     include_package_data=True,
