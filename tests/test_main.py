@@ -57,14 +57,11 @@ def test_parse_count_and_times():
     assert f('') == (0, None, None)
 
 
-@pytest.mark.xfail
 def test_line():
     from covimerage import Line
 
     l = Line('    1              0.000005 Foo')
-
-    # https://github.com/python-attrs/attrs/issues/245
-    assert repr(l) == "Line(line='    1              0.000005 Foo', counts=1, total_time=None, self_time=None)"  # noqa
+    assert repr(l) == "Line(line='    1              0.000005 Foo', count=None, total_time=None, self_time=None)"  # noqa
 
 
 def test_profile_parse():
