@@ -77,26 +77,32 @@ def test_cli_run_subprocess_exception(runner, mocker):
 
 def test_cli_run_args(runner, mocker, devnull, tmpdir):
     m = mocker.patch('subprocess.call')
+    m.return_value = 1
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--headless']",
-        'Command exited non-zero: 1.']
+        'Error: Command exited non-zero: 1.']
+    assert result.exit_code == 1
 
+    m.return_value = 2
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', '--', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--headless']",
-        'Command exited non-zero: 1.']
+        'Error: Command exited non-zero: 2.']
+    assert result.exit_code == 2
 
+    m.return_value = 3
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
-        'Command exited non-zero: 1.']
+        'Error: Command exited non-zero: 3.']
+    assert result.exit_code == 3
 
     result = runner.invoke(cli.run, [
         '--no-wrap-profile', '--no-report', '--profile-file', devnull,
@@ -104,7 +110,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
-        'Command exited non-zero: 1.']
+        'Error: Command exited non-zero: 3.']
 
     result = runner.invoke(cli.run, [
         '--no-wrap-profile', '--no-report', '--profile-file', devnull,
@@ -113,12 +119,11 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
-        'Command exited non-zero: 1.',
-        'Parsing profile file /dev/null.',
-        'Not writing coverage file: no data to report!']
+        'Error: Command exited non-zero: 3.']
 
     # Write data with non-sources only.
     f = StringIO()
+    m.return_value = 0
     with tmpdir.as_cwd() as old_dir:
         profile_file = str(old_dir.join(
             'tests/fixtures/conditional_function.profile'))
@@ -128,9 +133,9 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
             '--write-data', '--data-file', f,
             'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
-    assert result.output.splitlines() == [
+    out = result.output.splitlines()
+    assert out == [
         "Running cmd: ['printf', '--', '--headless']",
-        'Command exited non-zero: 1.',
         'Parsing profile file %s.' % profile_file,
         'Ignoring non-source: %s' % str(tmpdir.join(
             'tests/test_plugin/conditional_function.vim')),
@@ -155,11 +160,11 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
-        'Command exited non-zero: 1.',
         'Parsing profile file %s.' % profile_file,
         'Writing coverage file %r.' % f]
     f.seek(0)
 
+    m.exit_code == 0
     from covimerage.coveragepy import CoverageWrapper
     cov = CoverageWrapper(data_file=f)
     expected = {

@@ -104,7 +104,10 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
         raise click.exceptions.ClickException(
             'Failed to run %s: %s' % (cmd, exc))
     if exit_code != 0:
-        LOGGER.error('Command exited non-zero: %d.', exit_code)
+        exit = click.exceptions.ClickException(
+            'Command exited non-zero: %d.' % exit_code)
+        exit.exit_code = exit_code
+        raise exit
 
     if profile_file_name:
         if not os.path.exists(profile_file_name):
