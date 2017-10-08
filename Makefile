@@ -79,10 +79,8 @@ coverage-diff:
 
 .PHONY: coverage coverage-save coverage-diff
 
-build/coverage.pytest: $(shell find covimerage tests -name '*.py') | build
+$(MAIN_COVERAGE): $(shell find covimerage tests -name '*.py') | build
 	COVERAGE_FILE=$@ tox -e coverage.pytest
-
-$(MAIN_COVERAGE): build/coverage.pytest
 
 build/coverage.old:
 	$(MAKE) coverage-save
