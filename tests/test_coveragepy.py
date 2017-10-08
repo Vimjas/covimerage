@@ -61,6 +61,7 @@ def coverage_fileobj():
 
 
 def test_coveragewrapper(coverage_fileobj, devnull):
+    from coverage.misc import CoverageException
     from covimerage.coveragepy import CoverageWrapper, CoverageWrapperException
 
     with pytest.raises(TypeError):
@@ -84,6 +85,17 @@ def test_coveragewrapper(coverage_fileobj, devnull):
         CoverageWrapper(data_file=devnull.name)
     assert excinfo.value.args == (
         'Coverage could not read data_file: /dev/null',)
+
+    f = StringIO()
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        CoverageWrapper(data_file=f)
+    e = excinfo.value
+    assert isinstance(e.orig_exc, CoverageException)
+    assert e.message == 'Coverage could not read data_file: %s' % f
+    assert e.format_message() == '%s (%r)' % (e.message, e.orig_exc)
+    assert str(e) == e.format_message()
+    assert repr(e) == 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
+        e.message, e.orig_exc)
 
 
 def test_coveragewrapperexception():

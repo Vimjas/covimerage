@@ -22,6 +22,13 @@ class CoverageWrapperException(click.ClickException):
             return '%s (%r)' % (msg, self.orig_exc)
         return msg
 
+    def __str__(self):
+        return self.format_message()
+
+    def __repr__(self):
+        return 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
+            self.message, self.orig_exc)
+
 
 @attr.s(frozen=True)
 class CoverageWrapper(object):
@@ -36,7 +43,7 @@ class CoverageWrapper(object):
             if not self.data_file:
                 raise TypeError('data or data_file needs to be provided.')
             cov_data = coverage.data.CoverageData()
-            fname, fobj, _ = get_fname_and_fobj_and_str(self.data_file)
+            fname, fobj, fstr = get_fname_and_fobj_and_str(self.data_file)
             try:
                 if fobj:
                     cov_data.read_fileobj(self.data_file)
@@ -44,7 +51,7 @@ class CoverageWrapper(object):
                     cov_data.read_file(self.data_file)
             except coverage.CoverageException as exc:
                 raise CoverageWrapperException(
-                    'Coverage could not read data_file: %s' % fname,
+                    'Coverage could not read data_file: %s' % fstr,
                     orig_exc=exc)
             else:
                 object.__setattr__(self, 'data', cov_data)
