@@ -36,6 +36,7 @@ class Script(object):
     mapped_dict_functions = attr.ib(default=attr.Factory(set), repr=False,
                                     hash=False)
     func_to_lnums = attr.ib(default=attr.Factory(dict), repr=False, hash=False)
+    sourced_count = attr.ib(default=None)
 
     def parse_script_line(self, lnum, line):
         m = re.match(RE_FUNC_PREFIX, line)
@@ -429,7 +430,12 @@ class Profile(object):
                 in_script = Script(fname)
                 LOGGER.debug('Parsing script %s', in_script)
                 self.scripts.append(in_script)
-                plnum += skip_to_count_header()
+
+                next_line = next(file_object)
+                m = re.match('Sourced (\d+) time', next_line)
+                in_script.sourced_count = int(m[1])
+
+                plnum += skip_to_count_header() + 1
                 lnum = 0
 
             elif line.startswith('FUNCTION  '):

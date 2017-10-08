@@ -19,11 +19,12 @@ def test_profile_repr_lines():
     p = Profile('profile-path')
     s = Script('script-path')
     p.scripts.append(s)
-    assert repr(p.lines) == "{Script(path='script-path'): {}}"
+    assert repr(p.lines) == '{%r: {}}' % s
+    assert repr(s) == "Script(path='script-path', sourced_count=None)"
 
     l = Line('line1')
     s.lines[1] = l
-    assert repr(p.lines) == ("{Script(path='script-path'): {1: %r}}" % l)
+    assert repr(p.lines) == ('{%r: {1: %r}}' % (s, l))
 
 
 def test_profile_fname_or_fobj(caplog, devnull):
@@ -114,7 +115,9 @@ def test_profile_parse_handles_cannot_open_file(caplog):
     p._parse(file_object)
 
     assert len(p.scripts) == 1
-    assert len(p.scripts[0].lines) == 0
+    s = p.scripts[0]
+    assert len(s.lines) == 0
+    assert s.sourced_count == 1
     msgs = [r.message for r in caplog.records]
     assert msgs == [
         'Could not parse count/times from line: Cannot open file! (fake:7).']
