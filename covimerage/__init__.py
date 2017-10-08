@@ -141,6 +141,8 @@ class MergedProfiles(object):
                 # XXX: coveragepy does not support hit counts?!
                 lnum: None for lnum, line in lines.items() if line.count
             }
+            # Add our plugin as file tracer, so that it gets used with e.g.
+            # `coverage annotate`.
             cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
         measured_files = cov_dict.keys()
         non_measured_files = set(source_files) - set(measured_files)
@@ -461,6 +463,15 @@ def parse_count_and_times(line):
 
 
 def coverage_init(reg, options):
+    """
+    Called from coverage.py when used as plugin in .coveragerc.
+
+    This is not really necessary, but let's keep it so that e.g.
+    `coverage annotate` can be used.
+
+    [run]
+    plugins = covimerage
+    """
     from .coveragepy import CoveragePlugin
 
     reg.add_file_tracer(CoveragePlugin())

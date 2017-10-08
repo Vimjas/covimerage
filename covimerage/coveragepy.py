@@ -70,11 +70,12 @@ class CoverageWrapper(object):
         return self._cached_cov_obj
 
     def _get_cov_obj(self):
-        cov_config = coverage.config.CoverageConfig()
-        cov_config.plugins = ['covimerage']
+        class CoverageW(coverage.Coverage):
+            """Wrap/shortcut _get_file_reporter to return ours."""
+            def _get_file_reporter(self, morf):
+                return FileReporter(morf)
 
-        cov_coverage = coverage.Coverage(config_file=False)
-        cov_coverage.config = cov_config
+        cov_coverage = CoverageW(config_file=False)
         cov_coverage._init()
         cov_coverage.data = self.data
         return cov_coverage

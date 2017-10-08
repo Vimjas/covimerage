@@ -329,7 +329,8 @@ def test_cli_writecoverage_source(runner):
         os.path.abspath('tests/test_plugin/autoload/test_plugin.vim')] == []
 
 
-def test_merged_conditionals(runner, capfd, tmpdir):
+def test_coverage_plugin_for_annotate_merged_conditionals(runner, capfd,
+                                                          tmpdir):
     tmpfile = str(tmpdir.join('.coverage'))
     result = runner.invoke(cli.main, [
         'write_coverage', '--data-file', tmpfile,
@@ -345,10 +346,11 @@ def test_merged_conditionals(runner, capfd, tmpdir):
     with open(coveragerc, 'w') as f:
         f.write('[run]\nplugins = covimerage')
 
-    call(['env', 'COVERAGE_FILE=%s' % tmpfile,
-          'coverage', 'annotate', '--rcfile', coveragerc,
-          '--directory', str(tmpdir)])
+    exit_code = call(['env', 'COVERAGE_FILE=%s' % tmpfile,
+                      'coverage', 'annotate', '--rcfile', coveragerc,
+                      '--directory', str(tmpdir)])
     out, err = capfd.readouterr()
+    assert exit_code == 0, (err, out)
     ann_fname = 'tests_test_plugin_merged_conditionals_vim,cover'
     annotated_lines = tmpdir.join(ann_fname).read().splitlines()
     assert annotated_lines == [
