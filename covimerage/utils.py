@@ -3,6 +3,9 @@ import re
 
 from click.utils import string_types
 
+# Empty (whitespace only), comments, continued, or `end` statements.
+RE_NON_EXECED = re.compile(r'^\s*("|\\|end|$)')
+
 
 def get_fname_and_fobj_and_str(fname_or_fobj):
     if isinstance(fname_or_fobj, string_types):
@@ -43,3 +46,7 @@ def find_executable_files(src_dir):
         for filename in filenames:
             if is_executable_filename(filename):
                 yield os.path.join(dirpath, filename)
+
+
+def is_executable_line(l):
+    return not RE_NON_EXECED.match(l)

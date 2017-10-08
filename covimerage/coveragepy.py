@@ -6,7 +6,7 @@ import coverage
 
 from ._compat import FileNotFoundError
 from .logger import LOGGER
-from .utils import get_fname_and_fobj_and_str
+from .utils import get_fname_and_fobj_and_str, is_executable_line
 
 
 class CoverageWrapperException(click.ClickException):
@@ -94,8 +94,6 @@ class CoverageWrapper(object):
 
 
 class FileReporter(coverage.FileReporter):
-    # Empty (whitespace only), comments, continued, or `end` statements.
-    RE_NON_EXECED = re.compile(r'^\s*("|\\|end|$)')
     RE_EXCLUDED = re.compile(
         r'"\s*(pragma|PRAGMA)[:\s]?\s*(no|NO)\s*(cover|COVER)')
 
@@ -137,9 +135,8 @@ class FileReporter(coverage.FileReporter):
     def lines(self):
         lines = []
         for lnum, l in enumerate(self.split_lines, start=1):
-            if self.RE_NON_EXECED.match(l):
-                continue
-            lines.append(lnum)
+            if is_executable_line(l):
+                lines.append(lnum)
         return set(lines)
 
     def excluded_lines(self):
