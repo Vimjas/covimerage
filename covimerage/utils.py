@@ -34,9 +34,9 @@ def is_executable_filename(filename):
     # Must end with .vim or start with vim, and must not have
     # certain funny characters that probably mean they are editor
     # junk.
-    if re.match(r'^[^.#~!$@%^&*()+=,]+\.n?vim$', filename):
+    if re.match(r'[^.][^#~!$@%^&*()+=,]*\.n?vim$', filename):
         return True
-    if re.match(r'^.?vimrc[^.#~!$@%^&*()+=,]*$', filename):
+    if re.match(r'[^#~!$@%^&*()+=,]*vimrc[^#~!$@%^&*()+=,]*$', filename):
         return True
     return False
 

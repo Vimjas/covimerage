@@ -39,40 +39,11 @@ def test_is_executable_filename():
     assert is_executable_filename('foo.nvim')
     assert is_executable_filename('vimrc')
     assert is_executable_filename('.vimrc')
+    assert is_executable_filename('minimal.vimrc')
+    assert is_executable_filename('another-minimal.vimrc')
+    assert is_executable_filename('another.minimal.vimrc')
+    assert is_executable_filename('foo.bar.vim')
 
     assert not is_executable_filename('.hidden.vim')
     assert not is_executable_filename('foo.txt')
-
-# Not used currently, but inlined.
-# from covimerage import join_script_lines
-
-
-# def join_script_lines(lines):
-#     """Join lines from scripts to match lines from functions."""
-#     new = []
-#     buf = None
-#     for l in lines:
-#         if buf:
-#             m = re.match(RE_CONTINUING_LINE, l)
-#             if m:
-#                 buf += l[m.end():]
-#                 continue
-#         if buf is not None:
-#             new.append(buf)
-#         buf = l
-#     if buf is not None:
-#         new.append(buf)
-#     return new
-#
-#
-# def test_join_script_lines():
-#     assert join_script_lines([]) == []
-#     assert join_script_lines(['1']) == ['1']
-#     assert join_script_lines(['\\1']) == ['\\1']
-#     assert join_script_lines([
-#         '    line1',
-#         '    \\ .line2']) == ['    line1 .line2']
-#     assert join_script_lines([
-#         '    line1',
-#         '    \\ .line2',
-#         '\\line3']) == ['    line1 .line2line3']
+    assert not is_executable_filename('vim')
