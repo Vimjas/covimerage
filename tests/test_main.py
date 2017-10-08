@@ -347,6 +347,30 @@ def test_merged_profiles():
         (N, '')]
 
 
+def test_mergedprofiles_fixes_line_count():
+    from covimerage import MergedProfiles, Profile
+
+    fname = 'tests/fixtures/continued_lines.profile'
+    p = Profile(fname)
+    p.parse()
+
+    script = p.scripts[0]
+
+    N = None
+    assert [(l.count, l.line) for l in script.lines.values()] == [
+        (N, 'echom 1'),
+        (1, 'echom 2'),
+        (N, '      \\ 3'),
+        (1, 'echom 4')]
+
+    m = MergedProfiles([p])
+    assert [(l.count, l.line) for l in m.lines[script.path].values()] == [
+        (1, 'echom 1'),
+        (1, 'echom 2'),
+        (N, '      \\ 3'),
+        (1, 'echom 4')]
+
+
 def test_merged_profiles_get_coveragepy_data():
     from covimerage import MergedProfiles
 

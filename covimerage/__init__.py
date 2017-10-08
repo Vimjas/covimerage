@@ -8,7 +8,9 @@ import attr
 from click.utils import string_types
 
 from .logger import LOGGER
-from .utils import find_executable_files, get_fname_and_fobj_and_str
+from .utils import (
+    find_executable_files, get_fname_and_fobj_and_str, is_executable_line,
+)
 
 DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'
 RE_FUNC_PREFIX = re.compile(
@@ -113,6 +115,13 @@ class MergedProfiles(object):
                             new[lnum] = copy.copy(line)
                 else:
                     lines[s.path] = copy.copy(s_lines)
+
+                if s.sourced_count and s_lines:
+                    # Fix line count for first line.
+                    # https://github.com/vim/vim/issues/2103.
+                    line1 = lines[s.path][1]
+                    if not line1.count and is_executable_line(line1.line):
+                        line1.count = 1
         return lines
 
     def _get_coveragepy_data(self):
