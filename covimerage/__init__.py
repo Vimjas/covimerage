@@ -442,7 +442,7 @@ class Profile(object):
 
                 next_line = next(file_object)
                 m = re.match('Sourced (\d+) time', next_line)
-                in_script.sourced_count = int(m[1])
+                in_script.sourced_count = int(m.group(1))
 
                 plnum += skip_to_count_header() + 1
                 lnum = 0
