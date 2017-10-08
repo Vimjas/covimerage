@@ -113,6 +113,7 @@ def test_profile_parse_handles_cannot_open_file(caplog):
 
     assert len(p.scripts) == 1
     s = p.scripts[0]
+    assert not s.lines
     assert len(s.lines) == 0
     assert s.sourced_count == 1
     msgs = [r.message for r in caplog.records]
@@ -223,7 +224,7 @@ def test_profile_parse_dict_function_with_same_source(caplog):
     assert "Found already mapped dict function again (/test_plugin/dict_function_with_same_source.vim:3)." in msgs  # noqa
 
 
-def test_profile_parse_dict_function_with_continued_lines(caplog):
+def test_profile_parse_dict_function_with_continued_lines():
     from covimerage import Profile
 
     fname = 'tests/fixtures/dict_function_with_continued_lines.profile'
@@ -254,7 +255,7 @@ def test_profile_parse_dict_function_with_continued_lines(caplog):
         (1, 'call obj.dict_function(1)')]
 
 
-def test_profile_continued_lines(caplog):
+def test_profile_continued_lines():
     from covimerage import Profile
 
     fname = 'tests/fixtures/continued_lines.profile'
@@ -272,7 +273,7 @@ def test_profile_continued_lines(caplog):
         (1, 'echom 4')]
 
 
-def test_conditional_functions(caplog):
+def test_conditional_functions():
     from covimerage import Profile
 
     fname = 'tests/fixtures/conditional_function.profile'
@@ -389,14 +390,14 @@ def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(
     mocker.patch.object(m, 'get_coveragepy_data', return_value=mocked_data)
 
     m.write_coveragepy_data()
-    mocked_data.write_file.call_args_list == [mocker.call('.coverage')]
-    mocked_data.write_fileobj.call_args_list == []
+    assert mocked_data.write_file.call_args_list == [mocker.call('.coverage')]
+    assert mocked_data.write_fileobj.call_args_list == []
 
     mocked_data.reset_mock()
     fileobj = StringIO()
     m.write_coveragepy_data(data_file=fileobj)
-    mocked_data.write_file.call_args_list == []
-    mocked_data.write_fileobj.call_args_list == [mocker.call(fileobj)]
+    assert mocked_data.write_file.call_args_list == []
+    assert mocked_data.write_fileobj.call_args_list == [mocker.call(fileobj)]
     msgs = [r.message for r in caplog.records]
     assert msgs == [
         'Writing coverage file .coverage.',
