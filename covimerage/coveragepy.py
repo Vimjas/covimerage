@@ -8,6 +8,9 @@ from ._compat import FileNotFoundError
 from .logger import LOGGER
 from .utils import get_fname_and_fobj_and_str, is_executable_line
 
+RE_EXCLUDED = re.compile(
+    r'"\s*(pragma|PRAGMA)[:\s]?\s*(no|NO)\s*(cover|COVER)')
+
 
 class CoverageWrapperException(click.ClickException):
     """Inherit from ClickException for automatic handling."""
@@ -94,9 +97,6 @@ class CoverageWrapper(object):
 
 
 class FileReporter(coverage.FileReporter):
-    RE_EXCLUDED = re.compile(
-        r'"\s*(pragma|PRAGMA)[:\s]?\s*(no|NO)\s*(cover|COVER)')
-
     _split_lines = None
 
     def __repr__(self):
@@ -143,7 +143,7 @@ class FileReporter(coverage.FileReporter):
         lines = []
         for lnum, l in enumerate(self.split_lines, start=1):
             # TODO: exclude until end of block (by using vimlparser?!)
-            if self.RE_EXCLUDED.search(l):
+            if RE_EXCLUDED.search(l):
                 lines.append(lnum)
         return set(lines)
 
