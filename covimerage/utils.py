@@ -1,8 +1,9 @@
 import os
 import re
-import shlex
 
 from click.utils import string_types
+
+from ._compat import shell_quote
 
 # Empty (whitespace only), comments, continued, or `end` statements.
 RE_NON_EXECED = re.compile(r'^\s*("|\\|end|$)')
@@ -54,4 +55,4 @@ def is_executable_line(l):
 
 
 def join_argv(argv):
-    return ' '.join(shlex.quote(s) for s in argv)
+    return ' '.join(shell_quote(s) for s in argv)
