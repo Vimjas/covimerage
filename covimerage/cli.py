@@ -103,16 +103,16 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     except Exception as exc:
         raise click.exceptions.ClickException(
             'Failed to run %s: %s' % (cmd, exc))
-    if exit_code != 0:
-        exit = click.exceptions.ClickException(
-            'Command exited non-zero: %d.' % exit_code)
-        exit.exit_code = exit_code
-        raise exit
 
     if profile_file_name:
         if not os.path.exists(profile_file_name):
-            msg = 'The profile file (%s) has not been created.'
-            raise click.exceptions.ClickException(msg % profile_file_name)
+            if not exit_code:
+                exit = click.exceptions.ClickException(
+                    'The profile file (%s) has not been created.' % (
+                        profile_file_name))
+                exit.exit_code = 1
+                raise exit
+
         elif write_data or report:
             LOGGER.info('Parsing profile file %s.', profile_file_name)
             p = Profile(profile_file_name)
@@ -131,6 +131,12 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                 report_opts['data'] = cov_data
                 ctx.invoke(report_cmd, report_file=report_file,
                            **report_opts)
+
+    if exit_code != 0:
+        exit = click.exceptions.ClickException(
+            'Command exited non-zero: %d.' % exit_code)
+        exit.exit_code = exit_code
+        raise exit
 
 
 def report_data_file_cb(ctx, param, value):

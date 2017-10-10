@@ -59,12 +59,12 @@ def test_cli_help(arg, runner):
 def test_cli_run_with_args_fd(capfd):
     ret = call(['covimerage', 'run', '--profile-file', '/doesnotexist',
                 'echo', '--', '--no-profile', '%sMARKER'])
-    assert ret == 1
     out, err = capfd.readouterr()
     lines = err.splitlines()
     assert lines == [
     "Running cmd: ['echo', '--', '--no-profile', '%sMARKER', '--cmd', 'profile start /doesnotexist', '--cmd', 'profile! file ./*']",  # noqa: E501
         'Error: The profile file (/doesnotexist) has not been created.']
+    assert ret == 1
 
 
 def test_cli_run_subprocess_exception(runner, mocker):
@@ -119,6 +119,8 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         "Running cmd: ['printf', '--', '--headless']",
+        'Parsing profile file /dev/null.',
+        'Not writing coverage file: no data to report!',
         'Error: Command exited non-zero: 3.']
 
     # Write data with non-sources only.
