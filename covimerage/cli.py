@@ -6,7 +6,7 @@ from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
 from .logger import LOGGER
-from .utils import build_vim_profile_args
+from .utils import build_vim_profile_args, join_argv
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
@@ -96,7 +96,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     else:
         profile_file_name = profile_file.name if profile_file else None
     cmd = args
-    LOGGER.info('Running cmd: %s', cmd)
+    LOGGER.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
 
     try:
         exit_code = subprocess.call(cmd, close_fds=False)

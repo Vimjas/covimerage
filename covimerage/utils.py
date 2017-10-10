@@ -1,5 +1,6 @@
 import os
 import re
+import shlex
 
 from click.utils import string_types
 
@@ -50,3 +51,7 @@ def find_executable_files(src_dir):
 
 def is_executable_line(l):
     return not RE_NON_EXECED.match(l)
+
+
+def join_argv(argv):
+    return ' '.join(shlex.quote(s) for s in argv)

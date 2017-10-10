@@ -62,7 +62,7 @@ def test_cli_run_with_args_fd(capfd):
     out, err = capfd.readouterr()
     lines = err.splitlines()
     assert lines == [
-    "Running cmd: ['echo', '--', '--no-profile', '%sMARKER', '--cmd', 'profile start /doesnotexist', '--cmd', 'profile! file ./*']",  # noqa: E501
+    "Running cmd: echo -- --no-profile %sMARKER --cmd 'profile start /doesnotexist' --cmd 'profile! file ./*' (in {})".format(os.getcwd()),  # noqa: E501
         'Error: The profile file (/doesnotexist) has not been created.']
     assert ret == 1
 
@@ -82,7 +82,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         cli.run, ['--no-wrap-profile', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
     assert result.output.splitlines() == [
-        "Running cmd: ['printf', '--headless']",
+        'Running cmd: printf --headless (in %s)' % os.getcwd(),
         'Error: Command exited non-zero: 1.']
     assert result.exit_code == 1
 
@@ -91,7 +91,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         cli.run, ['--no-wrap-profile', '--', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
     assert result.output.splitlines() == [
-        "Running cmd: ['printf', '--headless']",
+        'Running cmd: printf --headless (in %s)' % os.getcwd(),
         'Error: Command exited non-zero: 2.']
     assert result.exit_code == 2
 
@@ -100,7 +100,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         cli.run, ['--no-wrap-profile', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
-        "Running cmd: ['printf', '--', '--headless']",
+        'Running cmd: printf -- --headless (in %s)' % os.getcwd(),
         'Error: Command exited non-zero: 3.']
     assert result.exit_code == 3
 
@@ -109,7 +109,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         '--no-write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
-        "Running cmd: ['printf', '--', '--headless']",
+        'Running cmd: printf -- --headless (in %s)' % os.getcwd(),
         'Error: Command exited non-zero: 3.']
 
     result = runner.invoke(cli.run, [
@@ -118,7 +118,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         '--write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
-        "Running cmd: ['printf', '--', '--headless']",
+        'Running cmd: printf -- --headless (in %s)' % os.getcwd(),
         'Parsing profile file /dev/null.',
         'Not writing coverage file: no data to report!',
         'Error: Command exited non-zero: 3.']
@@ -137,7 +137,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     out = result.output.splitlines()
     assert out == [
-        "Running cmd: ['printf', '--', '--headless']",
+        'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
         'Parsing profile file %s.' % profile_file,
         'Ignoring non-source: %s' % str(tmpdir.join(
             'tests/test_plugin/conditional_function.vim')),
@@ -161,7 +161,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
             'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
-        "Running cmd: ['printf', '--', '--headless']",
+        'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
         'Parsing profile file %s.' % profile_file,
         'Writing coverage file %r.' % f]
     f.seek(0)
@@ -197,7 +197,7 @@ def test_cli_run_report_fd(capfd, tmpdir):
         '----------------------------------------------------------------',
         'tests/test_plugin/conditional_function.vim      13      5    62%']
     assert err.splitlines() == [
-        "Running cmd: ['true']",
+        'Running cmd: true (in %s)' % str(os.getcwd()),
         'Parsing profile file %s.' % tmp_profile_fname,
         'Writing coverage file %s.' % data_file]
 
@@ -208,7 +208,7 @@ def test_cli_run_report_fd(capfd, tmpdir):
     assert exit_code == 0, err
     assert out == ''
     assert err.splitlines() == [
-        "Running cmd: ['true']",
+        'Running cmd: true (in %s)' % str(os.getcwd()),
         'Parsing profile file %s.' % tmp_profile_fname,
         'Writing coverage file %s.' % data_file]
     assert open(ofname).read().splitlines() == [
