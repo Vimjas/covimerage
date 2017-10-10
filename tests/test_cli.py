@@ -476,3 +476,24 @@ def test_cli_xml(runner, tmpdir):
             xml = f.read()
     assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
         os.getcwd()) in xml
+
+
+def test_run_handles_exit_code_from_python_fd(capfd):
+    ret = call(['covimerage', 'run',
+                'python', '-c', 'print("output"); import sys; sys.exit(42)'])
+    out, err = capfd.readouterr()
+    assert 'Error: Command exited non-zero: 42.' in err.splitlines()
+    assert out == 'output\n'
+    assert ret == 42
+
+
+def test_run_handles_exit_code_from_python_pty_fd(capfd):
+    ret = call(['covimerage', 'run', '--profile-file', '/not/used',
+                'python', '-c',
+                "import pty; pty.spawn(['/bin/sh', '-c', "
+                "'printf output; exit 42'])"])
+    out, err = capfd.readouterr()
+    assert ('Error: The profile file (/not/used) has not been created.' in
+            err.splitlines())
+    assert out == 'output'
+    assert ret == 1
