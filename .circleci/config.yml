@@ -18,12 +18,12 @@ common: &common
         name: upload coverage results for non-checkqa builds
         command: |
           if [[ "$TOXENV" != checkqa ]]; then
-            # XXX: use bash script?!
             PATH=$HOME/.local/bin:$PATH
+            # XXX: use bash script?!
             pip install --user codecov
             coverage xml
             coverage report -m
-            codecov --required -X search gcov pycov -f coverage.xml --flags $prof_flags
+            codecov --required -X search gcov pycov -f coverage.xml --flags $CIRCLE_JOB
 
             if [[ "$CIRCLE_JOB" == py36 ]]; then
               pip install --user coveralls
