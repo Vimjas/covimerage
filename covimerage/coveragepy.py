@@ -34,18 +34,20 @@ class CoverageWrapperException(click.ClickException):
 
 
 @attr.s(frozen=True)
-class CoverageWrapper(object):
-    """Wrap Coveragepy related functionality."""
-    data = attr.ib(default=None)
+class CoverageData(object):
+    cov_data = attr.ib(default=None)
     data_file = attr.ib(default=None)
 
-    _cached_cov_obj = None
-
     def __attrs_post_init__(self):
-        if self.data is None:
-            if not self.data_file:
-                raise TypeError('data or data_file needs to be provided.')
-            cov_data = coverage.data.CoverageData()
+        if self.cov_data and self.data_file:
+            raise TypeError('data and data_file are mutually exclusive.')
+        if self.cov_data:
+            if not isinstance(self.cov_data, coverage.data.CoverageData):
+                raise TypeError(
+                    'data needs to be of type coverage.data.CoverageData')
+            return
+        cov_data = coverage.data.CoverageData()
+        if self.data_file:
             fname, fobj, fstr = get_fname_and_fobj_and_str(self.data_file)
             try:
                 if fobj:
@@ -56,15 +58,32 @@ class CoverageWrapper(object):
                 raise CoverageWrapperException(
                     'Coverage could not read data_file: %s' % fstr,
                     orig_exc=exc)
-            else:
-                object.__setattr__(self, 'data', cov_data)
-        elif self.data_file is not None:
+        object.__setattr__(self, 'cov_data', cov_data)
+
+    @property
+    def lines(self):
+        data = self.cov_data
+        return {f: sorted(data.lines(f)) for f in data.measured_files()}
+
+
+@attr.s(frozen=True)
+class CoverageWrapper(object):
+    """Wrap Coveragepy related functionality."""
+    data = attr.ib(default=None)
+    data_file = attr.ib(default=None)
+
+    _cached_cov_obj = None
+
+    def __attrs_post_init__(self):
+        if not isinstance(self.data, CoverageData):
+            cov_data = CoverageData(cov_data=self.data, data_file=self.data_file)
+            object.__setattr__(self, 'data', cov_data)
+        elif self.data_file:
             raise TypeError('data and data_file are mutually exclusive.')
 
     @property
     def lines(self):
-        data = self.data
-        return {f: sorted(data.lines(f)) for f in data.measured_files()}
+        return self.data.lines
 
     @property
     def _cov_obj(self):
@@ -80,7 +99,7 @@ class CoverageWrapper(object):
 
         cov_coverage = CoverageW(config_file=False)
         cov_coverage._init()
-        cov_coverage.data = self.data
+        cov_coverage.data = self.data.cov_data
         return cov_coverage
 
     def report(self, report_file=None, show_missing=None,
