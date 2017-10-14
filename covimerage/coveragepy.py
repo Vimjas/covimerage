@@ -76,8 +76,8 @@ class CoverageWrapper(object):
 
     def __attrs_post_init__(self):
         if not isinstance(self.data, CoverageData):
-            cov_data = CoverageData(cov_data=self.data, data_file=self.data_file)
-            object.__setattr__(self, 'data', cov_data)
+            data = CoverageData(cov_data=self.data, data_file=self.data_file)
+            object.__setattr__(self, 'data', data)
         elif self.data_file:
             raise TypeError('data and data_file are mutually exclusive.')
 
