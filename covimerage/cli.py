@@ -109,7 +109,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     LOGGER.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
 
     try:
-        exit_code = subprocess.call(cmd, close_fds=False)
+        exit_code = subprocess.call(cmd)
     except Exception as exc:
         raise click.exceptions.ClickException(
             'Failed to run %s: %s' % (cmd, exc))
