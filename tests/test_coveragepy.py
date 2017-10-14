@@ -60,15 +60,67 @@ def coverage_fileobj():
     return StringIO('\n'.join(['!coverage.py: This is a private format, don\'t read it directly!{"lines":{"/test_plugin/conditional_function.vim":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']))  # noqa: E501
 
 
-def test_coveragewrapper(coverage_fileobj, devnull):
-    from coverage.misc import CoverageException
-    from covimerage.coveragepy import CoverageWrapper, CoverageWrapperException
+def test_coveragedata(coverage_fileobj):
+    import coverage
+    from covimerage.coveragepy import CoverageData, CoverageWrapperException
 
-    with pytest.raises(TypeError):
-        CoverageWrapper()
+    with pytest.raises(TypeError) as excinfo:
+        CoverageData(data_file='foo', cov_data='bar')
+    assert excinfo.value.args == (
+        'data and data_file are mutually exclusive.',)
+
+    data = CoverageData()
+    assert isinstance(data.cov_data, coverage.data.CoverageData)
+
+    with pytest.raises(TypeError) as excinfo:
+        CoverageData(cov_data='foo')
+    assert excinfo.value.args == (
+        'data needs to be of type coverage.data.CoverageData',)
+
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        CoverageData(data_file='/does/not/exist')
+    assert excinfo.value.args == (
+        'Coverage could not read data_file: /does/not/exist',)
+    assert isinstance(excinfo.value.orig_exc, coverage.misc.CoverageException)
+
+    f = StringIO()
+    with pytest.raises(CoverageWrapperException) as excinfo:
+        CoverageData(data_file=f)
+    e = excinfo.value
+    assert isinstance(e.orig_exc, coverage.misc.CoverageException)
+    assert e.message == 'Coverage could not read data_file: %s' % f
+    assert e.format_message() == '%s (%r)' % (e.message, e.orig_exc)
+    assert str(e) == e.format_message()
+    assert repr(e) == 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
+        e.message, e.orig_exc)
+
+    cov_data = CoverageData(data_file=coverage_fileobj)
+    with pytest.raises(attr.exceptions.FrozenInstanceError):
+        cov_data.data = 'foo'
+
+    assert cov_data.lines == {
+        '/test_plugin/conditional_function.vim': [
+            3, 8, 9, 11, 13, 14, 15, 17, 23]}
+
+
+def test_coveragewrapper(coverage_fileobj, devnull):
+    import coverage
+    from covimerage.coveragepy import (
+        CoverageData, CoverageWrapper, CoverageWrapperException)
+
+    cov_data = CoverageWrapper()
+    assert cov_data.lines == {}
+    assert isinstance(cov_data.data, CoverageData)
+
+    cov_data = CoverageWrapper(data=coverage.data.CoverageData())
+    assert cov_data.lines == {}
+    assert isinstance(cov_data.data, CoverageData)
 
     with pytest.raises(TypeError):
         CoverageWrapper(data_file='foo', data='bar')
+
+    with pytest.raises(TypeError):
+        CoverageWrapper(data_file='foo', data=CoverageData())
 
     cov = CoverageWrapper(data_file=coverage_fileobj)
     with pytest.raises(attr.exceptions.FrozenInstanceError):
@@ -79,7 +131,7 @@ def test_coveragewrapper(coverage_fileobj, devnull):
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
 
     assert isinstance(cov._cov_obj, coverage.control.Coverage)
-    assert cov._cov_obj.data is cov.data
+    assert cov._cov_obj.data is cov.data.cov_data
 
     with pytest.raises(CoverageWrapperException) as excinfo:
         CoverageWrapper(data_file=devnull.name)
@@ -90,12 +142,20 @@ def test_coveragewrapper(coverage_fileobj, devnull):
     with pytest.raises(CoverageWrapperException) as excinfo:
         CoverageWrapper(data_file=f)
     e = excinfo.value
-    assert isinstance(e.orig_exc, CoverageException)
+    assert isinstance(e.orig_exc, coverage.misc.CoverageException)
     assert e.message == 'Coverage could not read data_file: %s' % f
     assert e.format_message() == '%s (%r)' % (e.message, e.orig_exc)
     assert str(e) == e.format_message()
     assert repr(e) == 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
         e.message, e.orig_exc)
+
+
+def test_coveragewrapper_accepts_data():
+    from covimerage.coveragepy import CoverageData, CoverageWrapper
+
+    data = CoverageData()
+    cov = CoverageWrapper(data=data)
+    assert cov.data is data
 
 
 def test_coveragewrapperexception():
