@@ -51,6 +51,8 @@ def write_coverage(profile_file, data_file, source):
               help='File name for the PROFILE_FILE file.  By default a temporary file is used.')  # noqa: E501
 @click.option('--data-file', required=False, type=click.File('w'),
               help='DATA_FILE to write into.', show_default=True)
+@click.option('--append', is_flag=True, default=False,
+              help='Read existing DATA_FILE for appending.', show_default=True)
 @click.option('--write-data/--no-write-data', is_flag=True,
               default=True, show_default=True,
               help='Write Coverage.py compatible DATA_FILE.')
@@ -65,7 +67,7 @@ def write_coverage(profile_file, data_file, source):
               multiple=True)
 @click.pass_context
 def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
-        report, report_file, report_options, source):
+        report, report_file, report_options, source, append):
     """
     Run VIM wrapped with :profile instructions.
 
