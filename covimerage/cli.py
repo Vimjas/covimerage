@@ -6,7 +6,9 @@ from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
 from .logger import LOGGER
-from .utils import build_vim_profile_args, join_argv
+from .utils import (
+    build_vim_profile_args, get_fname_and_fobj_and_str, join_argv,
+)
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
@@ -92,9 +94,15 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             profile_file_name = tempfile.mktemp(prefix='covimerage.profile.')
         else:
             profile_file_name = profile_file.name
+        profile_file_fobj = None
+        profile_file_str = profile_file_name
         args += build_vim_profile_args(profile_file_name, source)
+    elif profile_file:
+        profile_file_name, profile_file_fobj, profile_file_str = \
+            get_fname_and_fobj_and_str(profile_file)
     else:
-        profile_file_name = profile_file.name if profile_file else None
+        profile_file_name = None
+        profile_file_fobj = None
     cmd = args
     LOGGER.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
 
@@ -104,8 +112,8 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
         raise click.exceptions.ClickException(
             'Failed to run %s: %s' % (cmd, exc))
 
-    if profile_file_name:
-        if not os.path.exists(profile_file_name):
+    if profile_file_name or profile_file_fobj:
+        if profile_file_name and not os.path.exists(profile_file_name):
             if not exit_code:
                 exit = click.exceptions.ClickException(
                     'The profile file (%s) has not been created.' % (
