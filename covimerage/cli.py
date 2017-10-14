@@ -124,7 +124,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                 raise exit
 
         elif write_data or report:
-            LOGGER.info('Parsing profile file %s.', profile_file_name)
+            LOGGER.info('Parsing profile file %s.', profile_file_str)
             p = Profile(profile_file_name)
             p.parse()
             m = MergedProfiles([p], source=source)
