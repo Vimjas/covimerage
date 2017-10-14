@@ -65,6 +65,9 @@ class CoverageData(object):
         data = self.cov_data
         return {f: sorted(data.lines(f)) for f in data.measured_files()}
 
+    def add_lines(self, lines):
+        self.cov_data.add_lines(lines)
+
 
 @attr.s(frozen=True)
 class CoverageWrapper(object):

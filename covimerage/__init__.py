@@ -7,6 +7,7 @@ import re
 import attr
 from click.utils import string_types
 
+from .coveragepy import CoverageData
 from .logger import LOGGER
 from .utils import (
     find_executable_files, get_fname_and_fobj_and_str, is_executable_line,
@@ -67,6 +68,7 @@ class Function(object):
 class MergedProfiles(object):
     profiles = attr.ib(default=attr.Factory(list))
     source = attr.ib(default=attr.Factory(list))
+    append_to = attr.ib(default=None)
 
     _coveragepy_data = None
 
@@ -125,9 +127,11 @@ class MergedProfiles(object):
         return lines
 
     def _get_coveragepy_data(self):
-        import coverage
+        if self.append_to:
+            data = CoverageData(data_file=self.append_to)
+        else:
+            data = CoverageData()
 
-        cov_data = coverage.data.CoverageData()
         cov_dict = {}
         cov_file_tracers = {}
 
@@ -161,9 +165,9 @@ class MergedProfiles(object):
             cov_dict[fname] = {}
             cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
 
-        cov_data.add_lines(cov_dict)
-        cov_data.add_file_tracers(cov_file_tracers)
-        return cov_data
+        data.add_lines(cov_dict)
+        data.cov_data.add_file_tracers(cov_file_tracers)
+        return data.cov_data
 
     def get_coveragepy_data(self):
         if self._coveragepy_data is not None:
