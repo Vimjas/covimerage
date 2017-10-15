@@ -103,6 +103,16 @@ def test_coveragedata(coverage_fileobj):
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
 
 
+def test_coveragedata_empty(covdata_empty):
+    from covimerage.coveragepy import CoverageData
+
+    f = StringIO()
+    data = CoverageData()
+    data.cov_data.write_fileobj(f)
+    f.seek(0)
+    assert f.read() == covdata_empty
+
+
 def test_coveragewrapper(coverage_fileobj, devnull):
     import coverage
     from covimerage.coveragepy import (
