@@ -105,7 +105,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert result.exit_code == 3
 
     result = runner.invoke(cli.run, [
-        '--no-wrap-profile', '--no-report', '--profile-file', devnull,
+        '--no-wrap-profile', '--no-report', '--profile-file', devnull.name,
         '--no-write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
@@ -113,7 +113,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         'Error: Command exited non-zero: 3.']
 
     result = runner.invoke(cli.run, [
-        '--no-wrap-profile', '--no-report', '--profile-file', devnull,
+        '--no-wrap-profile', '--no-report', '--profile-file', devnull.name,
         '--source', devnull.name,
         '--write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
