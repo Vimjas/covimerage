@@ -1,0 +1,79 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+
+common: &common
+  working_directory: ~/repo
+  steps:
+    - checkout
+    - restore_cache:
+        keys:
+          - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
+          - v1-deps-
+    - run: pip install --user tox
+    - run:  ~/.local/bin/tox
+    - run:
+        name: upload coverage results for non-checkqa builds
+        command: |
+          if [[ "$TOXENV" != checkqa ]]; then
+            PATH=$HOME/.local/bin:$PATH
+            # XXX: use bash script?!
+            pip install --user codecov
+            coverage xml
+            coverage report -m
+            codecov --required -X search gcov pycov -f coverage.xml --flags $CIRCLE_JOB
+
+            if [[ "$CIRCLE_JOB" == py36 ]]; then
+              pip install --user coveralls
+              coveralls
+            fi
+            set +x
+          fi
+    - save_cache:
+        paths:
+          - .tox
+          - ~/.cache/pip
+        key: v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
+jobs:
+  py36:
+    <<: *common
+    docker:
+      - image: circleci/python:3.6
+        environment:
+          TOXENV=py36-coverage
+  py35:
+    <<: *common
+    docker:
+      - image: circleci/python:3.5
+        environment:
+          TOXENV=py35-coverage
+  py34:
+    <<: *common
+    docker:
+      - image: circleci/python:3.4
+        environment:
+          TOXENV=py34-coverage
+  py27:
+    <<: *common
+    docker:
+      - image: circleci/python:2.7
+        environment:
+          TOXENV=py27-coverage
+  checkqa:
+    <<: *common
+    docker:
+      - image: circleci/python:3.6
+        environment:
+          TOXENV=checkqa
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - py36
+      - py35
+      - py34
+      - py27
+      - checkqa

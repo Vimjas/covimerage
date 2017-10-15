@@ -1,0 +1,12 @@
+" vimrc to run covimerage against the test plugin.
+
+let prof_fname = get(g:, 'prof_fname')
+exe 'profile start '.prof_fname
+profile! file ./**
+
+exe 'set runtimepath+='.expand('<sfile>:h')
+
+set lazyredraw
+set noloadplugins
+set nomore
+set noswapfile
