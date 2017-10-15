@@ -532,9 +532,8 @@ def test_run_append_with_data(runner, tmpdir, covdata_empty):
             '----------------------------------------------------------------',
             'tests/test_plugin/conditional_function.vim      13      5    62%']
         assert result.exit_code == 0
-        with open(DEFAULT_COVERAGE_DATA_FILE, 'r') as f:
-            cov_data_first = f.read()
 
+        # The same again.
         result = runner.invoke(cli.run, [
             '--append', '--no-wrap-profile', '--profile-file', profile_file,
             'printf', '--', '--headless'])
@@ -546,10 +545,8 @@ def test_run_append_with_data(runner, tmpdir, covdata_empty):
             '----------------------------------------------------------------',
             'tests/test_plugin/conditional_function.vim      13      5    62%']
         assert result.exit_code == 0
-        with open(DEFAULT_COVERAGE_DATA_FILE, 'r') as f:
-            cov_data_second = f.read()
-        assert cov_data_first == cov_data_second
 
+        # Append another profile.
         another_profiled_file = 'tests/test_plugin/merged_conditionals.vim'
         tmpdir.join(another_profiled_file).write(
             old_dir.join(another_profiled_file).read(), ensure=True)
@@ -571,6 +568,3 @@ def test_run_append_with_data(runner, tmpdir, covdata_empty):
             '----------------------------------------------------------------',
             'TOTAL                                           32     17    47%']
         assert result.exit_code == 0
-        with open(DEFAULT_COVERAGE_DATA_FILE, 'r') as f:
-            cov_data_third = f.read()
-        assert cov_data_first != cov_data_third
