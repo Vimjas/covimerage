@@ -590,3 +590,16 @@ def test_run_append_with_data(runner, tmpdir, covdata_empty):
             '----------------------------------------------------------------',
             'TOTAL                                           32     17    47%']
         assert result.exit_code == 0
+
+
+def test_run_report_without_data(tmpdir, runner, devnull):
+    with tmpdir.as_cwd():
+        result = runner.invoke(cli.run, [
+            '--no-write-data', '--no-wrap-profile',
+            '--profile-file', devnull.name,
+            'printf', '--', '--headless'])
+    assert result.output.splitlines() == [
+        'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
+        'Parsing profile file %s.' % devnull.name,
+        'Error: No data to report.']
+    assert result.exit_code == 1
