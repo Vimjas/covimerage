@@ -44,11 +44,13 @@ def write_coverage(profile_file, data_file, source):
 @click.option('--wrap-profile/--no-wrap-profile', required=False,
               default=True, show_default=True,
               help='Wrap VIM cmd with options to create a PROFILE_FILE.')
-@click.option('--profile-file', required=False, type=click.File('w'),
-              metavar='PROFILE_FILE', show_default=True,
+@click.option('--profile-file', required=False, metavar='PROFILE_FILE',
+              type=click.Path(dir_okay=False),
               help='File name for the PROFILE_FILE file.  By default a temporary file is used.')  # noqa: E501
 @click.option('--data-file', required=False, type=click.File('w'),
               help='DATA_FILE to write into.', show_default=True)
+@click.option('--append', is_flag=True, default=False,
+              help='Read existing DATA_FILE for appending.', show_default=True)
 @click.option('--write-data/--no-write-data', is_flag=True,
               default=True, show_default=True,
               help='Write Coverage.py compatible DATA_FILE.')
@@ -63,7 +65,7 @@ def write_coverage(profile_file, data_file, source):
               multiple=True)
 @click.pass_context
 def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
-        report, report_file, report_options, source):
+        report, report_file, report_options, source, append):
     """
     Run VIM wrapped with :profile instructions.
 
@@ -89,39 +91,40 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     if wrap_profile:
         if not profile_file:
             # TODO: remove it automatically in the end?
-            profile_file_name = tempfile.mktemp(prefix='covimerage.profile.')
-        else:
-            profile_file_name = profile_file.name
-        args += build_vim_profile_args(profile_file_name, source)
-    else:
-        profile_file_name = profile_file.name if profile_file else None
+            profile_file = tempfile.mktemp(prefix='covimerage.profile.')
+        args += build_vim_profile_args(profile_file, source)
     cmd = args
     LOGGER.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
 
     try:
-        exit_code = subprocess.call(cmd, close_fds=False)
+        exit_code = subprocess.call(cmd)
     except Exception as exc:
         raise click.exceptions.ClickException(
             'Failed to run %s: %s' % (cmd, exc))
 
-    if profile_file_name:
-        if not os.path.exists(profile_file_name):
+    if profile_file:
+        if not os.path.exists(profile_file):
             if not exit_code:
                 exit = click.exceptions.ClickException(
                     'The profile file (%s) has not been created.' % (
-                        profile_file_name))
+                        profile_file))
                 exit.exit_code = 1
                 raise exit
 
         elif write_data or report:
-            LOGGER.info('Parsing profile file %s.', profile_file_name)
-            p = Profile(profile_file_name)
+            LOGGER.info('Parsing profile file %s.', profile_file)
+            p = Profile(profile_file)
             p.parse()
-            m = MergedProfiles([p], source=source)
 
-            if write_data and not data_file:
+            if (write_data or append) and not data_file:
                 data_file = DEFAULT_COVERAGE_DATA_FILE
-            if data_file:
+
+            if append:
+                m = MergedProfiles([p], source=source, append_to=data_file)
+            else:
+                m = MergedProfiles([p], source=source)
+
+            if write_data:
                 m.write_coveragepy_data(data_file)
 
             if report:

@@ -31,3 +31,8 @@ def runner():
 def devnull():
     with open(os.devnull) as f:
         yield f
+
+
+@pytest.fixture
+def covdata_empty():
+    return "!coverage.py: This is a private format, don't read it directly!{}"

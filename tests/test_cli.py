@@ -105,7 +105,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert result.exit_code == 3
 
     result = runner.invoke(cli.run, [
-        '--no-wrap-profile', '--no-report', '--profile-file', devnull,
+        '--no-wrap-profile', '--no-report', '--profile-file', devnull.name,
         '--no-write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
@@ -113,7 +113,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         'Error: Command exited non-zero: 3.']
 
     result = runner.invoke(cli.run, [
-        '--no-wrap-profile', '--no-report', '--profile-file', devnull,
+        '--no-wrap-profile', '--no-report', '--profile-file', devnull.name,
         '--source', devnull.name,
         '--write-data', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
@@ -146,8 +146,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert f.read() == ''
 
     profiled_file = 'tests/test_plugin/conditional_function.vim'
-    profiled_file_content = open(
-        'tests/test_plugin/conditional_function.vim', 'r').read()
+    profiled_file_content = open(profiled_file, 'r').read()
     with tmpdir.as_cwd() as old_dir:
         profile_file = str(old_dir.join(
             'tests/fixtures/conditional_function.profile'))
@@ -174,6 +173,28 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         str(tmpdir.join('tests/test_plugin/conditional_function.vim')): [
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
     assert cov.lines == expected
+
+
+@pytest.mark.parametrize('with_append', (True, False))
+def test_cli_run_can_skip_writing_data(with_append, runner, tmpdir):
+    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file_content = open(profiled_file, 'r').read()
+    with tmpdir.as_cwd() as old_dir:
+        profile_file = str(old_dir.join(
+            'tests/fixtures/conditional_function.profile'))
+        tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+        args = ['--no-wrap-profile', '--profile-file', profile_file,
+                '--no-write-data', 'printf', '--', '--headless']
+        if with_append:
+            args.insert(0, '--append')
+        result = runner.invoke(cli.run, args)
+    assert result.output.splitlines() == [
+        'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
+        'Parsing profile file %s.' % profile_file,
+        'Name                                         Stmts   Miss  Cover',
+        '----------------------------------------------------------------',
+        'tests/test_plugin/conditional_function.vim      13      5    62%']
+    assert not tmpdir.join(DEFAULT_COVERAGE_DATA_FILE).exists()
 
 
 def test_cli_run_report_fd(capfd, tmpdir):
@@ -497,3 +518,75 @@ def test_run_handles_exit_code_from_python_pty_fd(capfd):
             err.splitlines())
     assert out == 'output'
     assert ret == 1
+
+
+def test_run_append_with_empty_data(runner, tmpdir):
+    with tmpdir.as_cwd() as old_dir:
+        profile_file = str(old_dir.join(
+            'tests/fixtures/conditional_function.profile'))
+        data_file = StringIO()
+        result = runner.invoke(cli.run, [
+            '--append', '--no-wrap-profile', '--profile-file', profile_file,
+            '--data-file', data_file, 'printf', '--', '--headless'])
+        assert result.output.splitlines() == [
+            'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
+            'Parsing profile file %s.' % profile_file,
+            'Error: Coverage could not read data_file: %r (CoverageException("Doesn\'t seem to be a coverage.py data file",))' % data_file,  # noqa: E501
+        ]
+        assert result.exit_code == 1
+
+
+def test_run_append_with_data(runner, tmpdir, covdata_empty):
+    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file_content = open(profiled_file, 'r').read()
+    tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+    with tmpdir.as_cwd() as old_dir:
+        profile_file = str(old_dir.join(
+            'tests/fixtures/conditional_function.profile'))
+        result = runner.invoke(cli.run, [
+            '--append', '--no-wrap-profile', '--profile-file', profile_file,
+            'printf', '--', '--headless'])
+        assert result.output.splitlines() == [
+            'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
+            'Parsing profile file %s.' % profile_file,
+            'Writing coverage file .coverage.covimerage.',
+            'Name                                         Stmts   Miss  Cover',
+            '----------------------------------------------------------------',
+            'tests/test_plugin/conditional_function.vim      13      5    62%']
+        assert result.exit_code == 0
+
+        # The same again.
+        result = runner.invoke(cli.run, [
+            '--append', '--no-wrap-profile', '--profile-file', profile_file,
+            'printf', '--', '--headless'])
+        assert result.output.splitlines() == [
+            'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
+            'Parsing profile file %s.' % profile_file,
+            'Writing coverage file .coverage.covimerage.',
+            'Name                                         Stmts   Miss  Cover',
+            '----------------------------------------------------------------',
+            'tests/test_plugin/conditional_function.vim      13      5    62%']
+        assert result.exit_code == 0
+
+        # Append another profile.
+        another_profiled_file = 'tests/test_plugin/merged_conditionals.vim'
+        tmpdir.join(another_profiled_file).write(
+            old_dir.join(another_profiled_file).read(), ensure=True)
+        tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+        profile_file = str(old_dir.join(
+            'tests/fixtures/merged_conditionals-0.profile'))
+        tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+        result = runner.invoke(cli.run, [
+            '--append', '--no-wrap-profile', '--profile-file', profile_file,
+            'printf', '--', '--headless'])
+        assert result.output.splitlines() == [
+            'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
+            'Parsing profile file %s.' % profile_file,
+            'Writing coverage file .coverage.covimerage.',
+            'Name                                         Stmts   Miss  Cover',
+            '----------------------------------------------------------------',
+            'tests/test_plugin/conditional_function.vim      13      5    62%',
+            'tests/test_plugin/merged_conditionals.vim       19     12    37%',
+            '----------------------------------------------------------------',
+            'TOTAL                                           32     17    47%']
+        assert result.exit_code == 0

@@ -51,9 +51,9 @@ class CoverageData(object):
             fname, fobj, fstr = get_fname_and_fobj_and_str(self.data_file)
             try:
                 if fobj:
-                    cov_data.read_fileobj(self.data_file)
+                    cov_data.read_fileobj(fobj)
                 else:
-                    cov_data.read_file(self.data_file)
+                    cov_data.read_file(fname)
             except coverage.CoverageException as exc:
                 raise CoverageWrapperException(
                     'Coverage could not read data_file: %s' % fstr,
@@ -64,6 +64,9 @@ class CoverageData(object):
     def lines(self):
         data = self.cov_data
         return {f: sorted(data.lines(f)) for f in data.measured_files()}
+
+    def add_lines(self, lines):
+        self.cov_data.add_lines(lines)
 
 
 @attr.s(frozen=True)
