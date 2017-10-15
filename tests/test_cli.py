@@ -175,6 +175,28 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert cov.lines == expected
 
 
+@pytest.mark.parametrize('with_append', (True, False))
+def test_cli_run_can_skip_writing_data(with_append, runner, tmpdir):
+    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file_content = open(profiled_file, 'r').read()
+    with tmpdir.as_cwd() as old_dir:
+        profile_file = str(old_dir.join(
+            'tests/fixtures/conditional_function.profile'))
+        tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+        args = ['--no-wrap-profile', '--profile-file', profile_file,
+                '--no-write-data', 'printf', '--', '--headless']
+        if with_append:
+            args.insert(0, '--append')
+        result = runner.invoke(cli.run, args)
+    assert result.output.splitlines() == [
+        'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
+        'Parsing profile file %s.' % profile_file,
+        'Name                                         Stmts   Miss  Cover',
+        '----------------------------------------------------------------',
+        'tests/test_plugin/conditional_function.vim      13      5    62%']
+    assert not tmpdir.join(DEFAULT_COVERAGE_DATA_FILE).exists()
+
+
 def test_cli_run_report_fd(capfd, tmpdir):
     profile_fname = 'tests/fixtures/conditional_function.profile'
     with open(profile_fname, 'r') as f:

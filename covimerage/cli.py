@@ -124,7 +124,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             else:
                 m = MergedProfiles([p], source=source)
 
-            if data_file:
+            if write_data:
                 m.write_coveragepy_data(data_file)
 
             if report:
