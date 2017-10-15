@@ -115,10 +115,15 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             LOGGER.info('Parsing profile file %s.', profile_file)
             p = Profile(profile_file)
             p.parse()
-            m = MergedProfiles([p], source=source)
 
-            if write_data and not data_file:
+            if (write_data or append) and not data_file:
                 data_file = DEFAULT_COVERAGE_DATA_FILE
+
+            if append:
+                m = MergedProfiles([p], source=source, append_to=data_file)
+            else:
+                m = MergedProfiles([p], source=source)
+
             if data_file:
                 m.write_coveragepy_data(data_file)
 

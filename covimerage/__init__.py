@@ -128,7 +128,11 @@ class MergedProfiles(object):
 
     def _get_coveragepy_data(self):
         if self.append_to:
-            data = CoverageData(data_file=self.append_to)
+            fname, fobj, fstr = get_fname_and_fobj_and_str(self.append_to)
+            if fobj or (fname and os.path.exists(fname)):
+                data = CoverageData(data_file=self.append_to)
+            else:
+                data = CoverageData()
         else:
             data = CoverageData()
 
