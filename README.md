@@ -8,6 +8,7 @@ compatible with [Coverage.py](http://coverage.readthedocs.io/).
 **NOTE:** this `develop` branch will be squash-merged into master after some
 stabilization (1-2 weeks).
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/548eb25f726646fbbe660dc9fb6d392a)](https://www.codacy.com/app/blueyed/covimerage?utm_source=github.com&utm_medium=referral&utm_content=Vimjas/covimerage&utm_campaign=badger)
 [![Build Status](https://circleci.com/gh/Vimjas/covimerage/tree/master.svg?style=shield)](https://circleci.com/gh/Vimjas/covimerage)
 [![codecov](https://codecov.io/gh/Vimjas/covimerage/branch/master/graph/badge.svg)](https://codecov.io/gh/Vimjas/covimerage/branch/master)
 
