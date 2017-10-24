@@ -119,11 +119,11 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     if profile_file:
         if not os.path.exists(profile_file):
             if not exit_code:
-                exit = click.exceptions.ClickException(
+                exit_exception = click.exceptions.ClickException(
                     'The profile file (%s) has not been created.' % (
                         profile_file))
-                exit.exit_code = 1
-                raise exit
+                exit_exception.exit_code = 1
+                raise exit_exception
 
         elif write_data or report:
             LOGGER.info('Parsing profile file %s.', profile_file)
