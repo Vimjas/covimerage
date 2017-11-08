@@ -71,7 +71,7 @@ def test_cli_run_subprocess_exception(runner, mocker):
     result = runner.invoke(cli.run, [os.devnull])
     out = result.output.splitlines()
     assert out[-1].startswith("Error: Failed to run ['/dev/null', '--cmd',")
-    assert out[-1].endswith("']: [Errno 13] Permission denied")
+    assert '[Errno 13] Permission denied' in out[-1]
     assert result.exit_code == 1
 
 
