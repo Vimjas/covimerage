@@ -44,14 +44,14 @@ def is_executable_filename(filename):
 
 
 def find_executable_files(src_dir):
-    for i, (dirpath, dirnames, filenames) in enumerate(os.walk(src_dir)):
+    for (dirpath, _, filenames) in os.walk(src_dir):
         for filename in filenames:
             if is_executable_filename(filename):
                 yield os.path.join(dirpath, filename)
 
 
-def is_executable_line(l):
-    return not RE_NON_EXECED.match(l)
+def is_executable_line(line):
+    return not RE_NON_EXECED.match(line)
 
 
 def join_argv(argv):
