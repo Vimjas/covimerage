@@ -41,7 +41,7 @@ class Script(object):
     func_to_lnums = attr.ib(default=attr.Factory(dict), repr=False, hash=False)
     sourced_count = attr.ib(default=None)
 
-    def parse_script_line(self, lnum, line):
+    def parse_function(self, lnum, line):
         m = re.match(RE_FUNC_PREFIX, line)
         if m:
             f = line[m.end():].split('(', 1)[0]
@@ -396,6 +396,8 @@ class Profile(object):
                                 assert 0, 'Script line matches function line.'
 
                         if f_line.count is not None:
+                            script.parse_function(script_lnum + f_lnum,
+                                                  f_line.line)
                             if s_line.count:
                                 s_line.count += f_line.count
                             else:
@@ -433,7 +435,7 @@ class Profile(object):
                     if count or lnum == 1:
                         # Parse line 1 always, as a workaround for
                         # https://github.com/vim/vim/issues/2103.
-                        in_script.parse_script_line(lnum, source_line)
+                        in_script.parse_function(lnum, source_line)
                 else:
                     if count is None:
                         # Functions do not have continued lines, assume 0.
