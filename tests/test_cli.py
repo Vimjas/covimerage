@@ -1,7 +1,3 @@
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import os
 from subprocess import call
 import sys
@@ -10,6 +6,7 @@ import pytest
 
 from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli
 from covimerage.__version__ import __version__
+from covimerage._compat import StringIO
 
 
 def test_dunder_main_run(capfd):

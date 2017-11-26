@@ -1,12 +1,10 @@
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import sys
 
 import attr
 import coverage
 import pytest
+
+from covimerage._compat import StringIO
 
 
 def test_filereporter():
