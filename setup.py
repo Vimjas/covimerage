@@ -76,8 +76,7 @@ DEPS_QA = [
     'flake8-quotes',
 ]
 DEPS_TESTING = [
-    'pytest',
-    'pytest-catchlog',
+    'pytest>=3.3.0',
     'pytest-cov',
     'pytest-mock',
 ]
