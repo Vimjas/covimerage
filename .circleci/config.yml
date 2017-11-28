@@ -13,7 +13,7 @@ common: &common
           - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
           - v1-deps-
     - run: pip install --user tox
-    - run:  ~/.local/bin/tox
+    - run: PYTEST_ADDOPTS=-vv ~/.local/bin/tox
     - run:
         name: upload coverage results for non-checkqa builds
         command: |
