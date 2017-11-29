@@ -22,9 +22,9 @@ def test_profile_repr_lines():
     assert repr(p.lines) == '{%r: {}}' % s
     assert repr(s) == "Script(path='script-path', sourced_count=None)"
 
-    l = Line('line1')
-    s.lines[1] = l
-    assert repr(p.lines) == ('{%r: {1: %r}}' % (s, l))
+    line = Line('line1')
+    s.lines[1] = line
+    assert repr(p.lines) == ('{%r: {1: %r}}' % (s, line))
 
 
 def test_profile_fname_or_fobj(caplog, devnull):
@@ -60,8 +60,9 @@ def test_parse_count_and_times():
 def test_line():
     from covimerage import Line
 
-    l = Line('    1              0.000005 Foo')
-    assert repr(l) == "Line(line='    1              0.000005 Foo', count=None, total_time=None, self_time=None)"  # noqa
+    line = '    1              0.000005 Foo'
+    assert repr(Line(line)) == 'Line(line=%r, count=None, total_time=None, self_time=None)' % (  # noqa:E501
+        line)
 
 
 def test_profile_parse():
