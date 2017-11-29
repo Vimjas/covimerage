@@ -1,3 +1,4 @@
+import logging
 import os
 
 import click
@@ -9,12 +10,22 @@ from .logger import LOGGER
 from .utils import build_vim_profile_args, join_argv
 
 
+def default_loglevel():
+    return logging.getLevelName(LOGGER.level).lower()
+
+
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
 @click.version_option(__version__, '-V', '--version', prog_name='covimerage')
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
-def main(verbose, quiet):
-    if verbose - quiet:
+@click.option('-l', '--loglevel', show_default=True,
+              help=('Set logging level explicitly (overrides -v/-q).  '
+                    '[default: %s]' % (default_loglevel(),)),
+              type=click.Choice(('error', 'warning', 'info', 'debug')))
+def main(verbose, quiet, loglevel):
+    if loglevel:
+        LOGGER.setLevel(loglevel.upper())
+    elif verbose - quiet:
         LOGGER.setLevel(max(10, LOGGER.level - (verbose - quiet) * 10))
 
 
