@@ -59,8 +59,8 @@ def write_coverage(profile_file, data_file, source):
               type=click.Path(dir_okay=False),
               help='File name for the PROFILE_FILE file.  By default a temporary file is used.')  # noqa: E501
 @click.option('--data-file', required=False, type=click.File('w'),
-              help='DATA_FILE to write into. [default: %s]' % (
-                  DEFAULT_COVERAGE_DATA_FILE))
+              help=('DATA_FILE to write into.  '
+                    '[default: %s]' % DEFAULT_COVERAGE_DATA_FILE))
 @click.option('--append', is_flag=True, default=False,
               help='Read existing DATA_FILE for appending.', show_default=True)
 @click.option('--write-data/--no-write-data', is_flag=True,
