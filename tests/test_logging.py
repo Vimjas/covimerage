@@ -81,6 +81,6 @@ def test_loglevel_default(default, mocker, runner):
     indent = ' ' * 34
     assert lines[idx+1:idx+3] == [
         indent + 'Set logging level explicitly (overrides',
-        indent + '-v/-q).  [default: %s]' % (default.lower(),),
+        indent + '-v/-q).  [default: %s]' % (default.lower(),),
     ]
     assert result.exit_code == 0

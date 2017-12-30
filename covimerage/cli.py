@@ -20,7 +20,7 @@ def default_loglevel():
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
 @click.option('-l', '--loglevel', show_default=True,
               help=('Set logging level explicitly (overrides -v/-q).  '
-                    '[default: %s]' % (default_loglevel(),)),
+                    '[default: %s]' % (default_loglevel(),)),
               type=click.Choice(('error', 'warning', 'info', 'debug')))
 def main(verbose, quiet, loglevel):
     if loglevel:
@@ -60,7 +60,7 @@ def write_coverage(profile_file, data_file, source):
               help='File name for the PROFILE_FILE file.  By default a temporary file is used.')  # noqa: E501
 @click.option('--data-file', required=False, type=click.File('w'),
               help=('DATA_FILE to write into.  '
-                    '[default: %s]' % DEFAULT_COVERAGE_DATA_FILE))
+                    '[default: %s]' % DEFAULT_COVERAGE_DATA_FILE))
 @click.option('--append', is_flag=True, default=False,
               help='Read existing DATA_FILE for appending.', show_default=True)
 @click.option('--write-data/--no-write-data', is_flag=True,
