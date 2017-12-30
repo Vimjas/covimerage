@@ -76,11 +76,11 @@ def test_loglevel_default(default, mocker, runner):
 
     assert logging.getLevelName(logger.level) == default
     lines = result.output.splitlines()
+    assert lines, result
     idx = lines.index('  -l, --loglevel [error|warning|info|debug]')
-    assert idx
     indent = ' ' * 34
     assert lines[idx+1:idx+3] == [
         indent + 'Set logging level explicitly (overrides',
-        indent + '-v/-q).  [default: %s]' % (default.lower(),),
+        indent + u'-v/-q).  [default:\xa0%s]' % (default.lower(),),
     ]
     assert result.exit_code == 0
