@@ -438,8 +438,9 @@ class Profile(object):
                         in_script.parse_function(lnum, source_line)
                 else:
                     if count is None:
-                        # Functions do not have continued lines, assume 0.
-                        count = 0
+                        if is_executable_line(source_line):
+                            # Functions do not have continued lines, assume 0.
+                            count = 0
                     line = Line(line=source_line, count=count,
                                 total_time=total_time, self_time=self_time)
                     in_function.lines[lnum] = line

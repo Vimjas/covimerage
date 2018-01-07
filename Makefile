@@ -19,6 +19,7 @@ fixtures: tests/fixtures/dict_function_used_twice.profile
 fixtures: tests/fixtures/continued_lines.profile
 fixtures: tests/fixtures/conditional_function.profile
 fixtures: tests/fixtures/function_in_function.profile
+fixtures: tests/fixtures/function_in_function_count.profile
 fixtures: $(PROFILES_TO_MERGE_COND)
 
 # TODO: cleanup.  Should be handled by the generic rule at the bottom.

@@ -202,7 +202,7 @@ def test_profile_parse_dict_function_with_same_source(caplog):
         (1, '    echom a:arg'),
         (1, '  else'),
         (0, '    echom a:arg'),
-        (0, '  endif'),
+        (N, '  endif'),
         (N, 'endfunction'),
         (N, ''),
         (1, 'let obj2 = {}'),
@@ -442,9 +442,30 @@ def test_function_in_function():
         (1, '  let obj = {}'),
         (1, '  function obj.func()'),
         (1, '    return 1'),
-        (0, '  endfunction'),
+        (None, '  endfunction'),
         (1, '  return obj'),
         (None, 'endfunction'),
         (None, ''),
         (1, 'let obj = GetObj()'),
         (1, 'call obj.func()')]
+
+
+def test_function_in_function_count():
+    from covimerage import Profile
+
+    fname = 'tests/fixtures/function_in_function_count.profile'
+    p = Profile(fname)
+    p.parse()
+
+    assert len(p.scripts) == 1
+    s = p.scripts[0]
+
+    assert [(l.count, l.line) for l in s.lines.values()] == [
+        (None, '" Test for line count with inner functions.'),
+        (1, 'function! Outer()'),
+        (None, '  " comment1'),
+        (1, '  function! Inner()'),
+        (None, '    " comment2'),
+        (None, '  endfunction'),
+        (None, 'endfunction'),
+        (1, 'call Outer()')]
