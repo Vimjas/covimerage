@@ -354,65 +354,13 @@ class Profile(object):
                     break
             return skipped
 
+        functions = []
         for line in file_object:
             plnum += 1
             line = line.rstrip('\r\n')
             if line == '':
                 if in_function:
-                    func_name = in_function.name
-                    script_line = self.find_func_in_source(in_function)
-                    if not script_line:
-                        LOGGER.error('Could not find source for function: %s',
-                                     func_name)
-                        in_function = False
-                        continue
-
-                    # Assign counts from function to script.
-                    script, script_lnum = script_line
-                    for [f_lnum, f_line] in in_function.lines.items():
-                        s_line = script.lines[script_lnum + f_lnum]
-
-                        # XXX: might not be the same, since function lines
-                        # are joined, while script lines might be spread
-                        # across several lines (prefixed with \).
-                        script_source = s_line.line
-                        if script_source != f_line.line:
-                            while True:
-                                try:
-                                    peek = script.lines[script_lnum +
-                                                        f_lnum + 1]
-                                except KeyError:
-                                    pass
-                                else:
-                                    m = re.match(RE_CONTINUING_LINE, peek.line)
-                                    if m:
-                                        script_source += peek.line[m.end():]
-                                        script_lnum += 1
-                                        # script_lines.append(peek)
-                                        continue
-                                if script_source == f_line.line:
-                                    break
-
-                                assert 0, 'Script line matches function line.'
-
-                        if f_line.count is not None:
-                            script.parse_function(script_lnum + f_lnum,
-                                                  f_line.line)
-                            if s_line.count:
-                                s_line.count += f_line.count
-                            else:
-                                s_line.count = f_line.count
-                        if f_line.self_time:
-                            if s_line.self_time:
-                                s_line.self_time += f_line.self_time
-                            else:
-                                s_line.self_time = f_line.self_time
-                        if f_line.total_time:
-                            if s_line.total_time:
-                                s_line.total_time += f_line.total_time
-                            else:
-                                s_line.total_time = f_line.total_time
-
+                    functions += [in_function]
                 in_script = False
                 in_function = False
                 continue
@@ -464,6 +412,72 @@ class Profile(object):
                 LOGGER.debug('Parsing function %s', in_function)
                 plnum += skip_to_count_header()
                 lnum = 0
+        self.map_functions(functions)
+
+    def map_functions(self, functions):
+        while functions:
+            prev_count = len(functions)
+            for f in functions:
+                if self.map_function(f):
+                    functions.remove(f)
+            new_count = len(functions)
+            if prev_count == new_count:
+                break
+
+        for f in functions:
+            LOGGER.error('Could not find source for function: %s', f.name)
+
+    def map_function(self, f):
+        script_line = self.find_func_in_source(f)
+        if not script_line:
+            return False
+
+        # Assign counts from function to script.
+        script, script_lnum = script_line
+        for [f_lnum, f_line] in f.lines.items():
+            s_line = script.lines[script_lnum + f_lnum]
+
+            # XXX: might not be the same, since function lines
+            # are joined, while script lines might be spread
+            # across several lines (prefixed with \).
+            script_source = s_line.line
+            if script_source != f_line.line:
+                while True:
+                    try:
+                        peek = script.lines[script_lnum +
+                                            f_lnum + 1]
+                    except KeyError:
+                        pass
+                    else:
+                        m = re.match(RE_CONTINUING_LINE, peek.line)
+                        if m:
+                            script_source += peek.line[m.end():]
+                            script_lnum += 1
+                            # script_lines.append(peek)
+                            continue
+                    if script_source == f_line.line:
+                        break
+
+                    assert 0, 'Script line matches function line.'
+
+            if f_line.count is not None:
+                script.parse_function(script_lnum + f_lnum,
+                                      f_line.line)
+                if s_line.count:
+                    s_line.count += f_line.count
+                else:
+                    s_line.count = f_line.count
+            if f_line.self_time:
+                if s_line.self_time:
+                    s_line.self_time += f_line.self_time
+                else:
+                    s_line.self_time = f_line.self_time
+            if f_line.total_time:
+                if s_line.total_time:
+                    s_line.total_time += f_line.total_time
+                else:
+                    s_line.total_time = f_line.total_time
+        return True
 
 
 def parse_count_and_times(line):
