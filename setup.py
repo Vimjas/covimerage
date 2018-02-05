@@ -19,9 +19,6 @@ URL = 'https://github.com/Vimjas/covimerage'
 # EMAIL = 'me@example.com'
 AUTHOR = 'Daniel Hahler'
 
-# What packages are required for this module to be executed?
-REQUIRED = ['attrs', 'click', 'coverage']
-
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
@@ -94,7 +91,11 @@ setup(
     entry_points={
         'console_scripts': ['covimerage=covimerage.cli:main'],
     },
-    install_requires=REQUIRED,
+    install_requires=[
+        'attrs',
+        'click',
+        'coverage',
+    ],
     extras_require={
         'testing': DEPS_TESTING,
         'dev': DEPS_TESTING + DEPS_QA + [
