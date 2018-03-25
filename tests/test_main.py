@@ -117,10 +117,11 @@ def test_profile_parse_handles_cannot_open_file(caplog):
     assert not s.lines
     assert len(s.lines) == 0
     assert s.sourced_count == 1
-    msgs = [r.message for r in caplog.records]
+    msgs = [(r.name, r.levelname, r.message) for r in caplog.records]
     assert msgs == [
-        "Could not parse count/times (fake:7, 'Cannot open file!'): "
-        'ValueError("invalid literal for int() with base 10: \'Canno\'",).']
+        ('covimerage', 'WARNING',
+         "Could not parse count/times (fake:7, 'Cannot open file!'): "
+         'ValueError("invalid literal for int() with base 10: \'Canno\'",).')]
 
 
 def test_find_func_in_source():
