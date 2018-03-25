@@ -25,12 +25,13 @@ common: &common
             coverage report -m
             codecov --required -X search gcov pycov -f coverage.xml --flags $CIRCLE_JOB
 
-            pip install --user codacy-coverage
-            python-codacy-coverage -r coverage.xml
-
+            # Coveralls and Codacy do not support merged reports.
             if [[ "$CIRCLE_JOB" == py36 ]]; then
               pip install --user coveralls
               coveralls
+
+              pip install --user codacy-coverage
+              python-codacy-coverage --verbose --report coverage.xml
             fi
             set +x
           fi
