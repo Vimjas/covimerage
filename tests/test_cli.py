@@ -1,7 +1,3 @@
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 import os
 from subprocess import call
 import sys
@@ -10,6 +6,7 @@ import pytest
 
 from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli
 from covimerage.__version__ import __version__
+from covimerage._compat import StringIO
 
 
 def test_dunder_main_run(capfd):
@@ -71,7 +68,7 @@ def test_cli_run_subprocess_exception(runner, mocker):
     result = runner.invoke(cli.run, [os.devnull])
     out = result.output.splitlines()
     assert out[-1].startswith("Error: Failed to run ['/dev/null', '--cmd',")
-    assert out[-1].endswith("']: [Errno 13] Permission denied")
+    assert '[Errno 13] Permission denied' in out[-1]
     assert result.exit_code == 1
 
 

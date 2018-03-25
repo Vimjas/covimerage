@@ -1,3 +1,4 @@
+import logging
 import os
 
 import click
@@ -9,12 +10,22 @@ from .logger import LOGGER
 from .utils import build_vim_profile_args, join_argv
 
 
+def default_loglevel():
+    return logging.getLevelName(LOGGER.level).lower()
+
+
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
 @click.version_option(__version__, '-V', '--version', prog_name='covimerage')
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
-def main(verbose, quiet):
-    if verbose - quiet:
+@click.option('-l', '--loglevel', show_default=True,
+              help=('Set logging level explicitly (overrides -v/-q).  '
+                    u'[default:\xa0%s]' % default_loglevel()),
+              type=click.Choice(('error', 'warning', 'info', 'debug')))
+def main(verbose, quiet, loglevel):
+    if loglevel:
+        LOGGER.setLevel(loglevel.upper())
+    elif verbose - quiet:
         LOGGER.setLevel(max(10, LOGGER.level - (verbose - quiet) * 10))
 
 
@@ -48,13 +59,15 @@ def write_coverage(profile_file, data_file, source):
               type=click.Path(dir_okay=False),
               help='File name for the PROFILE_FILE file.  By default a temporary file is used.')  # noqa: E501
 @click.option('--data-file', required=False, type=click.File('w'),
-              help='DATA_FILE to write into.', show_default=True)
+              help=('DATA_FILE to write into.  '
+                    u'[default:\xa0%s]' % DEFAULT_COVERAGE_DATA_FILE))
 @click.option('--append', is_flag=True, default=False,
               help='Read existing DATA_FILE for appending.', show_default=True)
 @click.option('--write-data/--no-write-data', is_flag=True,
               default=True, show_default=True,
               help='Write Coverage.py compatible DATA_FILE.')
 @click.option('--report/--no-report', is_flag=True, default=True,
+              show_default=True,
               help='Automatically report.  This avoids having to write an intermediate data file.')  # noqa: E501
 @click.option('--report-file', type=click.File('w'),
               help='Report output file.  Defaults to stdout.')
@@ -62,7 +75,8 @@ def write_coverage(profile_file, data_file, source):
 @click.option('--report-options', required=False,
               help='Options to be passed on to `covimerage report`.')
 @click.option('--source', type=click.types.Path(exists=True), default=['.'],
-              multiple=True)
+              help='Source directories and/or files.',
+              multiple=True, show_default=True)
 @click.pass_context
 def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
         report, report_file, report_options, source, append):

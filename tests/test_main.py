@@ -22,9 +22,9 @@ def test_profile_repr_lines():
     assert repr(p.lines) == '{%r: {}}' % s
     assert repr(s) == "Script(path='script-path', sourced_count=None)"
 
-    l = Line('line1')
-    s.lines[1] = l
-    assert repr(p.lines) == ('{%r: {1: %r}}' % (s, l))
+    line = Line('line1')
+    s.lines[1] = line
+    assert repr(p.lines) == ('{%r: {1: %r}}' % (s, line))
 
 
 def test_profile_fname_or_fobj(caplog, devnull):
@@ -60,8 +60,9 @@ def test_parse_count_and_times():
 def test_line():
     from covimerage import Line
 
-    l = Line('    1              0.000005 Foo')
-    assert repr(l) == "Line(line='    1              0.000005 Foo', count=None, total_time=None, self_time=None)"  # noqa
+    line = '    1              0.000005 Foo'
+    assert repr(Line(line)) == 'Line(line=%r, count=None, total_time=None, self_time=None)' % (  # noqa:E501
+        line)
 
 
 def test_profile_parse():
@@ -125,9 +126,9 @@ def test_find_func_in_source():
     from covimerage import Function, Profile, Script
 
     s = Script('fake')
-    s.parse_script_line(1, 'fun! <SID>Python_jump(mode, motion, flags) range')
-    s.parse_script_line(2, 'fu g:Foo()')
-    s.parse_script_line(3, 'fun\tsome#autoload()')
+    s.parse_function(1, 'fun! <SID>Python_jump(mode, motion, flags) range')
+    s.parse_function(2, 'fu g:Foo()')
+    s.parse_function(3, 'fun\tsome#autoload()')
     p = Profile('fake', scripts=[s])
 
     f = p.find_func_in_source
@@ -201,7 +202,7 @@ def test_profile_parse_dict_function_with_same_source(caplog):
         (1, '    echom a:arg'),
         (1, '  else'),
         (0, '    echom a:arg'),
-        (0, '  endif'),
+        (N, '  endif'),
         (N, 'endfunction'),
         (N, ''),
         (1, 'let obj2 = {}'),
@@ -422,3 +423,99 @@ def test_mergedprofiles_caches_coveragepy_data(mocker):
     m.profiles = [Profile('bar')]
     m.get_coveragepy_data()
     assert spy.call_count == 3
+
+
+def test_function_in_function():
+    from covimerage import Profile
+
+    fname = 'tests/fixtures/function_in_function.profile'
+    p = Profile(fname)
+    p.parse()
+
+    assert len(p.scripts) == 1
+    s = p.scripts[0]
+
+    assert [(l.count, l.line) for l in s.lines.values()] == [
+        (None, '" Test for dict function in function.'),
+        (None, ''),
+        (1, 'function! GetObj()'),
+        (1, '  let obj = {}'),
+        (1, '  function obj.func()'),
+        (1, '    return 1'),
+        (None, '  endfunction'),
+        (1, '  return obj'),
+        (None, 'endfunction'),
+        (None, ''),
+        (1, 'let obj = GetObj()'),
+        (1, 'call obj.func()')]
+
+
+def test_function_in_function_count(caplog):
+    from covimerage import Profile
+
+    fname = 'tests/fixtures/function_in_function_count.profile'
+    p = Profile(fname)
+    p.parse()
+
+    assert len(p.scripts) == 1
+    s = p.scripts[0]
+
+    assert [(l.count, l.line) for l in s.lines.values()] == [
+        (None, '" Test for line count with inner functions.'),
+        (1, 'function! Outer()'),
+        (None, '  " comment1'),
+        (1, '  function! Inner()'),
+        (None, '    " comment2'),
+        (None, '  endfunction'),
+        (None, 'endfunction'),
+        (1, 'call Outer()')]
+    assert not caplog.records
+
+
+def test_function_in_function_with_ref(caplog):
+    from covimerage import Profile
+
+    fname = 'tests/fixtures/function_in_function_with_ref.profile'
+    p = Profile(fname)
+    p.parse()
+
+    assert len(p.scripts) == 1
+    s = p.scripts[0]
+
+    assert [(l.count, l.line) for l in s.lines.values()
+            if not l.line.startswith('"')] == [
+        (None, ''),
+        (1, 'let g:refs = []'),
+        (None, ''),
+        (1, 'function! Outer()'),
+        (1, '  function! GetObj()'),
+        (1, '    let obj = {}'),
+        (1, '    function obj.func()'),
+        (1, '      return 1'),
+        (None, '    endfunction'),
+        (1, '    return obj'),
+        (None, '  endfunction'),
+        (None, ''),
+        (1, '  let obj = GetObj()'),
+        (1, '  call obj.func()'),
+        (None, ''),
+        (1, '  let g:refs += [obj]'),
+        (None, 'endfunction'),
+        (1, 'call Outer()')]
+
+    assert not caplog.records
+
+
+def test_map_functions(caplog):
+    from covimerage import Function, Profile
+
+    p = Profile('fake')
+
+    p.map_functions([])
+    assert not caplog.records
+
+    funcs = [Function(name='missing')]
+    p.map_functions(funcs)
+    assert len(funcs) == 1
+    assert caplog.record_tuples == [
+        ('covimerage', 40, 'Could not find source for function: missing')]
