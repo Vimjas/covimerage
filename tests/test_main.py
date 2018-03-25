@@ -35,13 +35,13 @@ def test_profile_fname_or_fobj(caplog, devnull):
     assert str(excinfo.value) == \
         "[Errno 2] No such file or directory: '/does/not/exist'"
 
-    with caplog.at_level(logging.NOTSET, logger='covimerage'):
+    with caplog.at_level(logging.DEBUG, logger='covimerage'):
         Profile(devnull).parse()
     msgs = [(r.levelname, r.message) for r in caplog.records]
     assert msgs == [('DEBUG', 'Parsing file: /dev/null')]
 
     fileobj = StringIO('')
-    with caplog.at_level(logging.NOTSET, logger='covimerage'):
+    with caplog.at_level(logging.DEBUG, logger='covimerage'):
         Profile(fileobj).parse()
     msgs = [(r.levelname, r.message) for r in caplog.records]
     assert msgs[-1] == ('DEBUG', 'Parsing file: %s' % fileobj)
@@ -180,7 +180,7 @@ def test_profile_parse_dict_function_with_same_source(caplog):
     from covimerage import Profile
 
     fname = 'tests/fixtures/dict_function_with_same_source.profile'
-    with caplog.at_level(logging.NOTSET, logger='covimerage'):
+    with caplog.at_level(logging.DEBUG, logger='covimerage'):
         p = Profile(fname)
         p.parse()
 
