@@ -100,7 +100,7 @@ class CoverageWrapper(object):
             def _get_file_reporter(self, morf):
                 return FileReporter(morf)
 
-        cov_coverage = CoverageW(config_file=False)
+        cov_coverage = CoverageW()
         cov_coverage._init()
         cov_coverage.data = self.data.cov_data
         return cov_coverage
