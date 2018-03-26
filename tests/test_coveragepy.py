@@ -158,6 +158,37 @@ def test_coveragewrapper(coverage_fileobj, devnull):
         e.message, e.orig_exc)
 
 
+def test_coveragewrapper_uses_config_file(tmpdir, capfd):
+    from covimerage.coveragepy import CoverageWrapper
+
+    with tmpdir.as_cwd() as old_dir:
+        vim_src = '%s/tests/test_plugin/conditional_function.vim' % old_dir
+        coverage_fileobj = StringIO('!coverage.py: This is a private format, don\'t read it directly!{"lines":{"%s":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"%s":"covimerage.CoveragePlugin"}}' % (vim_src, vim_src))  # noqa: E501
+
+        cov = CoverageWrapper(data_file=coverage_fileobj)
+        assert cov._cov_obj.config.report_include is None
+        assert cov.lines == {vim_src: [3, 8, 9, 11, 13, 14, 15, 17, 23]}
+        cov.report()
+        out, err = capfd.readouterr()
+        assert 'test_plugin/conditional_function.vim' in out
+        assert err == ''
+
+        coveragerc = str(tmpdir.join('.coveragerc'))
+        with open(coveragerc, 'w') as f:
+            f.write('[report]\ninclude = foo/*,bar/*')
+        coverage_fileobj.seek(0)
+        cov = CoverageWrapper(data_file=coverage_fileobj)
+        assert cov._cov_obj.config.report_include == ['foo/*', 'bar/*']
+        with pytest.raises(coverage.misc.CoverageException) as excinfo:
+            cov.report()
+        assert excinfo.value.args == ('No data to report.',)
+        out, err = capfd.readouterr()
+        assert out.splitlines() == [
+            'Name    Stmts   Miss  Cover',
+            '---------------------------']
+        assert err == ''
+
+
 def test_coveragewrapper_accepts_data():
     from covimerage.coveragepy import CoverageData, CoverageWrapper
 
