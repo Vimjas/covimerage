@@ -19,7 +19,7 @@ def test_logging_error_causes_exception(capfd):
         assert lines[-2:] == [
             "Message: 'Wrong:'",
             "Arguments: ('no %s',)"]
-    assert 'TypeError: not all arguments converted during string formatting' in lines  # noqa: E501
+    assert 'TypeError: not all arguments converted during string formatting' in lines
 
 
 def test_loglevel(mocker, runner, devnull):

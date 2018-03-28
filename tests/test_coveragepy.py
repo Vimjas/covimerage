@@ -55,7 +55,7 @@ def test_filereporter_source_exception(mocker, devnull):
 
 @pytest.fixture
 def coverage_fileobj():
-    return StringIO('\n'.join(['!coverage.py: This is a private format, don\'t read it directly!{"lines":{"/test_plugin/conditional_function.vim":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']))  # noqa: E501
+    return StringIO('\n'.join(['!coverage.py: This is a private format, don\'t read it directly!{"lines":{"/test_plugin/conditional_function.vim":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"/test_plugin/conditional_function.vim":"covimerage.CoveragePlugin"}}']))
 
 
 def test_coveragedata(coverage_fileobj):
@@ -163,7 +163,7 @@ def test_coveragewrapper_uses_config_file(tmpdir, capfd):
 
     with tmpdir.as_cwd() as old_dir:
         vim_src = '%s/tests/test_plugin/conditional_function.vim' % old_dir
-        coverage_fileobj = StringIO('!coverage.py: This is a private format, don\'t read it directly!{"lines":{"%s":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"%s":"covimerage.CoveragePlugin"}}' % (vim_src, vim_src))  # noqa: E501
+        coverage_fileobj = StringIO('!coverage.py: This is a private format, don\'t read it directly!{"lines":{"%s":[17,3,23,8,9,11,13,14,15]},"file_tracers":{"%s":"covimerage.CoveragePlugin"}}' % (vim_src, vim_src))
 
         cov = CoverageWrapper(data_file=coverage_fileobj)
         assert cov._cov_obj.config.report_include is None

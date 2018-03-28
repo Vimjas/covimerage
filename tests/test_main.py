@@ -61,7 +61,7 @@ def test_line():
     from covimerage import Line
 
     line = '    1              0.000005 Foo'
-    assert repr(Line(line)) == 'Line(line=%r, count=None, total_time=None, self_time=None)' % (  # noqa:E501
+    assert repr(Line(line)) == 'Line(line=%r, count=None, total_time=None, self_time=None)' % (
         line)
 
 
@@ -222,9 +222,9 @@ def test_profile_parse_dict_function_with_same_source(caplog):
         (1, 'call obj1.dict_function(3)')]
 
     msgs = [r.message for r in caplog.records]
-    assert "Found multiple sources for anonymous function 1 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12)." in msgs  # noqa
-    assert "Found multiple sources for anonymous function 2 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12)." in msgs  # noqa
-    assert "Found already mapped dict function again (/test_plugin/dict_function_with_same_source.vim:3)." in msgs  # noqa
+    assert 'Found multiple sources for anonymous function 1 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12).' in msgs
+    assert 'Found multiple sources for anonymous function 2 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12).' in msgs
+    assert 'Found already mapped dict function again (/test_plugin/dict_function_with_same_source.vim:3).' in msgs
 
 
 def test_profile_parse_dict_function_with_continued_lines():
@@ -381,7 +381,7 @@ def test_merged_profiles_get_coveragepy_data():
     m = MergedProfiles([])
     cov_data = m.get_coveragepy_data()
     assert isinstance(cov_data, coverage.CoverageData)
-    assert repr(cov_data) == '<CoverageData lines={0} arcs=None tracers={0} runs=[0]>'  # noqa: E501
+    assert repr(cov_data) == '<CoverageData lines={0} arcs=None tracers={0} runs=[0]>'
 
 
 def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(
