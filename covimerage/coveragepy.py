@@ -5,7 +5,7 @@ import click
 import coverage
 
 from ._compat import FileNotFoundError
-from .logger import LOGGER
+from .logger import logger
 from .utils import get_fname_and_fobj_and_str, is_executable_line
 
 RE_EXCLUDED = re.compile(
@@ -131,11 +131,11 @@ class FileReporter(coverage.FileReporter):
                 try:
                     return source.decode('utf8')
                 except UnicodeDecodeError:
-                    LOGGER.debug('UnicodeDecodeError in %s for utf8. '
+                    logger.debug('UnicodeDecodeError in %s for utf8. '
                                  'Trying iso-8859-15.', self.filename)
                     return source.decode('iso-8859-15')
         except FileNotFoundError as exc:
-            LOGGER.warning('%s', exc)
+            logger.warning('%s', exc)
             raise coverage.misc.NoSource(str(exc))
         except Exception as exc:
             raise CoverageWrapperException(

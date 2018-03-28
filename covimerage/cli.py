@@ -6,12 +6,12 @@ import click
 from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
-from .logger import LOGGER
+from .logger import logger
 from .utils import build_vim_profile_args, join_argv
 
 
 def default_loglevel():
-    return logging.getLevelName(LOGGER.level).lower()
+    return logging.getLevelName(logger.level).lower()
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
@@ -24,9 +24,9 @@ def default_loglevel():
               type=click.Choice(('error', 'warning', 'info', 'debug')))
 def main(verbose, quiet, loglevel):
     if loglevel:
-        LOGGER.setLevel(loglevel.upper())
+        logger.setLevel(loglevel.upper())
     elif verbose - quiet:
-        LOGGER.setLevel(max(10, LOGGER.level - (verbose - quiet) * 10))
+        logger.setLevel(max(10, logger.level - (verbose - quiet) * 10))
 
 
 @main.command()
@@ -110,7 +110,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             profile_file = tempfile.mktemp(prefix='covimerage.profile.')
         args += build_vim_profile_args(profile_file, source)
     cmd = args
-    LOGGER.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
+    logger.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
 
     try:
         exit_code = subprocess.call(cmd)
@@ -128,7 +128,7 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                 raise exit_exception
 
         elif write_data or report:
-            LOGGER.info('Parsing profile file %s.', profile_file)
+            logger.info('Parsing profile file %s.', profile_file)
             p = Profile(profile_file)
             p.parse()
 

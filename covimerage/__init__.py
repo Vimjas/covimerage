@@ -8,7 +8,7 @@ import attr
 from click.utils import string_types
 
 from .coveragepy import CoverageData
-from .logger import LOGGER
+from .logger import logger
 from .utils import (
     find_executable_files, get_fname_and_fobj_and_str, is_executable_line,
 )
@@ -148,12 +148,12 @@ class MergedProfiles(object):
                 source_files.append(source)
             else:
                 source_files.extend(find_executable_files(source))
-        LOGGER.debug('source_files: %r', source_files)
+        logger.debug('source_files: %r', source_files)
 
         for fname, lines in self.lines.items():
             fname = os.path.abspath(fname)
             if self.source and fname not in source_files:
-                LOGGER.info('Ignoring non-source: %s', fname)
+                logger.info('Ignoring non-source: %s', fname)
                 continue
 
             cov_dict[fname] = {
@@ -167,7 +167,7 @@ class MergedProfiles(object):
         measured_files = cov_dict.keys()
         non_measured_files = set(source_files) - set(measured_files)
         for fname in non_measured_files:
-            LOGGER.debug('Non-measured file: %s', fname)
+            logger.debug('Non-measured file: %s', fname)
             cov_dict[fname] = {}
             cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
 
@@ -186,18 +186,18 @@ class MergedProfiles(object):
     def write_coveragepy_data(self, data_file='.coverage'):
         cov_data = self.get_coveragepy_data()
         if not cov_data.line_counts():
-            LOGGER.warning('Not writing coverage file: no data to report!')
+            logger.warning('Not writing coverage file: no data to report!')
             return False
 
         if isinstance(data_file, string_types):
-            LOGGER.info('Writing coverage file %s.', data_file)
+            logger.info('Writing coverage file %s.', data_file)
             cov_data.write_file(data_file)
         else:
             try:
                 filename = data_file.name
             except AttributeError:
                 filename = str(data_file)
-            LOGGER.info('Writing coverage file %s.', filename)
+            logger.info('Writing coverage file %s.', filename)
             cov_data.write_fileobj(data_file)
         return True
 
@@ -252,7 +252,7 @@ class Profile(object):
 
         if found:
             if len(found) > 1:
-                LOGGER.warning(
+                logger.warning(
                     'Found multiple sources for anonymous function %s (%s).',
                     func.name, (', '.join('%s:%d' % (f[0].path, f[1])
                                           for f in found)))
@@ -260,7 +260,7 @@ class Profile(object):
             for s, lnum in found:
                 if lnum in s.mapped_dict_functions:
                     # More likely to happen with merged profiles.
-                    LOGGER.debug(
+                    logger.debug(
                         'Found already mapped dict function again (%s:%d).',
                         s.path, lnum)
                     continue
@@ -302,7 +302,7 @@ class Profile(object):
                     found.append((script, script_lnum))
         if found:
             if len(found) > 1:
-                LOGGER.warning('Found multiple sources for function %s (%s).',
+                logger.warning('Found multiple sources for function %s (%s).',
                                func, (', '.join('%s:%d' % (f[0].path, f[1])
                                                 for f in found)))
             return found[0]
@@ -331,7 +331,7 @@ class Profile(object):
         return True
 
     def parse(self):
-        LOGGER.debug('Parsing file: %s', self._fstr)
+        logger.debug('Parsing file: %s', self._fstr)
         if self._fobj:
             return self._parse(self._fobj)
         with open(self.fname, 'r') as file_object:
@@ -367,7 +367,7 @@ class Profile(object):
                 try:
                     count, total_time, self_time = parse_count_and_times(line)
                 except Exception as exc:
-                    LOGGER.warning(
+                    logger.warning(
                         'Could not parse count/times (%s:%d, %r): %r.',
                         self._fstr, plnum, line, exc)
                     continue
@@ -393,7 +393,7 @@ class Profile(object):
             elif line.startswith('SCRIPT  '):
                 fname = line[8:]
                 in_script = Script(fname)
-                LOGGER.debug('Parsing script %s', in_script)
+                logger.debug('Parsing script %s', in_script)
                 self.scripts.append(in_script)
 
                 next_line = next(file_object)
@@ -406,7 +406,7 @@ class Profile(object):
             elif line.startswith('FUNCTION  '):
                 func_name = line[10:-2]
                 in_function = Function(name=func_name)
-                LOGGER.debug('Parsing function %s', in_function)
+                logger.debug('Parsing function %s', in_function)
                 plnum += skip_to_count_header()
                 lnum = 0
         self.map_functions(functions)
@@ -422,7 +422,7 @@ class Profile(object):
                 break
 
         for f in functions:
-            LOGGER.error('Could not find source for function: %s', f.name)
+            logger.error('Could not find source for function: %s', f.name)
 
     def map_function(self, f):
         script_line = self.find_func_in_source(f)
