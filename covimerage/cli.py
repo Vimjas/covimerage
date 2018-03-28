@@ -6,6 +6,7 @@ import click
 from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .__version__ import __version__
 from .coveragepy import CoverageWrapper
+from .exceptions import CustomClickException
 from .logger import logger
 from .utils import build_vim_profile_args, join_argv
 
@@ -44,7 +45,7 @@ def write_coverage(profile_file, data_file, source):
     m = MergedProfiles(source=source)
     m.add_profile_files(*profile_file)
     if not m.write_coveragepy_data(data_file=data_file):
-        raise click.ClickException('No data to report.')
+        raise CustomClickException('No data to report.')
 
 
 @main.command(context_settings=dict(
@@ -115,17 +116,14 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     try:
         exit_code = subprocess.call(cmd)
     except Exception as exc:
-        raise click.exceptions.ClickException(
-            'Failed to run %s: %s' % (cmd, exc))
+        raise CustomClickException('Failed to run %s: %s' % (cmd, exc))
 
     if profile_file:
         if not os.path.exists(profile_file):
             if not exit_code:
-                exit_exception = click.exceptions.ClickException(
+                raise CustomClickException(
                     'The profile file (%s) has not been created.' % (
                         profile_file))
-                exit_exception.exit_code = 1
-                raise exit_exception
 
         elif write_data or report:
             logger.info('Parsing profile file %s.', profile_file)
@@ -146,16 +144,16 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             if report:
                 cov_data = m.get_coveragepy_data()
                 if not cov_data:
-                    raise click.ClickException('No data to report.')
+                    raise CustomClickException('No data to report.')
                 report_opts['data'] = cov_data
                 ctx.invoke(report_cmd, report_file=report_file,
                            **report_opts)
 
     if exit_code != 0:
-        exit_exception = click.exceptions.ClickException(
-            'Command exited non-zero: %d.' % exit_code)
-        exit_exception.exit_code = exit_code
-        raise exit_exception
+        raise CustomClickException(
+            'Command exited non-zero: %d.' % exit_code,
+            exit_code=exit_code
+        )
 
 
 def report_data_file_cb(ctx, param, value):
