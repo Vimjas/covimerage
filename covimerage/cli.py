@@ -56,19 +56,21 @@ def write_coverage(profile_file, data_file, source):
               default=True, show_default=True,
               help='Wrap VIM cmd with options to create a PROFILE_FILE.')
 @click.option('--profile-file', required=False, metavar='PROFILE_FILE',
-              type=click.Path(dir_okay=False),
-              help='File name for the PROFILE_FILE file.  By default a temporary file is used.')  # noqa: E501
+              type=click.Path(dir_okay=False), help=(
+                  'File name for the PROFILE_FILE file.  '
+                  'By default a temporary file is used.'))
 @click.option('--data-file', required=False, type=click.File('w'),
               help=('DATA_FILE to write into.  '
                     u'[default:\xa0%s]' % DEFAULT_COVERAGE_DATA_FILE))
-@click.option('--append', is_flag=True, default=False,
-              help='Read existing DATA_FILE for appending.', show_default=True)
+@click.option('--append', is_flag=True, default=False, show_default=True,
+              help='Read existing DATA_FILE for appending.')
 @click.option('--write-data/--no-write-data', is_flag=True,
               default=True, show_default=True,
               help='Write Coverage.py compatible DATA_FILE.')
 @click.option('--report/--no-report', is_flag=True, default=True,
-              show_default=True,
-              help='Automatically report.  This avoids having to write an intermediate data file.')  # noqa: E501
+              show_default=True, help=(
+                  'Automatically report.  '
+                  'This avoids having to write an intermediate data file.'))
 @click.option('--report-file', type=click.File('w'),
               help='Report output file.  Defaults to stdout.')
 # TODO: rather handle this via real options, and pass them through?!
@@ -150,10 +152,10 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                            **report_opts)
 
     if exit_code != 0:
-        exit = click.exceptions.ClickException(
+        exit_exception = click.exceptions.ClickException(
             'Command exited non-zero: %d.' % exit_code)
-        exit.exit_code = exit_code
-        raise exit
+        exit_exception.exit_code = exit_code
+        raise exit_exception
 
 
 def report_data_file_cb(ctx, param, value):

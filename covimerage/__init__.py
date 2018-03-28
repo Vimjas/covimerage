@@ -16,7 +16,9 @@ from .utils import (
 DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
-RE_CONTINUING_LINE = r'\s*\\'
+RE_CONTINUING_LINE = re.compile(r'\s*\\')
+RE_SOURCED_TIMES = re.compile(r'Sourced (\d+) time')
+RE_SNR_PREFIX = re.compile(r'^<SNR>\d+_')
 
 
 @attr.s
@@ -128,7 +130,7 @@ class MergedProfiles(object):
 
     def _get_coveragepy_data(self):
         if self.append_to:
-            fname, fobj, fstr = get_fname_and_fobj_and_str(self.append_to)
+            fname, fobj, _ = get_fname_and_fobj_and_str(self.append_to)
             if fobj or (fname and os.path.exists(fname)):
                 data = CoverageData(data_file=self.append_to)
             else:
@@ -205,9 +207,11 @@ class Profile(object):
     fname = attr.ib()
     scripts = attr.ib(default=attr.Factory(list))
     anonymous_functions = attr.ib(default=attr.Factory(dict))
+    _fobj = None
+    _fstr = None
 
     def __attrs_post_init__(self):
-        self.fname, self.fobj, self.fstr = get_fname_and_fobj_and_str(
+        self.fname, self._fobj, self._fstr = get_fname_and_fobj_and_str(
             self.fname)
 
     @property
@@ -233,7 +237,7 @@ class Profile(object):
                        func_lnum < len_func_lines):
                     script_lnum += 1
                     next_line = s.lines[script_lnum].line
-                    m = re.match(RE_CONTINUING_LINE, next_line)
+                    m = RE_CONTINUING_LINE.match(next_line)
                     if m:
                         script_line += next_line[m.end():]
                         continue
@@ -282,7 +286,7 @@ class Profile(object):
             # its source contents.
             return self.get_anon_func_script_line(func)
 
-        m = re.match(r'^<SNR>\d+_', funcname)
+        m = RE_SNR_PREFIX.match(funcname)
         if m:
             funcname = 's:' + funcname[m.end():]
 
@@ -315,34 +319,27 @@ class Profile(object):
             script_source = s_line.line
             if script_source != f_line.line:
                 while True:
-                    # try:
-                    peek = script.lines[script_lnum +
-                                        f_lnum + 1]
-                    # except KeyError:
-                    #     pass
-                    if True:
-                        m = re.match(RE_CONTINUING_LINE, peek.line)
-                        if m:
-                            script_source += peek.line[m.end():]
-                            script_lnum += 1
-                            # script_lines.append(peek)
-                            continue
-                        if script_source == f_line.line:
-                            break
-
-                        return False
+                    peek = script.lines[script_lnum + f_lnum + 1]
+                    m = RE_CONTINUING_LINE.match(peek.line)
+                    if m:
+                        script_source += peek.line[m.end():]
+                        script_lnum += 1
+                        continue
+                    if script_source == f_line.line:
+                        break
+                    return False
         return True
 
     def parse(self):
-        LOGGER.debug('Parsing file: %s', self.fstr)
-        if self.fobj:
-            return self._parse(self.fobj)
+        LOGGER.debug('Parsing file: %s', self._fstr)
+        if self._fobj:
+            return self._parse(self._fobj)
         with open(self.fname, 'r') as file_object:
             return self._parse(file_object)
 
     def _parse(self, file_object):
-        in_script = False
-        in_function = False
+        in_script = None
+        in_function = None
         plnum = lnum = 0
 
         def skip_to_count_header():
@@ -361,8 +358,8 @@ class Profile(object):
             if line == '':
                 if in_function:
                     functions += [in_function]
-                in_script = False
-                in_function = False
+                in_script = None
+                in_function = None
                 continue
 
             if in_script or in_function:
@@ -372,7 +369,7 @@ class Profile(object):
                 except Exception as exc:
                     LOGGER.warning(
                         'Could not parse count/times (%s:%d, %r): %r.',
-                        self.fstr, plnum, line, exc)
+                        self._fstr, plnum, line, exc)
                     continue
                 source_line = line[28:]
 
@@ -400,7 +397,7 @@ class Profile(object):
                 self.scripts.append(in_script)
 
                 next_line = next(file_object)
-                m = re.match('Sourced (\d+) time', next_line)
+                m = RE_SOURCED_TIMES.match(next_line)
                 in_script.sourced_count = int(m.group(1))
 
                 plnum += skip_to_count_header() + 1
@@ -449,11 +446,10 @@ class Profile(object):
                     except KeyError:
                         pass
                     else:
-                        m = re.match(RE_CONTINUING_LINE, peek.line)
+                        m = RE_CONTINUING_LINE.match(peek.line)
                         if m:
                             script_source += peek.line[m.end():]
                             script_lnum += 1
-                            # script_lines.append(peek)
                             continue
                     if script_source == f_line.line:
                         break
