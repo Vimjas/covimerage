@@ -5,10 +5,10 @@ import pytest
 
 
 def test_logging_error_causes_exception(capfd):
-    from covimerage import LOGGER
+    from covimerage import logger
 
     with pytest.raises(Exception) as excinfo:
-        LOGGER.info('Wrong:', 'no %s')
+        logger.info('Wrong:', 'no %s')
     assert excinfo.value.args[0] == 'Internal logging error'
     out, err = capfd.readouterr()
 
@@ -25,7 +25,7 @@ def test_logging_error_causes_exception(capfd):
 def test_loglevel(mocker, runner, devnull):
     from covimerage import cli
 
-    logger = cli.LOGGER
+    logger = cli.logger
 
     m = mocker.patch.object(logger, 'setLevel')
 
@@ -64,7 +64,7 @@ def test_loglevel(mocker, runner, devnull):
 @pytest.mark.parametrize('default', (None, 'INFO', 'WARNING'))
 def test_loglevel_default(default, mocker, runner):
     from covimerage import cli
-    from covimerage.logger import LOGGER as logger
+    from covimerage.logger import logger
 
     if default:
         mocker.patch.object(logger, 'level', getattr(logging, default))

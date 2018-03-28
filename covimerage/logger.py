@@ -1,8 +1,8 @@
 import logging
 import sys
 
-LOGGER = logging.getLogger('covimerage')
-LOGGER.setLevel(logging.INFO)
+logger = logging.getLogger('covimerage')
+logger.setLevel(logging.INFO)
 
 
 class AlwaysStderrHandler(logging.StreamHandler):
@@ -18,4 +18,4 @@ class AlwaysStderrHandler(logging.StreamHandler):
         raise Exception('Internal logging error')
 
 
-LOGGER.addHandler(AlwaysStderrHandler())
+logger.addHandler(AlwaysStderrHandler())
