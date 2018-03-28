@@ -59,7 +59,7 @@ def test_cli_run_with_args_fd(capfd):
     out, err = capfd.readouterr()
     lines = err.splitlines()
     assert lines == [
-    "Running cmd: echo -- --no-profile %sMARKER --cmd 'profile start /doesnotexist' --cmd 'profile! file ./*' (in {})".format(os.getcwd()),  # noqa: E501
+        "Running cmd: echo -- --no-profile %sMARKER --cmd 'profile start /doesnotexist' --cmd 'profile! file ./*' (in {})".format(os.getcwd()),
         'Error: The profile file (/doesnotexist) has not been created.']
     assert ret == 1
 
@@ -258,7 +258,7 @@ def test_cli_call(capfd):
     out, err = capfd.readouterr()
     err_lines = err.splitlines()
     assert err_lines[-1] == (
-        'Error: Invalid value for "profile_file": Could not open file: file not found: No such file or directory')  # noqa: E501
+        'Error: Invalid value for "profile_file": Could not open file: file not found: No such file or directory')
     assert out == ''
 
 
@@ -409,12 +409,12 @@ def test_report_profile_or_data_file(runner, tmpdir):
     result = runner.invoke(cli.main, [
         'report', '--data-file', '/does/not/exist'])
     assert result.output.splitlines()[-1] == \
-        'Error: Invalid value for "--data-file": Could not open file: /does/not/exist: No such file or directory'  # noqa: E501
+        'Error: Invalid value for "--data-file": Could not open file: /does/not/exist: No such file or directory'
     assert result.exit_code == 2
 
     result = runner.invoke(cli.main, [
         'report', '--data-file', os.devnull])
-    cov_exc = 'CoverageException("Doesn\'t seem to be a coverage.py data file",)'  # noqa: E501
+    cov_exc = 'CoverageException("Doesn\'t seem to be a coverage.py data file",)'
     assert result.output.splitlines()[-1] == \
         'Error: Coverage could not read data_file: /dev/null (%s)' % cov_exc
     assert result.exit_code == 1
@@ -422,12 +422,12 @@ def test_report_profile_or_data_file(runner, tmpdir):
     with tmpdir.as_cwd():
         result = runner.invoke(cli.main, ['report'])
     assert result.output.splitlines()[-1] == \
-        'Error: Invalid value for "--data-file": Could not open file: %s: No such file or directory' % DEFAULT_COVERAGE_DATA_FILE  # noqa: E501
+        'Error: Invalid value for "--data-file": Could not open file: %s: No such file or directory' % DEFAULT_COVERAGE_DATA_FILE
     assert result.exit_code == 2
 
     result = runner.invoke(cli.main, ['report', '/does/not/exist'])
     assert result.output.splitlines()[-1] == \
-        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'  # noqa: E501
+        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'
     assert result.exit_code == 2
 
     result = runner.invoke(cli.main, [
@@ -443,7 +443,7 @@ def test_report_source(runner, tmpdir, devnull):
     result = runner.invoke(cli.main, [
         'report', '--source', '.', '/does/not/exist'])
     assert result.output.splitlines()[-1] == \
-        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'  # noqa: E501
+        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'
     assert result.exit_code == 2
 
     result = runner.invoke(cli.main, [
@@ -528,7 +528,7 @@ def test_run_append_with_empty_data(runner, tmpdir):
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
-            'Error: Coverage could not read data_file: %r (CoverageException("Doesn\'t seem to be a coverage.py data file",))' % data_file,  # noqa: E501
+            'Error: Coverage could not read data_file: %r (CoverageException("Doesn\'t seem to be a coverage.py data file",))' % data_file,
         ]
         assert result.exit_code == 1
 
