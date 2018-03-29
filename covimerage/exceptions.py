@@ -1,6 +1,4 @@
 import click
-from click._compat import get_text_stderr
-from click.utils import echo
 
 
 class CustomClickException(click.ClickException):
@@ -8,7 +6,6 @@ class CustomClickException(click.ClickException):
     def __init__(self, *args, **kwargs):
         self.exit_code = kwargs.pop('exit_code', 1)
         super(CustomClickException, self).__init__(*args, **kwargs)
-
 
 
 class CoverageWrapperException(CustomClickException):

@@ -1,7 +1,6 @@
 import re
 
 import attr
-import click
 import coverage
 
 from ._compat import FileNotFoundError
