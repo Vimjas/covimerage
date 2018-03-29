@@ -1,36 +1,15 @@
 import re
 
 import attr
-import click
 import coverage
 
 from ._compat import FileNotFoundError
+from .exceptions import CoverageWrapperException
 from .logger import logger
 from .utils import get_fname_and_fobj_and_str, is_executable_line
 
 RE_EXCLUDED = re.compile(
     r'"\s*(pragma|PRAGMA)[:\s]?\s*(no|NO)\s*(cover|COVER)')
-
-
-class CoverageWrapperException(click.ClickException):
-    """Inherit from ClickException for automatic handling."""
-    def __init__(self, message, orig_exc=None):
-        self.orig_exc = orig_exc
-        super(CoverageWrapperException, self).__init__(message)
-
-    def format_message(self):
-        """Append information about original exception if any."""
-        msg = super(CoverageWrapperException, self).format_message()
-        if self.orig_exc:
-            return '%s (%r)' % (msg, self.orig_exc)
-        return msg
-
-    def __str__(self):
-        return self.format_message()
-
-    def __repr__(self):
-        return 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
-            self.message, self.orig_exc)
 
 
 @attr.s(frozen=True)
