@@ -53,6 +53,7 @@ class CoverageWrapper(object):
     """Wrap Coveragepy related functionality."""
     data = attr.ib(default=None)
     data_file = attr.ib(default=None)
+    config_file = attr.ib(default=None)
 
     _cached_cov_obj = None
 
@@ -79,7 +80,9 @@ class CoverageWrapper(object):
             def _get_file_reporter(self, morf):
                 return FileReporter(morf)
 
-        cov_coverage = CoverageW()
+        cov_coverage = CoverageW(
+            config_file=True if self.config_file is None else self.config_file,
+        )
         cov_coverage._init()
         cov_coverage.data = self.data.cov_data
         return cov_coverage

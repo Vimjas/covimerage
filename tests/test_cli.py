@@ -439,6 +439,30 @@ def test_report_profile_or_data_file(runner, tmpdir):
     assert result.exit_code == 0
 
 
+def test_report_rcfile_and_include(tmpdir, runner):
+    import coverage
+
+    # Works without rcfile.
+    result = runner.invoke(cli.main, [
+        'report', 'tests/fixtures/merged_conditionals-0.profile'])
+    assert result.exit_code == 0
+    assert 'tests/test_plugin/merged_conditionals.vim' in result.output
+
+    coveragerc = str(tmpdir.join('.coveragerc'))
+    with open(coveragerc, 'w') as f:
+        f.write('[report]\ninclude = doesnotexist/*')
+
+    result = runner.invoke(cli.main, [
+        '--rcfile', coveragerc,
+        'report', 'tests/fixtures/merged_conditionals-0.profile'])
+    assert result.output.splitlines() == [
+        'Name    Stmts   Miss  Cover',
+        '---------------------------']
+    assert result.exit_code == 1
+    assert result.exception.__class__ == coverage.misc.CoverageException
+    assert result.exception.args == ('No data to report.',)
+
+
 def test_report_source(runner, tmpdir, devnull):
     result = runner.invoke(cli.main, [
         'report', '--source', '.', '/does/not/exist'])
