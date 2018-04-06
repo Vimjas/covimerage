@@ -73,7 +73,10 @@ setup(
     url='https://github.com/Vimjas/covimerage',
     packages=['covimerage'],
     entry_points={
-        'console_scripts': ['covimerage=covimerage.cli:main'],
+        'console_scripts': [
+            'covimerage=covimerage.cli:main',
+            'covimerage-run=covimerage.cli:run',
+        ],
     },
     use_scm_version={
         'write_to': 'covimerage/__version__.py',

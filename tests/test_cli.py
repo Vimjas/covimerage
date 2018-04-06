@@ -61,6 +61,12 @@ def test_cli_help(arg, runner):
     assert result.exit_code == 0
 
 
+def test_cli_run_shorthelp(runner):
+    result = runner.invoke(cli.run, ['-h'])
+    assert result.output.startswith('Usage:')
+    assert result.exit_code == 0
+
+
 def test_cli_run_with_args_fd(capfd):
     ret = call(['covimerage', 'run', '--profile-file', '/doesnotexist',
                 'echo', '--', '--no-profile', '%sMARKER'])
