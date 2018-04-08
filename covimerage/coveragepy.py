@@ -55,8 +55,8 @@ def handle_coverage_exceptions(f):
         try:
             return f(*args, **kwargs)
         except coverage.CoverageException as exc:
-            raise CoverageWrapperException(
-                '%s (%s)' % (exc, exc.__class__.__name__)) from exc
+            raise CoverageWrapperException('%s (%s)' % (
+                exc, exc.__class__.__name__))
     return wrapper
 
 
