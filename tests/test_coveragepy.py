@@ -159,7 +159,7 @@ def test_coveragewrapper(coverage_fileobj, devnull):
 
 
 def test_coveragewrapper_uses_config_file(tmpdir, capfd):
-    from covimerage.coveragepy import CoverageWrapper
+    from covimerage.coveragepy import CoverageWrapper, CoverageWrapperException
 
     with tmpdir.as_cwd() as old_dir:
         vim_src = '%s/tests/test_plugin/conditional_function.vim' % old_dir
@@ -179,9 +179,9 @@ def test_coveragewrapper_uses_config_file(tmpdir, capfd):
         coverage_fileobj.seek(0)
         cov = CoverageWrapper(data_file=coverage_fileobj)
         assert cov._cov_obj.config.report_include == ['foo/*', 'bar/*']
-        with pytest.raises(coverage.misc.CoverageException) as excinfo:
+        with pytest.raises(CoverageWrapperException) as excinfo:
             cov.report()
-        assert excinfo.value.args == ('No data to report.',)
+        assert excinfo.value.args == ('No data to report. (CoverageException)',)
         out, err = capfd.readouterr()
         assert out.splitlines() == [
             'Name    Stmts   Miss  Cover',

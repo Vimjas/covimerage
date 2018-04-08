@@ -403,6 +403,17 @@ def test_coverage_plugin_for_annotate_merged_conditionals(runner, capfd,
     ]
 
 
+def test_report_missing_data_file(runner, tmpdir):
+    from covimerage.cli import DEFAULT_COVERAGE_DATA_FILE
+
+    with tmpdir.as_cwd():
+        result = runner.invoke(cli.main, ['report'])
+        assert result.output.splitlines()[-1] == \
+            'Error: Invalid value for "--data-file": Could not open file: %s: No such file or directory' % (
+                DEFAULT_COVERAGE_DATA_FILE)
+        assert result.exit_code == 2
+
+
 def test_report_profile_or_data_file(runner, tmpdir):
     from covimerage.cli import DEFAULT_COVERAGE_DATA_FILE
 
@@ -431,12 +442,41 @@ def test_report_profile_or_data_file(runner, tmpdir):
     assert result.exit_code == 2
 
     result = runner.invoke(cli.main, [
+        '--rcfile', os.devnull,
         'report', 'tests/fixtures/merged_conditionals-0.profile'])
     assert result.output.splitlines() == [
         'Name                                        Stmts   Miss  Cover',
         '---------------------------------------------------------------',
         'tests/test_plugin/merged_conditionals.vim      19     12    37%']
     assert result.exit_code == 0
+
+
+def test_report_rcfile_and_include(tmpdir, runner):
+    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file_content = open(profiled_file, 'r').read()
+
+    # Works without rcfile.
+    with tmpdir.as_cwd() as old_cwd:
+        profile_file = str(old_cwd.join(
+            'tests/fixtures/conditional_function.profile'))
+        tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+        result = runner.invoke(cli.main, ['report', profile_file])
+        assert result.exit_code == 0
+        assert profiled_file in result.output
+
+        coveragerc = 'customrc'
+        with open(coveragerc, 'w') as f:
+            f.write('[report]\ninclude = doesnotexist/*')
+
+        result = runner.invoke(cli.main, [
+            '--rcfile', coveragerc,
+            'report', profile_file])
+        assert result.output.splitlines() == [
+            'Name    Stmts   Miss  Cover',
+            '---------------------------',
+            'Error: No data to report. (CoverageException)',
+        ]
+        assert result.exit_code == 1
 
 
 def test_report_source(runner, tmpdir, devnull):
@@ -486,14 +526,58 @@ def test_cli_xml(runner, tmpdir):
     result = runner.invoke(cli.main, [
         'write_coverage', '--data-file', str(tmpdir.join('.coverage')),
         'tests/fixtures/merged_conditionals-0.profile'])
-    with tmpdir.as_cwd():
-        result = runner.invoke(cli.main, ['xml', '--data-file', '.coverage'])
+    with tmpdir.as_cwd() as old_cwd:
+        result = runner.invoke(cli.main, [
+            'xml', '--data-file', '.coverage'])
         assert result.exit_code == 0
 
         with open('coverage.xml') as f:
             xml = f.read()
-    assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
-        os.getcwd()) in xml
+        assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
+            old_cwd) in xml
+
+        # --rcfile is used.
+        coveragerc = 'customrc'
+        with open(coveragerc, 'w') as f:
+            f.write('[xml]\noutput = custom.xml')
+
+        result = runner.invoke(cli.main, [
+            '--rcfile', coveragerc,
+            'xml', '--data-file', '.coverage'])
+        assert result.output == ''
+        assert result.exit_code == 0
+        with open('custom.xml') as f:
+            xml = f.read()
+        assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
+            old_cwd) in xml
+
+        # --rcfile is used.
+        coveragerc = 'customrc'
+        with open(coveragerc, 'w') as f:
+            f.write('[report]\ninclude = doesnotexist/*')
+
+        result = runner.invoke(cli.main, [
+            '--rcfile', coveragerc,
+            'xml', '--data-file', '.coverage'])
+        assert result.output == 'Error: No data to report. (CoverageException)\n'
+        assert result.exit_code == 1
+
+
+def test_rcfile_invalid_option(runner, tmpdir, covdata_empty):
+    with tmpdir.as_cwd():
+        coveragerc = '.coveragerc'
+        with open(coveragerc, 'w') as f:
+            f.write('[report]\nunknown_option = 1')
+
+        with open(DEFAULT_COVERAGE_DATA_FILE, 'w') as f:
+            f.write(covdata_empty)
+            f.close()
+
+            result = runner.invoke(cli.main, ['report'])
+        assert result.output.splitlines() == [
+            "Error: Unrecognized option '[report] unknown_option=' in config file .coveragerc (CoverageException)",
+        ]
+        assert result.exit_code == 1
 
 
 def test_run_handles_exit_code_from_python_fd(capfd):
@@ -533,7 +617,7 @@ def test_run_append_with_empty_data(runner, tmpdir):
         assert result.exit_code == 1
 
 
-def test_run_append_with_data(runner, tmpdir, covdata_empty):
+def test_run_append_with_data(runner, tmpdir):
     profiled_file = 'tests/test_plugin/conditional_function.vim'
     profiled_file_content = open(profiled_file, 'r').read()
     tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)

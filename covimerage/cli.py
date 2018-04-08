@@ -23,11 +23,16 @@ def default_loglevel():
               help=('Set logging level explicitly (overrides -v/-q).  '
                     u'[default:\xa0%s]' % default_loglevel()),
               type=click.Choice(('error', 'warning', 'info', 'debug')))
-def main(verbose, quiet, loglevel):
+@click.option('--rcfile', type=click.Path(exists=True, dir_okay=False),
+              help=(u'Configuration file.  [default:\xa0.coveragerc]'),
+              required=False, nargs=1)
+@click.pass_context
+def main(ctx, verbose, quiet, loglevel, rcfile):
     if loglevel:
         logger.setLevel(loglevel.upper())
     elif verbose - quiet:
         logger.setLevel(max(10, logger.level - (verbose - quiet) * 10))
+    ctx.obj = {'rcfile': rcfile}
 
 
 @main.command()
@@ -195,8 +200,9 @@ def report_source_cb(ctx, param, value):
               show_default=True, default=None, multiple=True)
 @click.option('--report-file', type=click.File('w'),
               help='Report output file.  Defaults to stdout.')
-def report(profile_file, data_file, show_missing, include, omit, skip_covered,
-           source, report_file, data=None):
+@click.pass_context
+def report(ctx, profile_file, data_file, show_missing, include, omit,
+           skip_covered, source, report_file, data=None):
     """
     A wrapper around `coverage report`.
 
@@ -206,6 +212,10 @@ def report(profile_file, data_file, show_missing, include, omit, skip_covered,
     If PROFILE_FILE is provided this gets parsed, otherwise DATA_FILE is
     being used.
     """
+    # Use None instead of empty set, for coveragepy to use the config file.
+    include = include if include else None
+    omit = omit if omit else None
+
     if data:
         data_file = None
     elif profile_file:
@@ -213,13 +223,20 @@ def report(profile_file, data_file, show_missing, include, omit, skip_covered,
         m = MergedProfiles(source=source)
         m.add_profile_files(*profile_file)
         data = m.get_coveragepy_data()
-    CoverageWrapper(data=data, data_file=data_file).report(
+    config_file = ctx.obj.get('rcfile') if ctx.obj else None
+    CoverageWrapper(
+        data=data,
+        data_file=data_file,
+        config_file=config_file,
+    ).report(
         report_file=report_file,
-        show_missing=show_missing, include=include, omit=omit,
-        skip_covered=skip_covered)
+        show_missing=show_missing,
+        include=include,
+        omit=omit,
+        skip_covered=skip_covered,
+    )
 
 
-# TODO: support / pass through --rcfile?!
 @main.command()
 @click.option('--data-file', required=False, type=click.File('r'),
               default=DEFAULT_COVERAGE_DATA_FILE, show_default=True)
@@ -232,12 +249,24 @@ def report(profile_file, data_file, show_missing, include, omit, skip_covered,
 @click.option('--ignore-errors', is_flag=True, default=False,
               show_default=True, required=False,
               help='Ignore errors while reading source files.')
-def xml(data_file, include, omit, ignore_errors):
+@click.pass_context
+def xml(ctx, data_file, include, omit, ignore_errors):
     """
     A wrapper around `coverage xml`.
 
     This will automatically add covimerage as a plugin, and then just forwards
     most options.
     """
-    CoverageWrapper(data_file=data_file).reportxml(
-        include=include, omit=omit, ignore_errors=ignore_errors)
+    # Use None instead of empty set, for coveragepy to use the config file.
+    include = include if include else None
+    omit = omit if omit else None
+
+    config_file = ctx.obj.get('rcfile') if ctx.obj else None
+    CoverageWrapper(
+        data_file=data_file,
+        config_file=config_file,
+    ).reportxml(
+        include=include,
+        omit=omit,
+        ignore_errors=ignore_errors,
+    )
