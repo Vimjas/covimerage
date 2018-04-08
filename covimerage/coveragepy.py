@@ -1,3 +1,4 @@
+import functools
 import re
 
 import attr
@@ -48,6 +49,17 @@ class CoverageData(object):
         self.cov_data.add_lines(lines)
 
 
+def handle_coverage_exceptions(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except coverage.CoverageException as exc:
+            raise CoverageWrapperException(
+                '%s (%s)' % (exc, exc.__class__.__name__)) from exc
+    return wrapper
+
+
 @attr.s(frozen=True)
 class CoverageWrapper(object):
     """Wrap Coveragepy related functionality."""
@@ -87,12 +99,14 @@ class CoverageWrapper(object):
         cov_coverage.data = self.data.cov_data
         return cov_coverage
 
+    @handle_coverage_exceptions
     def report(self, report_file=None, show_missing=None,
                include=None, omit=None, skip_covered=None):
         self._cov_obj.report(
             file=report_file, show_missing=show_missing, include=include,
             omit=omit, skip_covered=skip_covered)
 
+    @handle_coverage_exceptions
     def reportxml(self, report_file=None, include=None, omit=None,
                   ignore_errors=None):
         self._cov_obj.xml_report(

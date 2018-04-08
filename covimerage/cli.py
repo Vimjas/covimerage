@@ -24,8 +24,8 @@ def default_loglevel():
                     u'[default:\xa0%s]' % default_loglevel()),
               type=click.Choice(('error', 'warning', 'info', 'debug')))
 @click.option('--rcfile', type=click.Path(exists=True, dir_okay=False),
-              help=('Configuration file.'), default='.coveragerc',
-              show_default=True, required=False, nargs=1)
+              help=(u'Configuration file.  [default:\xa0.coveragerc]'),
+              required=False, nargs=1)
 @click.pass_context
 def main(ctx, verbose, quiet, loglevel, rcfile):
     if loglevel:
@@ -229,8 +229,11 @@ def report(ctx, profile_file, data_file, show_missing, include, omit,
         config_file=config_file,
     ).report(
         report_file=report_file,
-        show_missing=show_missing, include=include, omit=omit,
-        skip_covered=skip_covered)
+        show_missing=show_missing,
+        include=include,
+        omit=omit,
+        skip_covered=skip_covered,
+    )
 
 
 @main.command()
@@ -245,12 +248,20 @@ def report(ctx, profile_file, data_file, show_missing, include, omit,
 @click.option('--ignore-errors', is_flag=True, default=False,
               show_default=True, required=False,
               help='Ignore errors while reading source files.')
-def xml(data_file, include, omit, ignore_errors):
+@click.pass_context
+def xml(ctx, data_file, include, omit, ignore_errors):
     """
     A wrapper around `coverage xml`.
 
     This will automatically add covimerage as a plugin, and then just forwards
     most options.
     """
-    CoverageWrapper(data_file=data_file).reportxml(
-        include=include, omit=omit, ignore_errors=ignore_errors)
+    config_file = ctx.obj.get('rcfile') if ctx.obj else None
+    CoverageWrapper(
+        data_file=data_file,
+        config_file=config_file,
+    ).reportxml(
+        include=include,
+        omit=omit,
+        ignore_errors=ignore_errors,
+    )
