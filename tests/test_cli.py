@@ -551,6 +551,17 @@ def test_cli_xml(runner, tmpdir):
         assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
             old_cwd) in xml
 
+        # --rcfile is used.
+        coveragerc = 'customrc'
+        with open(coveragerc, 'w') as f:
+            f.write('[report]\ninclude = doesnotexist/*')
+
+        result = runner.invoke(cli.main, [
+            '--rcfile', coveragerc,
+            'xml', '--data-file', '.coverage'])
+        assert result.output == 'Error: No data to report. (CoverageException)\n'
+        assert result.exit_code == 1
+
 
 def test_rcfile_invalid_option(runner, tmpdir, covdata_empty):
     with tmpdir.as_cwd():

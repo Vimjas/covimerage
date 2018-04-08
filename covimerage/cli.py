@@ -215,6 +215,7 @@ def report(ctx, profile_file, data_file, show_missing, include, omit,
     # Use None instead of empty set, for coveragepy to use the config file.
     include = include if include else None
     omit = omit if omit else None
+
     if data:
         data_file = None
     elif profile_file:
@@ -256,6 +257,10 @@ def xml(ctx, data_file, include, omit, ignore_errors):
     This will automatically add covimerage as a plugin, and then just forwards
     most options.
     """
+    # Use None instead of empty set, for coveragepy to use the config file.
+    include = include if include else None
+    omit = omit if omit else None
+
     config_file = ctx.obj.get('rcfile') if ctx.obj else None
     CoverageWrapper(
         data_file=data_file,
