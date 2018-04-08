@@ -452,8 +452,6 @@ def test_report_profile_or_data_file(runner, tmpdir):
 
 
 def test_report_rcfile_and_include(tmpdir, runner):
-    import coverage
-
     profiled_file = 'tests/test_plugin/conditional_function.vim'
     profiled_file_content = open(profiled_file, 'r').read()
 
