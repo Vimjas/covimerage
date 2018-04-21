@@ -135,8 +135,7 @@ def write_coverage(profile_file, data_file, source):
     type=click.File("w"),
     help="Report output file.  Defaults to stdout.",
 )
-# TODO: rather handle this via real options, and pass them through?!
-@click.option(
+@click.option(  # TODO: rather handle this via real options, and pass them through?!
     "--report-options",
     required=False,
     help="Options to be passed on to `covimerage report`.",
