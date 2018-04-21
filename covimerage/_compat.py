@@ -14,12 +14,13 @@ except ImportError:
     import re
 
     # Copy'n'paste from Python 3.6.2.
-    _find_unsafe = re.compile(r'[^a-zA-Z0-9_@%+=:,./-]').search
+    _find_unsafe = re.compile(r"[^a-zA-Z0-9_@%+=:,./-]").search
 
     def shell_quote(s):
         """Return a shell-escaped version of the string *s*."""
         if not s:
             return "''"
+
         if _find_unsafe(s) is None:
             return s
 

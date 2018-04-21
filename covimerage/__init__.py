@@ -9,16 +9,13 @@ from click.utils import string_types
 
 from .coveragepy import CoverageData
 from .logger import logger
-from .utils import (
-    find_executable_files, get_fname_and_fobj_and_str, is_executable_line,
-)
+from .utils import find_executable_files, get_fname_and_fobj_and_str, is_executable_line
 
-DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'
-RE_FUNC_PREFIX = re.compile(
-    r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
-RE_CONTINUING_LINE = re.compile(r'\s*\\')
-RE_SOURCED_TIMES = re.compile(r'Sourced (\d+) time')
-RE_SNR_PREFIX = re.compile(r'^<SNR>\d+_')
+DEFAULT_COVERAGE_DATA_FILE = ".coverage.covimerage"
+RE_FUNC_PREFIX = re.compile(r"^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+")
+RE_CONTINUING_LINE = re.compile(r"\s*\\")
+RE_SOURCED_TIMES = re.compile(r"Sourced (\d+) time")
+RE_SNR_PREFIX = re.compile(r"^<SNR>\d+_")
 
 
 @attr.s
@@ -38,21 +35,20 @@ class Script(object):
     # List of line numbers for dict functions.
     dict_functions = attr.ib(default=attr.Factory(set), repr=False, hash=False)
     # List of line numbers for dict functions that have been mapped already.
-    mapped_dict_functions = attr.ib(default=attr.Factory(set), repr=False,
-                                    hash=False)
+    mapped_dict_functions = attr.ib(default=attr.Factory(set), repr=False, hash=False)
     func_to_lnums = attr.ib(default=attr.Factory(dict), repr=False, hash=False)
     sourced_count = attr.ib(default=None)
 
     def parse_function(self, lnum, line):
         m = re.match(RE_FUNC_PREFIX, line)
         if m:
-            f = line[m.end():].split('(', 1)[0]
-            if '.' in f:
+            f = line[m.end():].split("(", 1)[0]
+            if "." in f:
                 self.dict_functions.add(lnum)
 
-            if f.startswith('<SID>'):
-                f = 's:' + f[5:]
-            elif f.startswith('g:'):
+            if f.startswith("<SID>"):
+                f = "s:" + f[5:]
+            elif f.startswith("g:"):
                 f = f[2:]
             self.func_to_lnums.setdefault(f, []).append(lnum)
 
@@ -76,7 +72,7 @@ class MergedProfiles(object):
 
     def __setattr__(self, name, value):
         """Invalidate cache if profiles get changed."""
-        if name == 'profiles':
+        if name == "profiles":
             self._coveragepy_data = None
         super(MergedProfiles, self).__setattr__(name, value)
 
@@ -96,6 +92,7 @@ class MergedProfiles(object):
 
     @property
     def lines(self):
+
         def merge_lines(line1, line2):
             assert line1.line == line2.line
             new = Line(line1.line)
@@ -148,28 +145,30 @@ class MergedProfiles(object):
                 source_files.append(source)
             else:
                 source_files.extend(find_executable_files(source))
-        logger.debug('source_files: %r', source_files)
+        logger.debug("source_files: %r", source_files)
 
         for fname, lines in self.lines.items():
             fname = os.path.abspath(fname)
             if self.source and fname not in source_files:
-                logger.info('Ignoring non-source: %s', fname)
+                logger.info("Ignoring non-source: %s", fname)
                 continue
 
             cov_dict[fname] = {
                 # lnum: line.count for lnum, line in lines.items()
                 # XXX: coveragepy does not support hit counts?!
-                lnum: None for lnum, line in lines.items() if line.count
+                lnum: None
+                for lnum, line in lines.items()
+                if line.count
             }
             # Add our plugin as file tracer, so that it gets used with e.g.
             # `coverage annotate`.
-            cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
+            cov_file_tracers[fname] = "covimerage.CoveragePlugin"
         measured_files = cov_dict.keys()
         non_measured_files = set(source_files) - set(measured_files)
         for fname in non_measured_files:
-            logger.debug('Non-measured file: %s', fname)
+            logger.debug("Non-measured file: %s", fname)
             cov_dict[fname] = {}
-            cov_file_tracers[fname] = 'covimerage.CoveragePlugin'
+            cov_file_tracers[fname] = "covimerage.CoveragePlugin"
 
         data.add_lines(cov_dict)
         data.cov_data.add_file_tracers(cov_file_tracers)
@@ -178,26 +177,28 @@ class MergedProfiles(object):
     def get_coveragepy_data(self):
         if self._coveragepy_data is not None:
             return self._coveragepy_data
+
         else:
             self._coveragepy_data = self._get_coveragepy_data()
         return self._coveragepy_data
 
     # TODO: move to CoverageWrapper
-    def write_coveragepy_data(self, data_file='.coverage'):
+
+    def write_coveragepy_data(self, data_file=".coverage"):
         cov_data = self.get_coveragepy_data()
         if not cov_data.line_counts():
-            logger.warning('Not writing coverage file: no data to report!')
+            logger.warning("Not writing coverage file: no data to report!")
             return False
 
         if isinstance(data_file, string_types):
-            logger.info('Writing coverage file %s.', data_file)
+            logger.info("Writing coverage file %s.", data_file)
             cov_data.write_file(data_file)
         else:
             try:
                 filename = data_file.name
             except AttributeError:
                 filename = str(data_file)
-            logger.info('Writing coverage file %s.', filename)
+            logger.info("Writing coverage file %s.", filename)
             cov_data.write_fileobj(data_file)
         return True
 
@@ -211,8 +212,7 @@ class Profile(object):
     _fstr = None
 
     def __attrs_post_init__(self):
-        self.fname, self._fobj, self._fstr = get_fname_and_fobj_and_str(
-            self.fname)
+        self.fname, self._fobj, self._fstr = get_fname_and_fobj_and_str(self.fname)
 
     @property
     def scriptfiles(self):
@@ -233,18 +233,19 @@ class Profile(object):
                 func_lnum = 0
                 script_is_func = True
                 script_line = s.lines[script_lnum].line
-                while (script_lnum <= len_script_lines and
-                       func_lnum < len_func_lines):
+                while script_lnum <= len_script_lines and func_lnum < len_func_lines:
                     script_lnum += 1
                     next_line = s.lines[script_lnum].line
                     m = RE_CONTINUING_LINE.match(next_line)
                     if m:
                         script_line += next_line[m.end():]
                         continue
+
                     func_lnum += 1
                     if script_line != func.lines[func_lnum].line:
                         script_is_func = False
                         break
+
                     script_line = s.lines[script_lnum].line
 
                 if script_is_func:
@@ -253,25 +254,31 @@ class Profile(object):
         if found:
             if len(found) > 1:
                 logger.warning(
-                    'Found multiple sources for anonymous function %s (%s).',
-                    func.name, (', '.join('%s:%d' % (f[0].path, f[1])
-                                          for f in found)))
+                    "Found multiple sources for anonymous function %s (%s).",
+                    func.name,
+                    (", ".join("%s:%d" % (f[0].path, f[1]) for f in found)),
+                )
 
             for s, lnum in found:
                 if lnum in s.mapped_dict_functions:
                     # More likely to happen with merged profiles.
                     logger.debug(
-                        'Found already mapped dict function again (%s:%d).',
-                        s.path, lnum)
+                        "Found already mapped dict function again (%s:%d).",
+                        s.path,
+                        lnum,
+                    )
                     continue
+
                 s.mapped_dict_functions.add(lnum)
                 return (s, lnum)
+
             return found[0]
 
     def get_anon_func_script_line(self, func):
         funcname = func.name
         try:
             return self.anonymous_functions[funcname]
+
         except KeyError:
             f_info = self._get_anon_func_script_line(func)
             if f_info is not None:
@@ -288,7 +295,7 @@ class Profile(object):
 
         m = RE_SNR_PREFIX.match(funcname)
         if m:
-            funcname = 's:' + funcname[m.end():]
+            funcname = "s:" + funcname[m.end():]
 
         found = []
         for script in self.scripts:
@@ -302,10 +309,13 @@ class Profile(object):
                     found.append((script, script_lnum))
         if found:
             if len(found) > 1:
-                logger.warning('Found multiple sources for function %s (%s).',
-                               func, (', '.join('%s:%d' % (f[0].path, f[1])
-                                                for f in found)))
+                logger.warning(
+                    "Found multiple sources for function %s (%s).",
+                    func,
+                    (", ".join("%s:%d" % (f[0].path, f[1]) for f in found)),
+                )
             return found[0]
+
         return None
 
     @staticmethod
@@ -325,16 +335,20 @@ class Profile(object):
                         script_source += peek.line[m.end():]
                         script_lnum += 1
                         continue
+
                     if script_source == f_line.line:
                         break
+
                     return False
+
         return True
 
     def parse(self):
-        logger.debug('Parsing file: %s', self._fstr)
+        logger.debug("Parsing file: %s", self._fstr)
         if self._fobj:
             return self._parse(self._fobj)
-        with open(self.fname, 'r') as file_object:
+
+        with open(self.fname, "r") as file_object:
             return self._parse(file_object)
 
     def _parse(self, file_object):
@@ -347,15 +361,16 @@ class Profile(object):
             while True:
                 next_line = next(file_object)
                 skipped += 1
-                if next_line.startswith('count'):
+                if next_line.startswith("count"):
                     break
+
             return skipped
 
         functions = []
         for line in file_object:
             plnum += 1
-            line = line.rstrip('\r\n')
-            if line == '':
+            line = line.rstrip("\r\n")
+            if line == "":
                 if in_function:
                     functions += [in_function]
                 in_script = None
@@ -368,15 +383,23 @@ class Profile(object):
                     count, total_time, self_time = parse_count_and_times(line)
                 except Exception as exc:
                     logger.warning(
-                        'Could not parse count/times (%s:%d, %r): %r.',
-                        self._fstr, plnum, line, exc)
+                        "Could not parse count/times (%s:%d, %r): %r.",
+                        self._fstr,
+                        plnum,
+                        line,
+                        exc,
+                    )
                     continue
+
                 source_line = line[28:]
 
                 if in_script:
                     in_script.lines[lnum] = Line(
-                        line=source_line, count=count,
-                        total_time=total_time, self_time=self_time)
+                        line=source_line,
+                        count=count,
+                        total_time=total_time,
+                        self_time=self_time,
+                    )
                     if count or lnum == 1:
                         # Parse line 1 always, as a workaround for
                         # https://github.com/vim/vim/issues/2103.
@@ -386,14 +409,18 @@ class Profile(object):
                         if is_executable_line(source_line):
                             # Functions do not have continued lines, assume 0.
                             count = 0
-                    line = Line(line=source_line, count=count,
-                                total_time=total_time, self_time=self_time)
+                    line = Line(
+                        line=source_line,
+                        count=count,
+                        total_time=total_time,
+                        self_time=self_time,
+                    )
                     in_function.lines[lnum] = line
 
-            elif line.startswith('SCRIPT  '):
+            elif line.startswith("SCRIPT  "):
                 fname = line[8:]
                 in_script = Script(fname)
-                logger.debug('Parsing script %s', in_script)
+                logger.debug("Parsing script %s", in_script)
                 self.scripts.append(in_script)
 
                 next_line = next(file_object)
@@ -403,10 +430,10 @@ class Profile(object):
                 plnum += skip_to_count_header() + 1
                 lnum = 0
 
-            elif line.startswith('FUNCTION  '):
+            elif line.startswith("FUNCTION  "):
                 func_name = line[10:-2]
                 in_function = Function(name=func_name)
-                logger.debug('Parsing function %s', in_function)
+                logger.debug("Parsing function %s", in_function)
                 plnum += skip_to_count_header()
                 lnum = 0
         self.map_functions(functions)
@@ -422,7 +449,7 @@ class Profile(object):
                 break
 
         for f in functions:
-            logger.error('Could not find source for function: %s', f.name)
+            logger.error("Could not find source for function: %s", f.name)
 
     def map_function(self, f):
         script_line = self.find_func_in_source(f)
@@ -441,8 +468,7 @@ class Profile(object):
             if script_source != f_line.line:
                 while True:
                     try:
-                        peek = script.lines[script_lnum +
-                                            f_lnum + 1]
+                        peek = script.lines[script_lnum + f_lnum + 1]
                     except KeyError:
                         pass
                     else:
@@ -451,14 +477,14 @@ class Profile(object):
                             script_source += peek.line[m.end():]
                             script_lnum += 1
                             continue
+
                     if script_source == f_line.line:
                         break
 
-                    assert 0, 'Script line matches function line.'
+                    assert 0, "Script line matches function line."
 
             if f_line.count is not None:
-                script.parse_function(script_lnum + f_lnum,
-                                      f_line.line)
+                script.parse_function(script_lnum + f_lnum, f_line.line)
                 if s_line.count:
                     s_line.count += f_line.count
                 else:
@@ -478,19 +504,20 @@ class Profile(object):
 
 def parse_count_and_times(line):
     count = line[0:5]
-    if count == '':
+    if count == "":
         return 0, None, None
-    if count == '     ':
+
+    if count == "     ":
         count = None
     else:
         count = int(count)
     total_time = line[8:16]
-    if total_time == '        ':
+    if total_time == "        ":
         total_time = None
     else:
         total_time = float(total_time)
     self_time = line[19:27]
-    if self_time == '        ':
+    if self_time == "        ":
         self_time = None
     else:
         self_time = float(self_time)

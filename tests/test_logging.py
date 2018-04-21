@@ -8,18 +8,16 @@ def test_logging_error_causes_exception(capfd):
     from covimerage import logger
 
     with pytest.raises(Exception) as excinfo:
-        logger.info('Wrong:', 'no %s')
-    assert excinfo.value.args[0] == 'Internal logging error'
+        logger.info("Wrong:", "no %s")
+    assert excinfo.value.args[0] == "Internal logging error"
     out, err = capfd.readouterr()
 
     lines = err.splitlines()
-    assert any((l.startswith('Traceback') for l in lines))  # pragma: no branch
+    assert any((l.startswith("Traceback") for l in lines))  # pragma: no branch
 
-    if not lines[-1].startswith('Logged from file test_logging.py, line '):
-        assert lines[-2:] == [
-            "Message: 'Wrong:'",
-            "Arguments: ('no %s',)"]
-    assert 'TypeError: not all arguments converted during string formatting' in lines
+    if not lines[-1].startswith("Logged from file test_logging.py, line "):
+        assert lines[-2:] == ["Message: 'Wrong:'", "Arguments: ('no %s',)"]
+    assert "TypeError: not all arguments converted during string formatting" in lines
 
 
 def test_loglevel(mocker, runner, devnull):
@@ -27,14 +25,15 @@ def test_loglevel(mocker, runner, devnull):
 
     logger = cli.logger
 
-    m = mocker.patch.object(logger, 'setLevel')
+    m = mocker.patch.object(logger, "setLevel")
 
-    for level in ['error', 'warning', 'info', 'debug']:
-        result = runner.invoke(cli.main, [
-            '--loglevel', level,
-            'report', '--nonexistingoption'])
-        assert result.output.splitlines() == [
-            'Error: no such option: --nonexistingoption']
+    for level in ["error", "warning", "info", "debug"]:
+        result = runner.invoke(
+            cli.main, ["--loglevel", level, "report", "--nonexistingoption"]
+        )
+        assert (
+            result.output.splitlines() == ["Error: no such option: --nonexistingoption"]
+        )
         assert result.exit_code == 2
 
         level_name = level.upper()
@@ -42,45 +41,46 @@ def test_loglevel(mocker, runner, devnull):
 
     # -v should not override -l.
     m.reset_mock()
-    result = runner.invoke(cli.main, [
-            '-l', 'warning', '-vvv',
-            'report', '--nonexistingoption'])
-    assert result.output.splitlines() == [
-        'Error: no such option: --nonexistingoption']
+    result = runner.invoke(
+        cli.main, ["-l", "warning", "-vvv", "report", "--nonexistingoption"]
+    )
+    assert result.output.splitlines() == ["Error: no such option: --nonexistingoption"]
     assert result.exit_code == 2
-    assert m.call_args_list == [mocker.call('WARNING')]
+    assert m.call_args_list == [mocker.call("WARNING")]
 
     # -q should not override -l.
     m.reset_mock()
-    result = runner.invoke(cli.main, [
-            '-l', 'warning', '-qqq',
-            'report', '--nonexistingoption'])
-    assert result.output.splitlines() == [
-        'Error: no such option: --nonexistingoption']
+    result = runner.invoke(
+        cli.main, ["-l", "warning", "-qqq", "report", "--nonexistingoption"]
+    )
+    assert result.output.splitlines() == ["Error: no such option: --nonexistingoption"]
     assert result.exit_code == 2
-    assert m.call_args_list == [mocker.call('WARNING')]
+    assert m.call_args_list == [mocker.call("WARNING")]
 
 
-@pytest.mark.parametrize('default', (None, 'INFO', 'WARNING'))
+@pytest.mark.parametrize("default", (None, "INFO", "WARNING"))
 def test_loglevel_default(default, mocker, runner):
     from covimerage import cli
     from covimerage.logger import logger
 
     if default:
-        mocker.patch.object(logger, 'level', getattr(logging, default))
+        mocker.patch.object(logger, "level", getattr(logging, default))
     else:
-        default = 'INFO'
+        default = "INFO"
     reload(cli)
 
-    result = runner.invoke(cli.main, ['-h'])
+    result = runner.invoke(cli.main, ["-h"])
 
     assert logging.getLevelName(logger.level) == default
     lines = result.output.splitlines()
     assert lines, result
-    idx = lines.index('  -l, --loglevel [error|warning|info|debug]')
-    indent = ' ' * 34
-    assert lines[idx+1:idx+3] == [
-        indent + 'Set logging level explicitly (overrides',
-        indent + u'-v/-q).  [default:\xa0%s]' % (default.lower(),),
-    ]
+    idx = lines.index("  -l, --loglevel [error|warning|info|debug]")
+    indent = " " * 34
+    assert (
+        lines[idx + 1:idx + 3]
+        == [
+            indent + "Set logging level explicitly (overrides",
+            indent + u"-v/-q).  [default:\xa0%s]" % (default.lower(),),
+        ]
+    )
     assert result.exit_code == 0
