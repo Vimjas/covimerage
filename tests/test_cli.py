@@ -194,7 +194,7 @@ def test_cli_run_can_skip_writing_data(with_append, runner, tmpdir):
     assert not tmpdir.join(DEFAULT_COVERAGE_DATA_FILE).exists()
 
 
-def test_cli_run_report_fd(capfd, tmpdir):
+def test_cli_run_report_fd(capfd, tmpdir, devnull):
     profile_fname = 'tests/fixtures/conditional_function.profile'
     with open(profile_fname, 'r') as f:
         profile_lines = f.readlines()
@@ -207,7 +207,7 @@ def test_cli_run_report_fd(capfd, tmpdir):
     args = ['--no-wrap-profile', '--profile-file', tmp_profile_fname,
             '--source', 'tests/test_plugin/conditional_function.vim',
             '--data-file', data_file, 'true']
-    exit_code = call(['covimerage', 'run'] + args)
+    exit_code = call(['covimerage', '--rcfile', devnull.name, 'run'] + args)
     out, err = capfd.readouterr()
     assert exit_code == 0, err
     assert out.splitlines() == [
@@ -221,7 +221,7 @@ def test_cli_run_report_fd(capfd, tmpdir):
 
     # Same, but to some file.
     ofname = str(tmpdir.join('ofname'))
-    exit_code = call(['covimerage', 'run', '--report-file', ofname] + args)
+    exit_code = call(['covimerage', '--rcfile', devnull.name, 'run', '--report-file', ofname] + args)
     out, err = capfd.readouterr()
     assert exit_code == 0, err
     assert out == ''
@@ -480,44 +480,55 @@ def test_report_rcfile_and_include(tmpdir, runner):
 
 
 def test_report_source(runner, tmpdir, devnull):
-    result = runner.invoke(cli.main, [
-        'report', '--source', '.', '/does/not/exist'])
-    assert result.output.splitlines()[-1] == \
-        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'
-    assert result.exit_code == 2
+    with tmpdir.as_cwd():
+        result = runner.invoke(cli.main, ["report", "--source", ".", "/does/not/exist"])
+        assert (
+            result.output.splitlines()[-1]
+            == 'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'
+        )
+        assert result.exit_code == 2
 
-    result = runner.invoke(cli.main, [
-        'report', '--source', '.', devnull.name])
-    out = result.output.splitlines()
-    assert any(l.startswith('tests/test_plugin/vimrc')  # pragma: no branch
-               for l in out)
-    testplugin_fname = 'tests/test_plugin/autoload/test_plugin.vim'
-    assert any(testplugin_fname in l for l in out)  # pragma: no branch
-    assert out[-1].startswith('TOTAL')
-    assert out[-1].endswith(' 0%')
-    assert result.exit_code == 0
+        fname = "foo/bar/test.vim"
+        tmpdir.join(fname).ensure().write("echom 1")
+        tmpdir.join("foo/bar/test2.vim").ensure().write("echom 2")
+        result = runner.invoke(cli.main, ["report", "--source", ".", devnull.name])
+        out = result.output.splitlines()
+        assert any(l.startswith(fname) for l in out)  # pragma: no branch
+        assert out[-1].startswith("TOTAL")
+        assert out[-1].endswith(" 0%")
+        assert result.exit_code == 0
 
-    result = runner.invoke(cli.main, [
-        'report', devnull.name, '--source', '.'])
-    out = result.output.splitlines()
-    assert any(testplugin_fname in l for l in out)  # pragma: no branch
-    assert out[-1].startswith('TOTAL')
-    assert out[-1].endswith(' 0%')
-    assert result.exit_code == 0
+        result = runner.invoke(cli.main, ["report", devnull.name, "--source", "."])
+        out = result.output.splitlines()
+        assert any(fname in l for l in out)  # pragma: no branch
+        assert out[-1].startswith("TOTAL")
+        assert out[-1].endswith(" 0%")
+        assert result.exit_code == 0
 
-    result = runner.invoke(cli.main, [
-        'report', '--source', '.'])
-    out = result.output.splitlines()
-    assert out[-1] == 'Error: --source can only be used with PROFILE_FILE.'
-    assert result.exit_code == 2
+        result = runner.invoke(cli.main, ["report", "--source", "."])
+        out = result.output.splitlines()
+        assert out[-1] == "Error: --source can only be used with PROFILE_FILE."
+        assert result.exit_code == 2
 
-    result = runner.invoke(cli.main, [
-        'report', '--source', 'tests/test_plugin/merged_conditionals.vim',
-        'tests/fixtures/merged_conditionals-0.profile'])
-    assert result.output.splitlines() == [
-        'Name                                        Stmts   Miss  Cover',
-        '---------------------------------------------------------------',
-        'tests/test_plugin/merged_conditionals.vim      19     12    37%']
+    result = runner.invoke(
+        cli.main,
+        [
+            "--rcfile",
+            devnull.name,
+            "report",
+            "--source",
+            "tests/test_plugin/merged_conditionals.vim",
+            "tests/fixtures/merged_conditionals-0.profile",
+        ],
+    )
+    assert (
+        result.output.splitlines()
+        == [
+            "Name                                        Stmts   Miss  Cover",
+            "---------------------------------------------------------------",
+            "tests/test_plugin/merged_conditionals.vim      19     12    37%",
+        ]
+    )
     assert result.exit_code == 0
 
 
