@@ -68,7 +68,6 @@ class PublishCommand(Command):
 
 
 DEPS_QA = [
-    'black',
     'flake8',
     'flake8-bugbear',
     'flake8-isort',
