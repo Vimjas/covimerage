@@ -69,6 +69,7 @@ class PublishCommand(Command):
 
 DEPS_QA = [
     'flake8',
+    'flake8-bugbear',
     'flake8-isort',
     'flake8-per-file-ignores',
 ]
