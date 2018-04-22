@@ -11,7 +11,6 @@ common: &common
     - restore_cache:
         keys:
           - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
-          - v1-deps-
     - run: pip install --user tox
     - run: PYTEST_ADDOPTS=-vv ~/.local/bin/tox
     - run:

@@ -71,7 +71,6 @@ DEPS_QA = [
     'flake8',
     'flake8-isort',
     'flake8-per-file-ignores',
-    'flake8-quotes',
 ]
 DEPS_TESTING = [
     'pytest>=3.3.0',
