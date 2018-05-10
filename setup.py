@@ -5,31 +5,23 @@
 # Note: To use the 'upload' functionality of this file, you must:
 #   $ pip install twine
 
-# import io
 import os
 from shutil import rmtree
 import sys
 
 from setuptools import Command, setup
 
-# Package meta-data.
-NAME = 'covimerage'
-DESCRIPTION = 'Generate coverage information for Vim scripts.'
-URL = 'https://github.com/Vimjas/covimerage'
-# EMAIL = 'me@example.com'
-AUTHOR = 'Daniel Hahler'
-
 here = os.path.abspath(os.path.dirname(__file__))
 
-# Import the README and use it as the long-description.
-# Note: this will only work if 'README.rst' is present in your MANIFEST.in
-# file!
-# with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
-#     long_description = '\n' + f.read()
+
+def read(fname):
+    with open(fname) as f:
+        return f.read()
+
 
 # Load the package's __version__.py module as a dictionary.
 about = {}
-with open(os.path.join(here, NAME, '__version__.py')) as f:
+with open(os.path.join(here, 'covimerage', '__version__.py')) as f:
     exec(f.read(), about)
 
 
@@ -78,15 +70,14 @@ DEPS_TESTING = [
     'pytest-mock',
 ]
 
-# Where the magic happens:
 setup(
-    name=NAME,
+    name='covimerage',
     version=about['__version__'],
-    description=DESCRIPTION,
-    # long_description=long_description,
-    author=AUTHOR,
-    # author_email=EMAIL,
-    url=URL,
+    description='Generate coverage information for Vim scripts.',
+    long_description=read('README.md'),
+    author='Daniel Hahler',
+    author_email='https://daniel.hahler.de/',
+    url='https://github.com/Vimjas/covimerage',
     packages=['covimerage'],
     entry_points={
         'console_scripts': ['covimerage=covimerage.cli:main'],
