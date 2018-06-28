@@ -75,8 +75,8 @@ setup(
     version=about['__version__'],
     description='Generate coverage information for Vim scripts.',
     long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     author='Daniel Hahler',
-    author_email='https://daniel.hahler.de/',
     url='https://github.com/Vimjas/covimerage',
     packages=['covimerage'],
     entry_points={
