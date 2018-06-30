@@ -3,8 +3,7 @@ import os
 
 import click
 
-from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
-from .__version__ import __version__
+from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile, get_version
 from .coveragepy import CoverageWrapper
 from .exceptions import CustomClickException
 from .logger import logger
@@ -16,7 +15,7 @@ def default_loglevel():
 
 
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
-@click.version_option(__version__, '-V', '--version', prog_name='covimerage')
+@click.version_option(get_version(), '-V', '--version', prog_name='covimerage')
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
 @click.option('-l', '--loglevel', show_default=True,
