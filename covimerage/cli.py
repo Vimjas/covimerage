@@ -209,8 +209,7 @@ def report(ctx, profile_file, data_file, show_missing, include, omit,
     This will automatically add covimerage as a plugin, and then just forwards
     most options.
 
-    If PROFILE_FILE is provided this gets parsed, otherwise DATA_FILE is
-    being used.
+    If PROFILE_FILE is provided this gets parsed, otherwise DATA_FILE is used.
     """
     # Use None instead of empty set, for coveragepy to use the config file.
     include = include if include else None

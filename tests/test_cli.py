@@ -641,7 +641,7 @@ def test_run_append_with_data(runner, tmpdir):
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
-            'Writing coverage file .coverage.covimerage.',
+            'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
             'tests/test_plugin/conditional_function.vim      13      5    62%']
@@ -654,7 +654,7 @@ def test_run_append_with_data(runner, tmpdir):
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
-            'Writing coverage file .coverage.covimerage.',
+            'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
             'tests/test_plugin/conditional_function.vim      13      5    62%']
@@ -674,7 +674,7 @@ def test_run_append_with_data(runner, tmpdir):
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
-            'Writing coverage file .coverage.covimerage.',
+            'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
             'tests/test_plugin/conditional_function.vim      13      5    62%',
