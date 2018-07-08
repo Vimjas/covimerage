@@ -29,8 +29,8 @@ boilerplate:
 covimerage run vim -Nu test/vimrc -c 'Vader! test/**'
 ```
 
-This will write the file `.coverage.covimerage` by default (use `--data-file`
-to configure it), which is compatible to Coverage.py.
+This will write the file `.coverage_covimerage` by default (use `--data-file`
+to configure it), which is compatible with Coverage.py.
 A report is automatically generated (on stdout).
 
 You can then call `covimerage xml` to create a `coverage.xml` file
@@ -56,7 +56,7 @@ This makes Neovim/Vim then write a file with profiling information.
 covimerage write_coverage /tmp/vim-profile.txt
 ```
 
-This will create a file `.coverage.covimerage` (the default for `--data-file`),
+This will create a file `.coverage_covimerage` (the default for `--data-file`),
 with entries marked for processing by a
 [Coverage.py](http://coverage.readthedocs.io/) plugin (provided by
 covimerage)).
@@ -71,7 +71,7 @@ other settings here (for Coverage.py), e.g. to omit some files:
 ```
 [run]
 plugins = covimerage
-data_file = .coverage.covimerage
+data_file = .coverage_covimerage
 ```
 
 ### 4. Create the report(s)

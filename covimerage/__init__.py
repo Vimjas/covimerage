@@ -13,7 +13,7 @@ from .utils import (
     find_executable_files, get_fname_and_fobj_and_str, is_executable_line,
 )
 
-DEFAULT_COVERAGE_DATA_FILE = '.coverage.covimerage'
+DEFAULT_COVERAGE_DATA_FILE = '.coverage_covimerage'
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
 RE_CONTINUING_LINE = re.compile(r'\s*\\')
