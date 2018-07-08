@@ -424,7 +424,7 @@ def test_report_profile_or_data_file(runner, tmpdir):
 
     result = runner.invoke(cli.main, [
         'report', '--data-file', os.devnull])
-    cov_exc = 'CoverageException("Doesn\'t seem to be a coverage.py data file",)'
+    cov_exc = 'CoverageException: Doesn\'t seem to be a coverage.py data file'
     assert result.output.splitlines()[-1] == \
         'Error: Coverage could not read data_file: /dev/null (%s)' % cov_exc
     assert result.exit_code == 1
@@ -624,10 +624,10 @@ def test_run_append_with_empty_data(runner, tmpdir):
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
-            'Error: Coverage could not read data_file: %s '
-            '(CoverageException("Couldn\'t read data from \'%s\': '
-            'CoverageException: Doesn\'t seem to be a coverage.py data file",))' % (
-                data_file, data_file),
+
+            'Error: Coverage could not read data_file: .covimerage_covimerage '
+            "(CoverageException: Couldn't read data from '.covimerage_covimerage': "
+            "CoverageException: Doesn't seem to be a coverage.py data file)",
         ]
         assert result.exit_code == 1
 
