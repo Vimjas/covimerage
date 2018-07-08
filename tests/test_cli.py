@@ -628,16 +628,24 @@ def test_run_append_with_empty_data(runner, tmpdir):
         assert result.exit_code == 1
 
 
-def test_run_append_with_data(runner, tmpdir):
+@pytest.mark.parametrize('with_data_file', (True, False))
+def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
     profiled_file = 'tests/test_plugin/conditional_function.vim'
     profiled_file_content = open(profiled_file, 'r').read()
     tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+
+    def run_args(profile_file):
+        args = []
+        if with_data_file:
+            args += ['--data-file', DEFAULT_COVERAGE_DATA_FILE]
+        return args + [
+            '--append', '--no-wrap-profile', '--profile-file', profile_file,
+            'printf', '--', '--headless']
+
     with tmpdir.as_cwd() as old_dir:
         profile_file = str(old_dir.join(
             'tests/fixtures/conditional_function.profile'))
-        result = runner.invoke(cli.run, [
-            '--append', '--no-wrap-profile', '--profile-file', profile_file,
-            'printf', '--', '--headless'])
+        result = runner.invoke(cli.run, run_args(profile_file))
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
@@ -647,10 +655,10 @@ def test_run_append_with_data(runner, tmpdir):
             'tests/test_plugin/conditional_function.vim      13      5    62%']
         assert result.exit_code == 0
 
+        assert open('.coverage_covimerage').read().startswith(covdata_header)
+
         # The same again.
-        result = runner.invoke(cli.run, [
-            '--append', '--no-wrap-profile', '--profile-file', profile_file,
-            'printf', '--', '--headless'])
+        result = runner.invoke(cli.run, run_args(profile_file))
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
@@ -668,9 +676,7 @@ def test_run_append_with_data(runner, tmpdir):
         profile_file = str(old_dir.join(
             'tests/fixtures/merged_conditionals-0.profile'))
         tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
-        result = runner.invoke(cli.run, [
-            '--append', '--no-wrap-profile', '--profile-file', profile_file,
-            'printf', '--', '--headless'])
+        result = runner.invoke(cli.run, run_args(profile_file))
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
