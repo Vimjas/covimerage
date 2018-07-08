@@ -40,6 +40,12 @@ common: &common
           - ~/.cache/pip
         key: v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
 jobs:
+  py37:
+    <<: *common
+    docker:
+      - image: circleci/python:3.7
+        environment:
+          TOXENV=py37-coverage
   py36:
     <<: *common
     docker:
