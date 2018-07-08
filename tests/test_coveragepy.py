@@ -87,7 +87,7 @@ def test_coveragedata(coverage_fileobj):
     e = excinfo.value
     assert isinstance(e.orig_exc, coverage.misc.CoverageException)
     assert e.message == 'Coverage could not read data_file: %s' % f
-    assert e.format_message() == '%s (%r)' % (e.message, e.orig_exc)
+    assert e.format_message() == "%s (CoverageException: Doesn't seem to be a coverage.py data file)" % (e.message,)
     assert str(e) == e.format_message()
     assert repr(e) == 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
         e.message, e.orig_exc)
@@ -152,7 +152,7 @@ def test_coveragewrapper(coverage_fileobj, devnull):
     e = excinfo.value
     assert isinstance(e.orig_exc, coverage.misc.CoverageException)
     assert e.message == 'Coverage could not read data_file: %s' % f
-    assert e.format_message() == '%s (%r)' % (e.message, e.orig_exc)
+    assert e.format_message() == "%s (CoverageException: Doesn't seem to be a coverage.py data file)" % (e.message,)
     assert str(e) == e.format_message()
     assert repr(e) == 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
         e.message, e.orig_exc)
@@ -207,4 +207,4 @@ def test_coveragewrapperexception():
             raise Exception('orig')
         except Exception as orig_exc:
             raise CoverageWrapperException('bar', orig_exc=orig_exc)
-    assert excinfo.value.format_message() == "bar (Exception('orig',))"
+    assert excinfo.value.format_message() == "bar (Exception: orig)"

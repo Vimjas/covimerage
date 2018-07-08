@@ -18,7 +18,10 @@ class CoverageWrapperException(CustomClickException):
         """Append information about original exception if any."""
         msg = super(CoverageWrapperException, self).format_message()
         if self.orig_exc:
-            return '%s (%r)' % (msg, self.orig_exc)
+            return '%s (%s: %s)' % (
+                msg,
+                self.orig_exc.__class__.__name__,
+                self.orig_exc)
         return msg
 
     def __str__(self):
