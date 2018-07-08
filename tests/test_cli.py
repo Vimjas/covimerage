@@ -659,7 +659,7 @@ def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
             'tests/test_plugin/conditional_function.vim      13      5    62%']
         assert result.exit_code == 0
 
-        assert open('.coverage.covimerage').read().startswith(covdata_header)
+        assert open('.coverage_covimerage').read().startswith(covdata_header)
 
         # The same again.
         result = runner.invoke(cli.run, run_args(profile_file))
