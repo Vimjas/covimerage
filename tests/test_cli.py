@@ -121,7 +121,6 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         'Error: Command exited non-zero: 3.']
 
     # Write data with non-sources only.
-    f = StringIO()
     m.return_value = 0
     with tmpdir.as_cwd() as old_dir:
         profile_file = str(old_dir.join(
@@ -129,8 +128,9 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         result = runner.invoke(cli.run, [
             '--no-wrap-profile', '--no-report',
             '--profile-file', profile_file,
-            '--write-data', '--data-file', f,
+            '--write-data',
             'printf', '--', '--headless'])
+        assert not os.path.exists(DEFAULT_COVERAGE_DATA_FILE)
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     out = result.output.splitlines()
     assert out == [
@@ -139,8 +139,6 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         'Ignoring non-source: %s' % str(tmpdir.join(
             'tests/test_plugin/conditional_function.vim')),
         'Not writing coverage file: no data to report!']
-    f.seek(0)
-    assert f.read() == ''
 
     profiled_file = 'tests/test_plugin/conditional_function.vim'
     profiled_file_content = open(profiled_file, 'r').read()
@@ -153,23 +151,25 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         result = runner.invoke(cli.run, [
             '--no-wrap-profile', '--no-report',
             '--profile-file', profile_file,
-            '--write-data', '--data-file', f,
+            '--write-data',
             'printf', '--', '--headless'])
+
+        # Read coverage.
+        from covimerage.coveragepy import CoverageWrapper
+        cov = CoverageWrapper(data_file=DEFAULT_COVERAGE_DATA_FILE)
+
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
         'Parsing profile file %s.' % profile_file,
-        'Writing coverage file %r.' % f]
-    f.seek(0)
+        'Writing coverage file %s.' % DEFAULT_COVERAGE_DATA_FILE]
+    assert result.exit_code == 0
 
-    m.exit_code == 0
-    from covimerage.coveragepy import CoverageWrapper
-    cov = CoverageWrapper(data_file=f)
-    expected = {
+    expected_cov_lines = {
         str(tmpdir.join('not-profiled.vim')): [],
         str(tmpdir.join('tests/test_plugin/conditional_function.vim')): [
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
-    assert cov.lines == expected
+    assert cov.lines == expected_cov_lines
 
 
 @pytest.mark.parametrize('with_append', (True, False))
@@ -616,14 +616,19 @@ def test_run_append_with_empty_data(runner, tmpdir):
     with tmpdir.as_cwd() as old_dir:
         profile_file = str(old_dir.join(
             'tests/fixtures/conditional_function.profile'))
-        data_file = StringIO()
+        data_file = '.covimerage_covimerage'
+        with open(data_file, 'w') as f:
+            f.write('')
         result = runner.invoke(cli.run, [
             '--append', '--no-wrap-profile', '--profile-file', profile_file,
             '--data-file', data_file, 'printf', '--', '--headless'])
         assert result.output.splitlines() == [
             'Running cmd: printf -- --headless (in %s)' % str(tmpdir),
             'Parsing profile file %s.' % profile_file,
-            'Error: Coverage could not read data_file: %r (CoverageException("Doesn\'t seem to be a coverage.py data file",))' % data_file,
+            'Error: Coverage could not read data_file: %s '
+            '(CoverageException("Couldn\'t read data from \'%s\': '
+            'CoverageException: Doesn\'t seem to be a coverage.py data file",))' % (
+                data_file, data_file),
         ]
         assert result.exit_code == 1
 

@@ -65,7 +65,8 @@ def write_coverage(profile_file, data_file, source):
               type=click.Path(dir_okay=False), help=(
                   'File name for the PROFILE_FILE file.  '
                   'By default a temporary file is used.'))
-@click.option('--data-file', required=False, type=click.File('w'),
+@click.option('--data-file', required=False, type=click.Path(dir_okay=False),
+              default=DEFAULT_COVERAGE_DATA_FILE,
               help=('DATA_FILE to write into.  '
                     u'[default:\xa0%s]' % DEFAULT_COVERAGE_DATA_FILE))
 @click.option('--append', is_flag=True, default=False, show_default=True,
@@ -135,12 +136,8 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             p = Profile(profile_file)
             p.parse()
 
-            if (write_data or append) and not data_file:
-                data_file = DEFAULT_COVERAGE_DATA_FILE
-
             if append:
-                append_to = data_file
-                m = MergedProfiles([p], source=source, append_to=append_to)
+                m = MergedProfiles([p], source=source, append_to=data_file)
             else:
                 m = MergedProfiles([p], source=source)
 
