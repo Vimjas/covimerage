@@ -33,6 +33,11 @@ def devnull():
         yield f
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
+def covdata_header():
+    return "!coverage.py: This is a private format, don't read it directly!"
+
+
+@pytest.fixture(scope='session')
 def covdata_empty():
     return "!coverage.py: This is a private format, don't read it directly!{}"
