@@ -140,10 +140,6 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
 
             if append:
                 append_to = data_file
-                try:
-                    append_to = append_to.name
-                except AttributeError:
-                    append_to = str(append_to)
                 m = MergedProfiles([p], source=source, append_to=append_to)
             else:
                 m = MergedProfiles([p], source=source)
