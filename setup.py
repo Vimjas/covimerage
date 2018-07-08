@@ -19,12 +19,6 @@ def read(fname):
         return f.read()
 
 
-# Load the package's __version__.py module as a dictionary.
-about = {}
-with open(os.path.join(here, 'covimerage', '__version__.py')) as f:
-    exec(f.read(), about)
-
-
 class PublishCommand(Command):
     """Support setup.py publish."""
 
@@ -72,7 +66,6 @@ DEPS_TESTING = [
 
 setup(
     name='covimerage',
-    version=about['__version__'],
     description='Generate coverage information for Vim scripts.',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
@@ -82,6 +75,12 @@ setup(
     entry_points={
         'console_scripts': ['covimerage=covimerage.cli:main'],
     },
+    use_scm_version={
+        'write_to': 'covimerage/__version__.py',
+    },
+    setup_requires=[
+        'setuptools_scm',
+    ],
     install_requires=[
         'attrs',
         'click',

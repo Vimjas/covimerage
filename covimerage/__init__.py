@@ -21,6 +21,11 @@ RE_SOURCED_TIMES = re.compile(r'Sourced (\d+) time')
 RE_SNR_PREFIX = re.compile(r'^<SNR>\d+_')
 
 
+def get_version():
+    from covimerage.__version__ import version
+    return version
+
+
 @attr.s
 class Line(object):
     """A source code line."""
