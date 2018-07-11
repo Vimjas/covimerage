@@ -66,7 +66,7 @@ def write_coverage(profile_file, data_file, source, append):
     # ignore_unknown_options=True,
     allow_interspersed_args=False,
 ))
-@click.argument('args', nargs=-1, type=click.UNPROCESSED)
+@click.argument('args', nargs=-1, required=True, type=click.UNPROCESSED)
 @click.option('--wrap-profile/--no-wrap-profile', required=False,
               default=True, show_default=True,
               help='Wrap VIM cmd with options to create a PROFILE_FILE.')
