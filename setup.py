@@ -74,8 +74,8 @@ setup(
     packages=['covimerage'],
     entry_points={
         'console_scripts': [
-            'covimerage=covimerage.cli:main',
-            'covimerage-run=covimerage.cli:run',
+            'covimerage=covimerage.__main__:main',
+            'covimerage-run=covimerage.__main__:run',
         ],
     },
     use_scm_version={

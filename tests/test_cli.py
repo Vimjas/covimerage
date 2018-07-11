@@ -15,7 +15,7 @@ from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
 def test_dunder_main_run(capfd):
     assert call([sys.executable, '-m', 'covimerage']) == 0
     out, err = capfd.readouterr()
-    assert out.startswith('Usage: __main__')
+    assert out.startswith('Usage: covimerage')
 
 
 def test_dunder_main_run_help(capfd):
