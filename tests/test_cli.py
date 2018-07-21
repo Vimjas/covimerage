@@ -3,12 +3,12 @@ import signal
 import subprocess
 from subprocess import call
 import sys
+import tempfile
 import time
 
 import pytest
 
 from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
-from covimerage._compat import StringIO
 
 
 def test_dunder_main_run(capfd):
@@ -209,6 +209,29 @@ def test_cli_run_can_skip_writing_data(with_append, runner, tmpdir):
     assert not tmpdir.join(DEFAULT_COVERAGE_DATA_FILE).exists()
 
 
+def test_cli_write_coverage_with_append(runner, tmpdir, covdata_header):
+    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file_content = open(profiled_file, 'r').read()
+    with tmpdir.as_cwd() as old_dir:
+        profile_file = str(old_dir.join(
+            'tests/fixtures/conditional_function.profile'))
+        tmpdir.join(profiled_file).write(profiled_file_content, ensure=True)
+        args = ['--append', profile_file]
+        result = runner.invoke(cli.write_coverage, args)
+
+        assert result.output.splitlines() == [
+            'Writing coverage file .coverage_covimerage.',
+        ]
+        assert tmpdir.join(DEFAULT_COVERAGE_DATA_FILE).exists()
+
+        data = open('.coverage_covimerage').read()
+        assert data.startswith(covdata_header)
+
+        # Not changed if appending the same.
+        result = runner.invoke(cli.write_coverage, args)
+        assert len(open('.coverage_covimerage').read()) == len(data)
+
+
 def test_cli_run_report_fd(capfd, tmpdir, devnull):
     profile_fname = 'tests/fixtures/conditional_function.profile'
     with open(profile_fname, 'r') as f:
@@ -328,35 +351,33 @@ def test_cli_writecoverage_without_data(runner):
 def test_cli_writecoverage_datafile(runner):
     from covimerage.coveragepy import CoverageWrapper
 
-    f = StringIO()
-    result = runner.invoke(cli.main, ['write_coverage', '--data-file', f,
+    fname = tempfile.mktemp()
+    result = runner.invoke(cli.main, ['write_coverage', '--data-file', fname,
                            'tests/fixtures/conditional_function.profile'])
     assert result.output == '\n'.join([
-        'Writing coverage file %s.' % f,
+        'Writing coverage file %s.' % fname,
         ''])
     assert result.exit_code == 0
 
-    f.seek(0)
-    cov = CoverageWrapper(data_file=f)
+    cov = CoverageWrapper(data_file=fname)
     assert cov.lines == {
         os.path.abspath('tests/test_plugin/conditional_function.vim'): [
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
 
 
-def test_cli_writecoverage_source(runner):
+def test_cli_writecoverage_source(runner, devnull):
     from covimerage.coveragepy import CoverageWrapper
 
-    f = StringIO()
+    fname = tempfile.mktemp()
     result = runner.invoke(cli.main, [
-        'write_coverage', '--data-file', f, '--source', '.',
+        'write_coverage', '--data-file', fname, '--source', '.',
         'tests/fixtures/conditional_function.profile'])
     assert result.output == '\n'.join([
-        'Writing coverage file %s.' % f,
+        'Writing coverage file %s.' % fname,
         ''])
     assert result.exit_code == 0
 
-    f.seek(0)
-    cov = CoverageWrapper(data_file=f)
+    cov = CoverageWrapper(data_file=fname)
     assert cov.lines[
         os.path.abspath('tests/test_plugin/conditional_function.vim')] == [
             3, 8, 9, 11, 13, 14, 15, 17, 23]

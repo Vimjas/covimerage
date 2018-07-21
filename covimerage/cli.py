@@ -37,8 +37,10 @@ def main(ctx, verbose, quiet, loglevel, rcfile):
 
 @main.command()
 @click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
-@click.option('--data-file', required=False, show_default=True,
-              default=DEFAULT_COVERAGE_DATA_FILE, type=click.File(mode='w'))
+@click.option('--data-file', required=False, type=click.Path(dir_okay=False),
+              default=DEFAULT_COVERAGE_DATA_FILE,
+              help=('DATA_FILE to write into.  '
+                    u'[default:\xa0%s]' % DEFAULT_COVERAGE_DATA_FILE))
 @click.option('--source', type=click.types.Path(exists=True), help=(
     'Source files/dirs to include.  This is necessary to include completely '
     'uncovered files.'), show_default=True, multiple=True)
