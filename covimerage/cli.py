@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 
 import click
 
@@ -119,7 +120,19 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     logger.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
 
     try:
-        exit_code = subprocess.call(cmd)
+        proc = subprocess.Popen(cmd)
+
+        def forward_signals(signalnum, stackframe):
+            """Forward SIGHUP to the subprocess."""
+            proc.send_signal(signalnum)
+        signal.signal(signal.SIGHUP, forward_signals)
+
+        try:
+            exit_code = proc.wait()
+        except Exception:
+            proc.kill()
+            proc.wait()
+            raise
     except Exception as exc:
         raise CustomClickException('Failed to run %s: %s' % (cmd, exc))
 

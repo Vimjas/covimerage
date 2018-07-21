@@ -1,6 +1,9 @@
 import os
+import signal
+import subprocess
 from subprocess import call
 import sys
+import time
 
 import pytest
 
@@ -72,8 +75,10 @@ def test_cli_run_subprocess_exception(runner, mocker):
 
 
 def test_cli_run_args(runner, mocker, devnull, tmpdir):
-    m = mocker.patch('subprocess.call')
-    m.return_value = 1
+    m = mocker.patch('subprocess.Popen')
+    m_wait = m.return_value.wait
+
+    m_wait.return_value = 1
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
@@ -82,7 +87,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         'Error: Command exited non-zero: 1.']
     assert result.exit_code == 1
 
-    m.return_value = 2
+    m_wait.return_value = 2
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', '--', 'printf', '--headless'])
     assert m.call_args[0] == (['printf', '--headless'],)
@@ -91,7 +96,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         'Error: Command exited non-zero: 2.']
     assert result.exit_code == 2
 
-    m.return_value = 3
+    m_wait.return_value = 3
     result = runner.invoke(
         cli.run, ['--no-wrap-profile', 'printf', '--', '--headless'])
     assert m.call_args[0] == (['printf', '--', '--headless'],)
@@ -120,7 +125,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         'Error: Command exited non-zero: 3.']
 
     # Write data with non-sources only.
-    m.return_value = 0
+    m_wait.return_value = 0
     with tmpdir.as_cwd() as old_dir:
         profile_file = str(old_dir.join(
             'tests/fixtures/conditional_function.profile'))
@@ -169,6 +174,17 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
         str(tmpdir.join('tests/test_plugin/conditional_function.vim')): [
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
     assert cov.lines == expected_cov_lines
+
+
+def test_cli_run_subprocess_wait_exception(runner, mocker, devnull, tmpdir):
+    mocker.patch('subprocess.Popen').return_value.wait.side_effect = Exception(
+        'custom_err')
+
+    result = runner.invoke(cli.run, ['--no-wrap-profile', 'true'])
+    assert result.output.splitlines() == [
+        'Running cmd: true (in %s)' % os.getcwd(),
+        "Error: Failed to run ['true']: custom_err"]
+    assert result.exit_code == 1
 
 
 @pytest.mark.parametrize('with_append', (True, False))
@@ -705,3 +721,23 @@ def test_run_report_without_data(tmpdir, runner, devnull):
         'Parsing profile file %s.' % devnull.name,
         'Error: No data to report.']
     assert result.exit_code == 1
+
+
+def test_run_forwards_sighup(devnull):
+    proc = subprocess.Popen([
+            sys.executable, '-m', 'covimerage', 'run',
+            '--no-write-data', '--no-wrap-profile',
+            '--profile-file', devnull.name,
+            sys.executable, '-c',
+            'import signal, sys, time; '
+            'signal.signal(signal.SIGHUP, lambda *args: sys.exit(89)); '
+            'time.sleep(2)'],
+                          stderr=subprocess.PIPE)
+    time.sleep(1)
+    proc.send_signal(signal.SIGHUP)
+    _, stderr = proc.communicate()
+    exit_code = proc.returncode
+
+    stderr = stderr.decode()
+    assert 'Command exited non-zero: 89' in stderr
+    assert exit_code == 89
