@@ -21,6 +21,7 @@ fixtures: tests/fixtures/conditional_function.profile
 fixtures: tests/fixtures/function_in_function.profile
 fixtures: tests/fixtures/function_in_function_count.profile
 fixtures: tests/fixtures/function_in_function_with_ref.profile
+fixtures: tests/fixtures/duplicate_s_function.profile
 fixtures: $(PROFILES_TO_MERGE_COND)
 
 # TODO: cleanup.  Should be handled by the generic rule at the bottom.
@@ -55,9 +56,11 @@ $(PROFILES_TO_MERGE_COND): tests/test_plugin/merged_conditionals.vim Makefile
 	done
 	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  tests/test_plugin:' $(PROFILES_TO_MERGE_COND)
 
-tests/fixtures/%.profile: tests/test_plugin/%.vim Makefile
-	$(VIM) --noplugin -Nu tests/t.vim --cmd 'let g:prof_fname = "$@"' -c 'source $<' -c q
-	sed -i 's:^SCRIPT  .*/test_plugin:SCRIPT  tests/test_plugin:' $@
+tests/fixtures/%.profile: tests/test_plugin/%.vim Makefile tests/t.vim
+	$(VIM) --noplugin -Nu tests/t.vim --cmd 'let g:prof_fname = "$@"' -c 'source $<' \
+		-c 'exe empty(v:errmsg) ? "qall" : "echoerr v:errmsg"'
+	sed -Ei 's:^SCRIPT  .*/tests/test_plugin:SCRIPT  tests/test_plugin:' $@
+	sed -Ei 's~^    Defined: .*/tests/test_plugin~    Defined: tests/test_plugin~' $@
 
 
 # Helpers to generate (combined) coverage and show a diff {{{

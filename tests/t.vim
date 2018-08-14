@@ -2,7 +2,8 @@ let prof_fname = get(g:, 'prof_fname')
 exe 'profile start '.prof_fname
 profile! file tests/test_plugin/**
 
-set runtimepath+=$PWD/test_plugin
+let sfile = expand('<sfile>')
+let &runtimepath = $PWD.'/tests/test_plugin,'.&runtimepath
 
 " call test_plugin#func1(1)
 
