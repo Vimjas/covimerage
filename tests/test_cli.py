@@ -762,3 +762,9 @@ def test_run_forwards_sighup(devnull):
     stderr = stderr.decode()
     assert 'Command exited non-zero: 89' in stderr
     assert exit_code == 89
+
+
+def test_run_cmd_requires_args(runner):
+    result = runner.invoke(cli.run, [])
+    assert 'Error: Missing argument "args".' in result.output.splitlines()
+    assert result.exit_code == 2
