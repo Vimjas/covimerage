@@ -521,3 +521,38 @@ def test_map_functions(caplog):
     assert len(funcs) == 1
     assert caplog.record_tuples == [
         ('covimerage', 40, 'Could not find source for function: missing')]
+
+
+def test_duplicate_s_function(caplog):
+    from covimerage import Profile
+
+    fname = 'tests/fixtures/duplicate_s_function.profile'
+    p = Profile(fname)
+    p.parse()
+
+    assert len(p.scripts) == 2
+
+    N = None
+    assert [(l.count, l.line)
+            for l in p.scripts[0].lines.values()
+            if not l.line.startswith('"')] == [
+                (1, 'function! s:function(name) abort'),
+                (1, '  echom a:name'),
+                (N, 'endfunction'),
+                (N, ''),
+                (1, "call s:function('name')"),
+                (1, "call test_plugin#function#function('name')"),
+            ]
+
+    assert [(l.count, l.line)
+            for l in p.scripts[1].lines.values()
+            if not l.line.startswith('"')] == [
+                (1, 'function! s:function(name) abort'),
+                (1, '  echom a:name'),
+                (N, 'endfunction'),
+                (N, ''),
+                (1, 'function! test_plugin#function#function(name) abort'),
+                (1, '  call s:function(a:name)'),
+                (N, 'endfunction')]
+
+    assert not caplog.records

@@ -69,6 +69,7 @@ class Function(object):
     total_time = attr.ib(default=None)
     self_time = attr.ib(default=None)
     lines = attr.ib(default=attr.Factory(dict), repr=False)
+    source = None
 
 
 @attr.s
@@ -206,6 +207,7 @@ class MergedProfiles(object):
 @attr.s
 class Profile(object):
     fname = attr.ib()
+    # TODO: make this a dict?  (scripts_by_fname)
     scripts = attr.ib(default=attr.Factory(list))
     anonymous_functions = attr.ib(default=attr.Factory(dict))
     _fobj = None
@@ -214,6 +216,7 @@ class Profile(object):
     def __attrs_post_init__(self):
         self.fname, self._fobj, self._fstr = get_fname_and_fobj_and_str(
             self.fname)
+        self.scripts_by_fname = {}
 
     @property
     def scriptfiles(self):
@@ -396,6 +399,7 @@ class Profile(object):
                 in_script = Script(fname)
                 logger.debug('Parsing script %s', in_script)
                 self.scripts.append(in_script)
+                self.scripts_by_fname[fname] = in_script
 
                 next_line = next(file_object)
                 m = RE_SOURCED_TIMES.match(next_line)
@@ -408,7 +412,18 @@ class Profile(object):
                 func_name = line[10:-2]
                 in_function = Function(name=func_name)
                 logger.debug('Parsing function %s', in_function)
-                plnum += skip_to_count_header()
+                while True:
+                    next_line = next(file_object)
+                    if not next_line:
+                        break
+                    plnum += 1
+                    if next_line.startswith('count'):
+                        break
+                    if next_line.startswith('    Defined:'):
+                        fname, lnum = next_line[13:].rstrip().rsplit(' line ', 1)  # noqa: E501
+                        fname = os.path.expanduser(fname)
+                        in_function.source = (self.scripts_by_fname[fname],
+                                              int(lnum))
                 lnum = 0
         self.map_functions(functions)
 
@@ -426,12 +441,15 @@ class Profile(object):
             logger.error('Could not find source for function: %s', f.name)
 
     def map_function(self, f):
-        script_line = self.find_func_in_source(f)
-        if not script_line:
-            return False
+        if f.source:
+            script, script_lnum = f.source
+        else:
+            script_line = self.find_func_in_source(f)
+            if not script_line:
+                return False
+            script, script_lnum = script_line
 
         # Assign counts from function to script.
-        script, script_lnum = script_line
         for [f_lnum, f_line] in f.lines.items():
             s_line = script.lines[script_lnum + f_lnum]
 
