@@ -84,7 +84,7 @@ setup(
     install_requires=[
         'attrs',
         'click',
-        'coverage',
+        'coverage<=5',
     ],
     extras_require={
         'testing': DEPS_TESTING,
