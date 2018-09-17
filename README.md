@@ -5,9 +5,6 @@ Generates code coverage information for Vim scripts.
 It parses the output from Vim's `:profile` command, and generates data
 compatible with [Coverage.py](http://coverage.readthedocs.io/).
 
-**NOTE:** this `develop` branch will be squash-merged into master after some
-stabilization (1-2 weeks).
-
 [![Build Status](https://circleci.com/gh/Vimjas/covimerage/tree/master.svg?style=shield)](https://circleci.com/gh/Vimjas/covimerage)
 [![codecov](https://codecov.io/gh/Vimjas/covimerage/branch/master/graph/badge.svg)](https://codecov.io/gh/Vimjas/covimerage/branch/master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/548eb25f726646fbbe660dc9fb6d392a)](https://www.codacy.com/app/blueyed/covimerage)
