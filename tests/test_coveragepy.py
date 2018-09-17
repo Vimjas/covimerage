@@ -60,20 +60,32 @@ def coverage_fileobj():
 
 def test_coveragedata(coverage_fileobj):
     import coverage
-    from covimerage.coveragepy import CoverageData, CoverageWrapperException
+    from covimerage.coveragepy import (
+        CoverageData, CoveragePyData, CoverageWrapperException)
 
     with pytest.raises(TypeError) as excinfo:
-        CoverageData(data_file='foo', cov_data='bar')
+        CoverageData(data_file='foo', cov_data=CoveragePyData())
     assert excinfo.value.args == (
         'data and data_file are mutually exclusive.',)
 
     data = CoverageData()
-    assert isinstance(data.cov_data, coverage.data.CoverageData)
+    try:
+        from coverage.data import CoverageJsonData
+    except ImportError:
+        assert isinstance(data.cov_data, coverage.data.CoverageData)
+    else:
+        assert isinstance(data.cov_data, CoverageJsonData)
 
     with pytest.raises(TypeError) as excinfo:
         CoverageData(cov_data='foo')
-    assert excinfo.value.args == (
-        'data needs to be of type coverage.data.CoverageData',)
+    try:
+        from coverage.data import CoverageJsonData
+    except ImportError:
+        assert excinfo.value.args == (
+            'data needs to be of type coverage.data.CoverageData',)
+    else:
+        assert excinfo.value.args == (
+            'data needs to be of type coverage.data.CoverageJsonData',)
 
     with pytest.raises(CoverageWrapperException) as excinfo:
         CoverageData(data_file='/does/not/exist')
@@ -106,7 +118,12 @@ def test_coveragedata_empty(covdata_empty):
 
     f = StringIO()
     data = CoverageData()
-    data.cov_data.write_fileobj(f)
+    try:
+        write_fileobj = data.cov_data.write_fileobj
+    except AttributeError:
+        # coveragepy 5
+        write_fileobj = data.cov_data._write_fileobj
+    write_fileobj(f)
     f.seek(0)
     assert f.read() == covdata_empty
 
@@ -114,13 +131,13 @@ def test_coveragedata_empty(covdata_empty):
 def test_coveragewrapper(coverage_fileobj, devnull):
     import coverage
     from covimerage.coveragepy import (
-        CoverageData, CoverageWrapper, CoverageWrapperException)
+        CoverageData, CoveragePyData, CoverageWrapper, CoverageWrapperException)
 
     cov_data = CoverageWrapper()
     assert cov_data.lines == {}
     assert isinstance(cov_data.data, CoverageData)
 
-    cov_data = CoverageWrapper(data=coverage.data.CoverageData())
+    cov_data = CoverageWrapper(data=CoveragePyData())
     assert cov_data.lines == {}
     assert isinstance(cov_data.data, CoverageData)
 
@@ -128,7 +145,7 @@ def test_coveragewrapper(coverage_fileobj, devnull):
         CoverageWrapper(data_file='foo', data='bar')
 
     with pytest.raises(TypeError):
-        CoverageWrapper(data_file='foo', data=CoverageData())
+        CoverageWrapper(data_file='foo', data=CoveragePyData())
 
     cov = CoverageWrapper(data_file=coverage_fileobj)
     with pytest.raises(attr.exceptions.FrozenInstanceError):
@@ -139,7 +156,11 @@ def test_coveragewrapper(coverage_fileobj, devnull):
             3, 8, 9, 11, 13, 14, 15, 17, 23]}
 
     assert isinstance(cov._cov_obj, coverage.control.Coverage)
-    assert cov._cov_obj.data is cov.data.cov_data
+    if hasattr(cov._cov_obj, '_data'):
+        # coveragepy 5
+        assert cov._cov_obj._data is cov.data.cov_data
+    else:
+        assert cov._cov_obj.data is cov.data.cov_data
 
     with pytest.raises(CoverageWrapperException) as excinfo:
         CoverageWrapper(data_file=devnull.name)
@@ -156,6 +177,17 @@ def test_coveragewrapper(coverage_fileobj, devnull):
     assert str(e) == e.format_message()
     assert repr(e) == 'CoverageWrapperException(message=%r, orig_exc=%r)' % (
         e.message, e.orig_exc)
+
+
+def test_coveragewrapper_requires_jsondata():
+    pytest.importorskip('coverage.sqldata')
+    from covimerage.coveragepy import CoverageWrapper
+
+    with pytest.raises(TypeError) as excinfo:
+        CoverageWrapper(data=coverage.sqldata.CoverageSqliteData())
+
+    assert excinfo.value.args[0] == (
+        'data needs to be of type coverage.data.CoverageJsonData')
 
 
 def test_coveragewrapper_uses_config_file(tmpdir, capfd):
