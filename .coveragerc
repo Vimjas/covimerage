@@ -1,5 +1,6 @@
 [run]
-source = .
+parallel = 1
+source = covimerage,tests/
 branch = true
 # Wrong warning caused by include used in [report] (Coveragepy 4.4.2)
 # Ref: https://bitbucket.org/ned/coveragepy/issues/621
