@@ -50,7 +50,7 @@ This makes Neovim/Vim then write a file with profiling information.
 ### 2. Call covimerage on the output file(s)
 
 ```sh
-covimerage write_coverage /tmp/vim-profile.txt
+covimerage write-coverage /tmp/vim-profile.txt
 ```
 
 This will create a file `.coverage_covimerage` (the default for `--data-file`),
