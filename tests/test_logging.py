@@ -1,6 +1,7 @@
 from imp import reload
 import logging
 
+import click
 import pytest
 
 
@@ -29,12 +30,22 @@ def test_loglevel(mocker, runner, devnull):
 
     m = mocker.patch.object(logger, 'setLevel')
 
+    def assert_output(result):
+        if click.__version__ < '7.0':
+            assert result.output.splitlines() == [
+                'Error: no such option: --nonexistingoption']
+        else:
+            assert result.output.splitlines() == [
+                'Usage: main report [OPTIONS] [PROFILE_FILE]...',
+                'Try "main report -h" for help.',
+                '',
+                'Error: no such option: --nonexistingoption']
+
     for level in ['error', 'warning', 'info', 'debug']:
         result = runner.invoke(cli.main, [
             '--loglevel', level,
             'report', '--nonexistingoption'])
-        assert result.output.splitlines() == [
-            'Error: no such option: --nonexistingoption']
+        assert_output(result)
         assert result.exit_code == 2
 
         level_name = level.upper()
@@ -45,8 +56,7 @@ def test_loglevel(mocker, runner, devnull):
     result = runner.invoke(cli.main, [
             '-l', 'warning', '-vvv',
             'report', '--nonexistingoption'])
-    assert result.output.splitlines() == [
-        'Error: no such option: --nonexistingoption']
+    assert_output(result)
     assert result.exit_code == 2
     assert m.call_args_list == [mocker.call('WARNING')]
 
@@ -55,8 +65,7 @@ def test_loglevel(mocker, runner, devnull):
     result = runner.invoke(cli.main, [
             '-l', 'warning', '-qqq',
             'report', '--nonexistingoption'])
-    assert result.output.splitlines() == [
-        'Error: no such option: --nonexistingoption']
+    assert_output(result)
     assert result.exit_code == 2
     assert m.call_args_list == [mocker.call('WARNING')]
 

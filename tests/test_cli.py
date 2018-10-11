@@ -6,6 +6,7 @@ import sys
 import tempfile
 import time
 
+import click
 import pytest
 
 from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
@@ -32,8 +33,13 @@ def test_cli(runner, tmpdir):
         assert os.path.exists(DEFAULT_COVERAGE_DATA_FILE)
 
     result = runner.invoke(cli.main, ['write_coverage', '/does/not/exist'])
-    assert result.output.splitlines()[-1].startswith(
-        'Error: Invalid value for "profile_file": Could not open file:')
+    if click.__version__ < '7.0':
+        assert result.output.splitlines()[-1].startswith(
+            'Error: Invalid value for "profile_file": Could not open file:')
+    else:
+        assert result.output.splitlines()[-1].startswith(
+            'Error: Invalid value for "[PROFILE_FILE]...": Could not open file:')
+
     assert result.exit_code == 2
 
 
@@ -296,7 +302,8 @@ def test_cli_call(capfd):
     out, err = capfd.readouterr()
     err_lines = err.splitlines()
     assert err_lines[-1] == (
-        'Error: Invalid value for "profile_file": Could not open file: file not found: No such file or directory')
+        'Error: Invalid value for "%s": Could not open file: file not found: No such file or directory' % (
+            "profile_file" if click.__version__ < '7.0' else "[PROFILE_FILE]...",))
     assert out == ''
 
 
@@ -474,7 +481,8 @@ def test_report_profile_or_data_file(runner, tmpdir):
 
     result = runner.invoke(cli.main, ['report', '/does/not/exist'])
     assert result.output.splitlines()[-1] == \
-        'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'
+        'Error: Invalid value for "%s": Could not open file: /does/not/exist: No such file or directory' % (
+            'profile_file' if click.__version__ < '7.0' else '[PROFILE_FILE]...',)
     assert result.exit_code == 2
 
     result = runner.invoke(cli.main, [
@@ -520,7 +528,8 @@ def test_report_source(runner, tmpdir, devnull):
         result = runner.invoke(cli.main, ["report", "--source", ".", "/does/not/exist"])
         assert (
             result.output.splitlines()[-1]
-            == 'Error: Invalid value for "profile_file": Could not open file: /does/not/exist: No such file or directory'
+            == 'Error: Invalid value for "%s": Could not open file: /does/not/exist: No such file or directory' % (
+                'profile_file' if click.__version__ < '7.0' else '[PROFILE_FILE]...',)
         )
         assert result.exit_code == 2
 
@@ -766,5 +775,7 @@ def test_run_forwards_sighup(devnull):
 
 def test_run_cmd_requires_args(runner):
     result = runner.invoke(cli.run, [])
-    assert 'Error: Missing argument "args".' in result.output.splitlines()
+    assert 'Error: Missing argument "%s".' % (
+        'args' if click.__version__ < '7.0' else 'ARGS...',
+    ) in result.output.splitlines()
     assert result.exit_code == 2
