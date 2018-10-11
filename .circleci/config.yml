@@ -8,9 +8,6 @@ common: &common
   working_directory: ~/repo
   steps:
     - checkout
-    - restore_cache:
-        keys:
-          - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
     - run: pip install --user tox
     - run: PYTEST_ADDOPTS=-vv ~/.local/bin/tox
     - run:
@@ -35,42 +32,43 @@ common: &common
             fi
             set +x
           fi
-    - save_cache:
-        paths:
-          - .tox
-          - ~/.cache/pip
-        key: v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}
 jobs:
   py37:
     <<: *common
     docker:
       - image: circleci/python:3.7
         environment:
-          TOXENV=py37-coverage
+          - TOXENV=py37-coverage
   py36:
     <<: *common
     docker:
       - image: circleci/python:3.6
         environment:
-          TOXENV=py36-coverage
+          - TOXENV=py36-coverage
   py35:
     <<: *common
     docker:
       - image: circleci/python:3.5
         environment:
-          TOXENV=py35-coverage
+          - TOXENV=py35-coverage
   py34:
     <<: *common
     docker:
       - image: circleci/python:3.4
         environment:
-          TOXENV=py34-coverage
+          - TOXENV=py34-coverage
   py27:
     <<: *common
     docker:
       - image: circleci/python:2.7
         environment:
-          TOXENV=py27-coverage
+          - TOXENV=py27-coverage
+  py37-click6:
+    <<: *common
+    docker:
+      - image: circleci/python:3.7
+        environment:
+          - TOXENV=py37-click6-coverage
   checkqa:
     <<: *common
     docker:
@@ -83,6 +81,7 @@ workflows:
   test:
     jobs:
       - py37
+      - py37-click6
       - py36
       - py35
       - py34
