@@ -35,7 +35,7 @@ def main(ctx, verbose, quiet, loglevel, rcfile):
     ctx.obj = {'rcfile': rcfile}
 
 
-@main.command()
+@main.command(name='write_coverage')
 @click.argument('profile_file', type=click.File('r'), required=False, nargs=-1)
 @click.option('--data-file', required=False, type=click.Path(dir_okay=False),
               default=DEFAULT_COVERAGE_DATA_FILE,
