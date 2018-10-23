@@ -4,12 +4,18 @@ def wrap_for_errormsg(f, *args, **kwargs):
     except Exception as exc:
         from click.exceptions import ClickException
         if isinstance(exc, ClickException):
-            import sys
+            import re, sys
             from click.utils import echo
+            from ._compat import StringIO
 
-            msg = 'covimerage: error: %s' % (exc.format_message(),)
-            echo(msg, err=True)
+            # Use `show()` to get extended message with UsageErrors.
+            out = StringIO()
+            exc.show(file=out)
+            out.seek(0)
+            msg = re.sub("^Error: ", "covimerage: error: ", out.read(), flags=re.MULTILINE)
+            echo(msg, err=True, nl=False)
             sys.exit(exc.exit_code)
+        raise
 
 
 def main():

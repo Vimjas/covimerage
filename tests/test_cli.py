@@ -74,7 +74,7 @@ def test_cli_run_with_args_fd(capfd):
     lines = err.splitlines()
     assert lines == [
         "Running cmd: echo -- --no-profile %sMARKER --cmd 'profile start /doesnotexist' --cmd 'profile! file ./*' (in {})".format(os.getcwd()),
-        'Error: The profile file (/doesnotexist) has not been created.']
+        'covimerage: error: The profile file (/doesnotexist) has not been created.']
     assert ret == 1
 
 
@@ -301,14 +301,14 @@ def test_cli_call(capfd):
     # click after 6.7 (9cfea14) includes: 'Try "covimerage --help" for help.'
     assert err_lines[-2:] == [
         '',
-        'Error: No such command "file not found".']
+        'covimerage: error: No such command "file not found".']
     assert out == ''
 
     assert call(['covimerage', 'write_coverage', 'file not found']) == 2
     out, err = capfd.readouterr()
     err_lines = err.splitlines()
     assert err_lines[-1] == (
-        'Error: Invalid value for "%s": Could not open file: file not found: No such file or directory' % (
+        'covimerage: error: Invalid value for "%s": Could not open file: file not found: No such file or directory' % (
             "profile_file" if click.__version__ < '7.0' else "[PROFILE_FILE]...",))
     assert out == ''
 
@@ -319,7 +319,7 @@ def test_cli_call_verbosity_fd(capfd):
     assert out == ''
     assert err.splitlines() == [
         'Not writing coverage file: no data to report!',
-        'Error: No data to report.']
+        'covimerage: error: No data to report.']
 
     assert call(['covimerage', '-v', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
@@ -328,7 +328,7 @@ def test_cli_call_verbosity_fd(capfd):
         'Parsing file: /dev/null',
         'source_files: []',
         'Not writing coverage file: no data to report!',
-        'Error: No data to report.']
+        'covimerage: error: No data to report.']
 
     assert call(['covimerage', '-vvvv', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
@@ -337,19 +337,19 @@ def test_cli_call_verbosity_fd(capfd):
         'Parsing file: /dev/null',
         'source_files: []',
         'Not writing coverage file: no data to report!',
-        'Error: No data to report.']
+        'covimerage: error: No data to report.']
 
     assert call(['covimerage', '-vq', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
     assert err.splitlines() == [
         'Not writing coverage file: no data to report!',
-        'Error: No data to report.']
+        'covimerage: error: No data to report.']
 
     assert call(['covimerage', '-qq', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
-    assert err == 'Error: No data to report.\n'
+    assert err == 'covimerage: error: No data to report.\n'
 
 
 def test_cli_writecoverage_without_data(runner):
@@ -647,7 +647,7 @@ def test_run_handles_exit_code_from_python_fd(capfd):
     ret = call(['covimerage', 'run',
                 'python', '-c', 'print("output"); import sys; sys.exit(42)'])
     out, err = capfd.readouterr()
-    assert 'Error: Command exited non-zero: 42.' in err.splitlines()
+    assert 'covimerage: error: Command exited non-zero: 42.' in err.splitlines()
     assert out == 'output\n'
     assert ret == 42
 
@@ -658,7 +658,7 @@ def test_run_handles_exit_code_from_python_pty_fd(capfd):
                 "import pty; pty.spawn(['/bin/sh', '-c', "
                 "'printf output; exit 42'])"])
     out, err = capfd.readouterr()
-    assert ('Error: The profile file (/not/used) has not been created.' in
+    assert ('covimerage: error: The profile file (/not/used) has not been created.' in
             err.splitlines())
     assert out == 'output'
     assert ret == 1
