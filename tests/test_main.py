@@ -9,7 +9,7 @@ from covimerage._compat import FileNotFoundError, StringIO
 def test_main_wrap_for_prefix():
     from covimerage.__main__ import wrap_for_prefix
 
-    def f(standalone_mode):
+    def f(**kwargs):
         raise ValueError("custom")
 
     with pytest.raises(ValueError) as excinfo:
