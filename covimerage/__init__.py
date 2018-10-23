@@ -186,14 +186,25 @@ class MergedProfiles(object):
 
     # TODO: move to CoverageWrapper
     def write_coveragepy_data(self, data_file='.coverage'):
+        import coverage
+
         cov_data = self.get_coveragepy_data()
-        if not cov_data.line_counts():
+        try:
+            line_counts = cov_data.line_counts()
+        except AttributeError:
+            line_counts = coverage.data.line_counts(cov_data)
+        if not line_counts:
             logger.warning('Not writing coverage file: no data to report!')
             return False
 
         if isinstance(data_file, string_types):
             logger.info('Writing coverage file %s.', data_file)
-            cov_data.write_file(data_file)
+            try:
+                write_file = cov_data.write_file
+            except AttributeError:
+                # coveragepy 5
+                write_file = cov_data._write_file
+            write_file(data_file)
         else:
             try:
                 filename = data_file.name

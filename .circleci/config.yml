@@ -33,6 +33,12 @@ common: &common
             set +x
           fi
 jobs:
+  py37-coveragepy5:
+    <<: *common
+    docker:
+      - image: circleci/python:3.7
+        environment:
+          TOXENV=py37-coveragepy5-coverage
   py37:
     <<: *common
     docker:
@@ -80,6 +86,7 @@ workflows:
   version: 2
   test:
     jobs:
+      - py37-coveragepy5
       - py37
       - py37-click6
       - py36

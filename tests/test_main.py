@@ -380,8 +380,12 @@ def test_merged_profiles_get_coveragepy_data():
 
     m = MergedProfiles([])
     cov_data = m.get_coveragepy_data()
-    assert isinstance(cov_data, coverage.CoverageData)
-    assert repr(cov_data) == '<CoverageData lines={0} arcs=None tracers={0} runs=[0]>'
+    try:
+        from coverage.data import CoverageJsonData
+    except ImportError:
+        assert isinstance(cov_data, coverage.CoverageData)
+    else:
+        assert isinstance(cov_data, CoverageJsonData)
 
 
 def test_merged_profiles_write_coveragepy_data_handles_fname_and_fobj(

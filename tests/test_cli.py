@@ -410,6 +410,7 @@ def test_coverage_plugin_for_annotate_merged_conditionals(runner, capfd,
         f.write('[run]\nplugins = covimerage')
 
     exit_code = call(['env', 'COVERAGE_FILE=%s' % tmpfile,
+                      'COVERAGE_STORAGE=json',  # for coveragepy 5
                       'coverage', 'annotate', '--rcfile', coveragerc,
                       '--directory', str(tmpdir)])
     out, err = capfd.readouterr()

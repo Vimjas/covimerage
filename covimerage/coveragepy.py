@@ -13,27 +13,42 @@ RE_EXCLUDED = re.compile(
     r'"\s*(pragma|PRAGMA)[:\s]?\s*(no|NO)\s*(cover|COVER)')
 
 
+try:
+    from coverage.data import CoverageJsonData as CoveragePyData
+except ImportError:
+    from coverage.data import CoverageData as CoveragePyData
+
+
 @attr.s(frozen=True)
 class CoverageData(object):
     cov_data = attr.ib(default=None)
     data_file = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        if self.cov_data and self.data_file:
-            raise TypeError('data and data_file are mutually exclusive.')
-        if self.cov_data:
-            if not isinstance(self.cov_data, coverage.data.CoverageData):
-                raise TypeError(
-                    'data needs to be of type coverage.data.CoverageData')
+        if self.cov_data is not None:
+            if not isinstance(self.cov_data, CoveragePyData):
+                raise TypeError('data needs to be of type %s.%s' % (
+                    CoveragePyData.__module__,
+                    CoveragePyData.__name__,))
+            if self.data_file is not None:
+                raise TypeError('data and data_file are mutually exclusive.')
             return
-        cov_data = coverage.data.CoverageData()
+        cov_data = CoveragePyData()
         if self.data_file:
             fname, fobj, fstr = get_fname_and_fobj_and_str(self.data_file)
             try:
                 if fobj:
-                    cov_data.read_fileobj(fobj)
+                    try:
+                        read_fileobj = cov_data.read_fileobj
+                    except AttributeError:  # made private in coveragepy 5
+                        read_fileobj = cov_data._read_fileobj
+                    read_fileobj(fobj)
                 else:
-                    cov_data.read_file(fname)
+                    try:
+                        read_file = cov_data.read_file
+                    except AttributeError:  # made private in coveragepy 5
+                        read_file = cov_data._read_file
+                    read_file(fname)
             except coverage.CoverageException as exc:
                 raise CoverageWrapperException(
                     'Coverage could not read data_file: %s' % fstr,
@@ -73,6 +88,8 @@ class CoverageWrapper(object):
         if not isinstance(self.data, CoverageData):
             data = CoverageData(cov_data=self.data, data_file=self.data_file)
             object.__setattr__(self, 'data', data)
+            # (confusing to have it twice)
+            # object.__setattr__(self, 'data_file', None)
         elif self.data_file:
             raise TypeError('data and data_file are mutually exclusive.')
 
@@ -96,7 +113,12 @@ class CoverageWrapper(object):
             config_file=True if self.config_file is None else self.config_file,
         )
         cov_coverage._init()
-        cov_coverage.data = self.data.cov_data
+        if hasattr(cov_coverage, '_data'):
+            # coveragepy 5
+            # TODO: get rid of intermediate handling of CoverageData?
+            cov_coverage._data = self.data.cov_data
+        else:
+            cov_coverage.data = self.data.cov_data
         return cov_coverage
 
     @handle_coverage_exceptions
