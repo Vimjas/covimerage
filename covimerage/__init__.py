@@ -65,7 +65,6 @@ class Script(object):
 @attr.s
 class Function(object):
     name = attr.ib()
-    calls = attr.ib(default=None)
     total_time = attr.ib(default=None)
     self_time = attr.ib(default=None)
     lines = attr.ib(default=attr.Factory(dict), repr=False)
