@@ -411,7 +411,7 @@ def test_coverage_plugin_for_annotate_merged_conditionals(runner, capfd,
 
     env = {
         k: v
-        for k, v in os.environ
+        for k, v in os.environ.items()
         if k.startswith('COV_') or k == 'PATH'
     }
     env.update({
