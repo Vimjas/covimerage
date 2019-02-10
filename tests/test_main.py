@@ -273,9 +273,9 @@ def test_profile_continued_lines():
     assert [(l.count, l.line) for l in s.lines.values()] == [
         (1, 'echom 1'),
         (1, 'echom 2'),
-        (N, '      \\ 3'),
+        (1, '      \\ 3'),
         (1, 'echom 4'),
-        (N, '      \\ 5'),
+        (1, '      \\ 5'),
     ]
 
 

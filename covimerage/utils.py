@@ -6,7 +6,7 @@ from click.utils import string_types
 from ._compat import shell_quote
 
 # Empty (whitespace only), comments, continued, or `end` statements.
-RE_NON_EXECED = re.compile(r'^\s*("|\\|end|$)')
+RE_NON_EXECED = re.compile(r'^\s*("|end|$)')
 
 
 def get_fname_and_fobj_and_str(fname_or_fobj):
