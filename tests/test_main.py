@@ -188,7 +188,7 @@ def test_profile_parse_dict_function_with_same_source(caplog):
 
     assert len(p.scripts) == 1
 
-    script_fname = '/test_plugin/dict_function_with_same_source.vim'
+    script_fname = 'tests/test_plugin/dict_function_with_same_source.vim'
     s = p.scripts[0]
     assert s.path == script_fname
 
@@ -222,9 +222,9 @@ def test_profile_parse_dict_function_with_same_source(caplog):
         (1, 'call obj1.dict_function(3)')]
 
     msgs = [r.message for r in caplog.records]
-    assert 'Found multiple sources for anonymous function 1 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12).' in msgs
-    assert 'Found multiple sources for anonymous function 2 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12).' in msgs
-    assert 'Found already mapped dict function again (/test_plugin/dict_function_with_same_source.vim:3).' in msgs
+    assert 'Found multiple sources for anonymous function 1 (tests/test_plugin/dict_function_with_same_source.vim:3, tests/test_plugin/dict_function_with_same_source.vim:12).' in msgs
+    assert 'Found multiple sources for anonymous function 2 (tests/test_plugin/dict_function_with_same_source.vim:3, tests/test_plugin/dict_function_with_same_source.vim:12).' in msgs
+    assert 'Found already mapped dict function again (tests/test_plugin/dict_function_with_same_source.vim:3).' in msgs
 
 
 def test_profile_parse_dict_function_with_continued_lines():
@@ -270,10 +270,12 @@ def test_profile_continued_lines():
 
     N = None
     assert [(l.count, l.line) for l in s.lines.values()] == [
-        (N, 'echom 1'),
+        (1, 'echom 1'),
         (1, 'echom 2'),
         (N, '      \\ 3'),
-        (1, 'echom 4')]
+        (1, 'echom 4'),
+        (N, '      \\ 5'),
+    ]
 
 
 def test_conditional_functions():
@@ -362,17 +364,21 @@ def test_mergedprofiles_fixes_line_count():
 
     N = None
     assert [(l.count, l.line) for l in script.lines.values()] == [
-        (N, 'echom 1'),
+        (1, 'echom 1'),
         (1, 'echom 2'),
         (N, '      \\ 3'),
-        (1, 'echom 4')]
+        (1, 'echom 4'),
+        (N, '      \\ 5'),
+    ]
 
     m = MergedProfiles([p])
     assert [(l.count, l.line) for l in m.lines[script.path].values()] == [
         (1, 'echom 1'),
         (1, 'echom 2'),
         (N, '      \\ 3'),
-        (1, 'echom 4')]
+        (1, 'echom 4'),
+        (N, '      \\ 5'),
+    ]
 
 
 def test_merged_profiles_get_coveragepy_data():

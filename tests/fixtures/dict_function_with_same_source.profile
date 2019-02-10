@@ -1,4 +1,4 @@
-SCRIPT  /test_plugin/dict_function_with_same_source.vim
+SCRIPT  tests/test_plugin/dict_function_with_same_source.vim
 Sourced 1 time
 Total time:   0.000153
  Self time:   0.000080

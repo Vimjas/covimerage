@@ -1,4 +1,4 @@
-SCRIPT  /test_plugin/dict_function_used_twice.vim
+SCRIPT  tests/test_plugin/dict_function_used_twice.vim
 Sourced 1 time
 Total time:   0.000174
  Self time:   0.000088
