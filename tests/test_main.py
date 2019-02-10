@@ -1,4 +1,5 @@
 import logging
+import textwrap
 
 import coverage
 import pytest
@@ -354,30 +355,34 @@ def test_merged_profiles():
 
 
 def test_mergedprofiles_fixes_line_count():
+    """Ref: https://github.com/vim/vim/issues/2103"""
     from covimerage import MergedProfiles, Profile
 
-    fname = 'tests/fixtures/continued_lines.profile'
-    p = Profile(fname)
+    profile = textwrap.dedent("""
+    SCRIPT  /path/to/t.vim
+    Sourced 1 time
+    Total time:   0.000009
+     Self time:   0.000009
+
+    count  total (s)   self (s)
+                                let foo = 1
+        1              0.000002 let bar = 2
+    """)
+
+    p = Profile(StringIO(profile))
     p.parse()
 
     script = p.scripts[0]
 
-    N = None
     assert [(l.count, l.line) for l in script.lines.values()] == [
-        (1, 'echom 1'),
-        (1, 'echom 2'),
-        (N, '      \\ 3'),
-        (1, 'echom 4'),
-        (N, '      \\ 5'),
+        (None, 'let foo = 1'),
+        (1, 'let bar = 2'),
     ]
 
     m = MergedProfiles([p])
     assert [(l.count, l.line) for l in m.lines[script.path].values()] == [
-        (1, 'echom 1'),
-        (1, 'echom 2'),
-        (N, '      \\ 3'),
-        (1, 'echom 4'),
-        (N, '      \\ 5'),
+        (1, 'let foo = 1'),
+        (1, 'let bar = 2'),
     ]
 
 
