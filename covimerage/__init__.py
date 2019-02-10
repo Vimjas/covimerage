@@ -463,7 +463,8 @@ class Profile(object):
 
         # Assign counts from function to script.
         for [f_lnum, f_line] in f.lines.items():
-            s_line = script.lines[script_lnum + f_lnum]
+            s_lnum = script_lnum + f_lnum
+            s_line = script.lines[s_lnum]
 
             # XXX: might not be the same, since function lines
             # are joined, while script lines might be spread
@@ -472,8 +473,7 @@ class Profile(object):
             if script_source != f_line.line:
                 while True:
                     try:
-                        peek = script.lines[script_lnum +
-                                            f_lnum + 1]
+                        peek = script.lines[script_lnum + f_lnum + 1]
                     except KeyError:
                         pass
                     else:
@@ -494,6 +494,14 @@ class Profile(object):
                     s_line.count += f_line.count
                 else:
                     s_line.count = f_line.count
+
+                # Assign count to continued lines.
+                i = s_lnum + 1
+                n = len(script.lines)
+                while i < n and RE_CONTINUING_LINE.match(script.lines[i].line):
+                    script.lines[i].count = s_line.count
+                    i += 1
+
             if f_line.self_time:
                 if s_line.self_time:
                     s_line.self_time += f_line.self_time

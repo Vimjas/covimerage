@@ -4,6 +4,7 @@ function! obj.dict_function(arg) abort
   if a:arg
     echom
           \ a:arg
+          \ .'.'
   else
     echom a:arg
   endif
