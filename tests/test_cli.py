@@ -409,14 +409,19 @@ def test_coverage_plugin_for_annotate_merged_conditionals(runner, capfd,
     with open(coveragerc, 'w') as f:
         f.write('[run]\nplugins = covimerage')
 
+    env = {
+        k: v
+        for k, v in os.environ
+        if k.startswith('COV_') or k == 'PATH'
+    }
+    env.update({
+        'COVERAGE_FILE': tmpfile,
+        'COVERAGE_STORAGE': 'json',  # for coveragepy 5
+    })
     exit_code = call([
         'coverage', 'annotate', '--rcfile', coveragerc, '--directory',
         str(tmpdir),
-    ], env={
-        'COVERAGE_FILE': tmpfile,
-        'COVERAGE_STORAGE': 'json',  # for coveragepy 5
-        'PATH': os.environ['PATH'],
-    })
+    ], env=env)
     out, err = capfd.readouterr()
     assert exit_code == 0, (err, out)
     ann_fname = 'tests_test_plugin_merged_conditionals_vim,cover'
