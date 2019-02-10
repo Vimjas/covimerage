@@ -248,7 +248,7 @@ def test_profile_parse_dict_function_with_continued_lines():
         (1, 'function! obj.dict_function(arg) abort'),
         (3, '  if a:arg'),
         (2, '    echom'),
-        (N, '          \\ a:arg'),
+        (2, '          \\ a:arg'),
         (2, '  else'),
         (1, '    echom a:arg'),
         (1, '  endif'),
