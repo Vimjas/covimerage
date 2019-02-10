@@ -18,7 +18,7 @@ count  total (s)   self (s)
     1   0.000042   0.000010 call obj.dict_function(1)
     1   0.000034   0.000010 call obj.dict_function(2)
 
-FUNCTION  4()
+FUNCTION  1()
 Called 3 times
 Total time:   0.000093
  Self time:   0.000093
@@ -32,9 +32,9 @@ count  total (s)   self (s)
 
 FUNCTIONS SORTED ON TOTAL TIME
 count  total (s)   self (s)  function
-    3   0.000093             4()
+    3   0.000126             1()
 
 FUNCTIONS SORTED ON SELF TIME
 count  total (s)   self (s)  function
-    3              0.000093  4()
+    3              0.000126  1()
 

@@ -1,4 +1,4 @@
-SCRIPT  /test_plugin/dict_function_with_continued_lines.vim
+SCRIPT  tests/test_plugin/dict_function_with_continued_lines.vim
 Sourced 1 time
 Total time:   0.000158
  Self time:   0.000078

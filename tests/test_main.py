@@ -1,4 +1,5 @@
 import logging
+import textwrap
 
 import coverage
 import pytest
@@ -188,7 +189,7 @@ def test_profile_parse_dict_function_with_same_source(caplog):
 
     assert len(p.scripts) == 1
 
-    script_fname = '/test_plugin/dict_function_with_same_source.vim'
+    script_fname = 'tests/test_plugin/dict_function_with_same_source.vim'
     s = p.scripts[0]
     assert s.path == script_fname
 
@@ -222,9 +223,9 @@ def test_profile_parse_dict_function_with_same_source(caplog):
         (1, 'call obj1.dict_function(3)')]
 
     msgs = [r.message for r in caplog.records]
-    assert 'Found multiple sources for anonymous function 1 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12).' in msgs
-    assert 'Found multiple sources for anonymous function 2 (/test_plugin/dict_function_with_same_source.vim:3, /test_plugin/dict_function_with_same_source.vim:12).' in msgs
-    assert 'Found already mapped dict function again (/test_plugin/dict_function_with_same_source.vim:3).' in msgs
+    assert 'Found multiple sources for anonymous function 1 (tests/test_plugin/dict_function_with_same_source.vim:3, tests/test_plugin/dict_function_with_same_source.vim:12).' in msgs
+    assert 'Found multiple sources for anonymous function 2 (tests/test_plugin/dict_function_with_same_source.vim:3, tests/test_plugin/dict_function_with_same_source.vim:12).' in msgs
+    assert 'Found already mapped dict function again (tests/test_plugin/dict_function_with_same_source.vim:3).' in msgs
 
 
 def test_profile_parse_dict_function_with_continued_lines():
@@ -270,10 +271,12 @@ def test_profile_continued_lines():
 
     N = None
     assert [(l.count, l.line) for l in s.lines.values()] == [
-        (N, 'echom 1'),
+        (1, 'echom 1'),
         (1, 'echom 2'),
         (N, '      \\ 3'),
-        (1, 'echom 4')]
+        (1, 'echom 4'),
+        (N, '      \\ 5'),
+    ]
 
 
 def test_conditional_functions():
@@ -352,27 +355,35 @@ def test_merged_profiles():
 
 
 def test_mergedprofiles_fixes_line_count():
+    """Ref: https://github.com/vim/vim/issues/2103"""
     from covimerage import MergedProfiles, Profile
 
-    fname = 'tests/fixtures/continued_lines.profile'
-    p = Profile(fname)
+    profile = textwrap.dedent("""
+    SCRIPT  /path/to/t.vim
+    Sourced 1 time
+    Total time:   0.000009
+     Self time:   0.000009
+
+    count  total (s)   self (s)
+                                let foo = 1
+        1              0.000002 let bar = 2
+    """)
+
+    p = Profile(StringIO(profile))
     p.parse()
 
     script = p.scripts[0]
 
-    N = None
     assert [(l.count, l.line) for l in script.lines.values()] == [
-        (N, 'echom 1'),
-        (1, 'echom 2'),
-        (N, '      \\ 3'),
-        (1, 'echom 4')]
+        (None, 'let foo = 1'),
+        (1, 'let bar = 2'),
+    ]
 
     m = MergedProfiles([p])
     assert [(l.count, l.line) for l in m.lines[script.path].values()] == [
-        (1, 'echom 1'),
-        (1, 'echom 2'),
-        (N, '      \\ 3'),
-        (1, 'echom 4')]
+        (1, 'let foo = 1'),
+        (1, 'let bar = 2'),
+    ]
 
 
 def test_merged_profiles_get_coveragepy_data():
