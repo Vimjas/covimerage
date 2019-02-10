@@ -388,6 +388,8 @@ class Profile(object):
                 source_line = line[28:]
 
                 if in_script:
+                    if count is None and RE_CONTINUING_LINE.match(source_line):
+                        count = in_script.lines[lnum-1].count
                     in_script.lines[lnum] = Line(
                         line=source_line, count=count,
                         total_time=total_time, self_time=self_time)
