@@ -10,6 +10,7 @@ count  total (s)   self (s)
                               if a:arg
                                 echom
                                       \ a:arg
+                                      \ .'.'
                               else
                                 echom a:arg
                               endif
@@ -25,10 +26,10 @@ Total time:   0.000079
  Self time:   0.000079
 
 count  total (s)   self (s)
-    3              0.000010   if a:arg
-    2              0.000031     echom a:arg
-    2              0.000004   else
-    1              0.000017     echom a:arg
+    3              0.000008   if a:arg
+    2              0.000059     echom a:arg .'.'
+    2              0.000003   else
+    1              0.000114     echom a:arg
     1              0.000002   endif
 
 FUNCTIONS SORTED ON TOTAL TIME

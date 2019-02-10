@@ -249,6 +249,7 @@ def test_profile_parse_dict_function_with_continued_lines():
         (3, '  if a:arg'),
         (2, '    echom'),
         (2, '          \\ a:arg'),
+        (2, '          \\ .\'.\''),
         (2, '  else'),
         (1, '    echom a:arg'),
         (1, '  endif'),
