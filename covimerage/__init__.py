@@ -498,8 +498,7 @@ class Profile(object):
                 # Assign count to continued lines.
                 i = s_lnum + 1
                 n = len(script.lines)
-                while s_lnum < n and RE_CONTINUING_LINE.match(script.lines[i].line):
-                    assert script.lines[i].count is None
+                while i < n and RE_CONTINUING_LINE.match(script.lines[i].line):
                     script.lines[i].count = s_line.count
                     i += 1
 
