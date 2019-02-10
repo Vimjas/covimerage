@@ -415,6 +415,7 @@ def test_coverage_plugin_for_annotate_merged_conditionals(runner, capfd,
     ], env={
         'COVERAGE_FILE': tmpfile,
         'COVERAGE_STORAGE': 'json',  # for coveragepy 5
+        'PATH': os.environ['PATH'],
     })
     out, err = capfd.readouterr()
     assert exit_code == 0, (err, out)
