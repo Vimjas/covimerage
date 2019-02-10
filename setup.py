@@ -60,7 +60,6 @@ DEPS_QA = [
 ]
 DEPS_TESTING = [
     'pytest>=3.3.0',
-    'pytest-cov',
     'pytest-mock',
 ]
 
