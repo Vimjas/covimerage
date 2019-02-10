@@ -269,7 +269,6 @@ def test_profile_continued_lines():
     assert len(p.scripts) == 1
     s = p.scripts[0]
 
-    N = None
     assert [(l.count, l.line) for l in s.lines.values()] == [
         (1, 'echom 1'),
         (1, 'echom 2'),
