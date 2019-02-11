@@ -94,7 +94,6 @@ setup(
         'qa': DEPS_QA,
     },
     include_package_data=True,
-    license='MIT',
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
