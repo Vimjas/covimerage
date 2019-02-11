@@ -1,4 +1,6 @@
-"""The main covimerage module."""
+"""
+Generate coverage information for Vim script.
+"""
 import copy
 import itertools
 import os
@@ -13,17 +15,15 @@ from .utils import (
     find_executable_files, get_fname_and_fobj_and_str, is_executable_line,
 )
 
+# Managed by setupmeta ("python setup.py version --bump patch" or similar).
+__version__ = '0.1.4'
+
 DEFAULT_COVERAGE_DATA_FILE = '.coverage_covimerage'
 RE_FUNC_PREFIX = re.compile(
     r'^\s*fu(?:n(?:(?:c(?:t(?:i(?:o(?:n)?)?)?)?)?)?)?!?\s+')
 RE_CONTINUING_LINE = re.compile(r'\s*\\')
 RE_SOURCED_TIMES = re.compile(r'Sourced (\d+) time')
 RE_SNR_PREFIX = re.compile(r'^<SNR>\d+_')
-
-
-def get_version():
-    from covimerage.__version__ import version
-    return version
 
 
 @attr.s
