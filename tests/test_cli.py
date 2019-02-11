@@ -9,7 +9,7 @@ import time
 import click
 import pytest
 
-from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
+from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, __version__
 
 
 def test_dunder_main_run(capfd):
@@ -21,7 +21,7 @@ def test_dunder_main_run(capfd):
 def test_dunder_main_run_help(capfd):
     assert call([sys.executable, '-m', 'covimerage', '--version']) == 0
     out, err = capfd.readouterr()
-    assert out == 'covimerage, version %s\n' % get_version()
+    assert out == 'covimerage, version %s\n' % __version__
 
 
 def test_cli(runner, tmpdir):
@@ -46,7 +46,7 @@ def test_cli(runner, tmpdir):
 @pytest.mark.parametrize('arg', ('-V', '--version'))
 def test_cli_version(arg, runner):
     result = runner.invoke(cli.main, [arg])
-    assert result.output == 'covimerage, version %s\n' % get_version()
+    assert result.output == 'covimerage, version %s\n' % __version__
     assert result.exit_code == 0
 
 
@@ -282,7 +282,7 @@ def test_cli_run_report_fd(capfd, tmpdir, devnull):
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
     out, err = capfd.readouterr()
-    assert out == 'covimerage, version %s\n' % get_version()
+    assert out == 'covimerage, version %s\n' % __version__
 
     assert call(['covimerage', '--help']) == 0
     out, err = capfd.readouterr()
