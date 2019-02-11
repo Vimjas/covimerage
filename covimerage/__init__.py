@@ -1,4 +1,6 @@
-"""The main covimerage module."""
+"""
+Generate coverage information for Vim script.
+"""
 import copy
 import itertools
 import os
