@@ -81,7 +81,7 @@ setup(
         'setuptools_scm',
     ],
     install_requires=[
-        'attrs',
+        'attrs>=16.1.0',
         'click',
         'coverage',
     ],
