@@ -54,9 +54,8 @@ class PublishCommand(Command):
 
 
 DEPS_QA = [
-    'flake8',
+    'flake8>=3.7.0',
     'flake8-isort',
-    'flake8-per-file-ignores',
 ]
 DEPS_TESTING = [
     'pytest>=3.3.0',
