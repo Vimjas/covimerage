@@ -30,6 +30,11 @@ common: &common
               pip install codacy-coverage
               python-codacy-coverage --verbose --report coverage.xml
             fi
+
+            # Scrutinizer (external coverage).
+            pip install scrutinizer-ocular
+            ocular --access-token "your-token" --data-file ".coverage" --config-file ".coveragerc"
+
             set +x
           fi
 jobs:
