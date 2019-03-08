@@ -33,7 +33,7 @@ common: &common
 
             # Scrutinizer (external coverage).
             pip install scrutinizer-ocular
-            ocular --access-token "your-token" --data-file ".coverage" --config-file ".coveragerc"
+            ocular --data-file ".coverage" --config-file ".coveragerc"
 
             set +x
           fi
