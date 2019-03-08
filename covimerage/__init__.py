@@ -26,6 +26,10 @@ def get_version():
     return version
 
 
+def uncovered():
+    pass
+
+
 @attr.s
 class Line(object):
     """A source code line."""
