@@ -7,8 +7,15 @@ import pytest
 from covimerage._compat import FileNotFoundError, StringIO
 
 
-def test_main_import():
-    from covimerage import __main__  # noqa: F401
+def test_main_wrap_for_prefix():
+    from covimerage.__main__ import wrap_for_prefix
+
+    def f(**kwargs):
+        raise ValueError("custom")
+
+    with pytest.raises(ValueError) as excinfo:
+        wrap_for_prefix(f)
+    assert excinfo.value.args[0] == "custom"
 
 
 def test_profile_repr_lines():
