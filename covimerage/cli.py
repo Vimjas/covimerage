@@ -10,12 +10,14 @@ from .exceptions import CustomClickException
 from .logger import logger
 from .utils import build_vim_profile_args, join_argv
 
+context_settings = {'help_option_names': ['-h', '--help']}
+
 
 def default_loglevel():
     return logging.getLevelName(logger.level).lower()
 
 
-@click.group(context_settings={'help_option_names': ['-h', '--help']})
+@click.group(context_settings=context_settings)
 @click.version_option(get_version(), '-V', '--version', prog_name='covimerage')
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
@@ -63,6 +65,7 @@ def write_coverage(profile_file, data_file, source, append):
 
 
 @main.command(context_settings=dict(
+    context_settings,
     # ignore_unknown_options=True,
     allow_interspersed_args=False,
 ))
