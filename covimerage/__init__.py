@@ -493,8 +493,10 @@ class Profile(object):
                         break
 
                     logger.warning(
-                        "Script line does not match function line, ignoring: %r != %r.",
-                        script_source, f_line.line
+                        "Script line does not match function line, "
+                        "ignoring: %r != %r.",
+                        script_source,
+                        f_line.line,
                     )
                     return False
 
