@@ -464,7 +464,14 @@ class Profile(object):
         # Assign counts from function to script.
         for [f_lnum, f_line] in f.lines.items():
             s_lnum = script_lnum + f_lnum
-            s_line = script.lines[s_lnum]
+            try:
+                s_line = script.lines[s_lnum]
+            except KeyError:
+                logger.warning(
+                    "Could not find script line for function %s (%d, %d)",
+                    f.name, script_lnum, f_lnum,
+                )
+                return False
 
             # XXX: might not be the same, since function lines
             # are joined, while script lines might be spread
@@ -485,7 +492,13 @@ class Profile(object):
                     if script_source == f_line.line:
                         break
 
-                    assert 0, 'Script line matches function line.'
+                    logger.warning(
+                        "Script line does not match function line, "
+                        "ignoring: %r != %r.",
+                        script_source,
+                        f_line.line,
+                    )
+                    return False
 
             if f_line.count is not None:
                 script.parse_function(script_lnum + f_lnum,

@@ -571,3 +571,66 @@ def test_duplicate_s_function(caplog):
                 (N, 'endfunction')]
 
     assert not caplog.records
+
+
+@pytest.mark.parametrize("defined_at", (-1, 1))
+def test_handles_unmatched_defined(defined_at, caplog):
+    from covimerage import Profile
+
+    file_object = StringIO(textwrap.dedent(
+        """
+        SCRIPT  invalid_defined.vim
+        Sourced 1 time
+        Total time:   0.000037
+         Self time:   0.000032
+
+        count  total (s)   self (s)
+            1              0.000015 execute "function! F_via_execute_1()\\nreturn 0\\nendfunction"
+            1   0.000011   0.000007 call F_via_execute_1()
+            1   0.000006   0.000005 call F_via_execute_1()
+
+        FUNCTION  F_via_execute_1()
+            Defined: invalid_defined.vim line {defined_at}
+        Called 2 times
+        Total time:   0.000005
+         Self time:   0.000005
+
+        count  total (s)   self (s)
+            2              0.000003 return 0
+
+        FUNCTIONS SORTED ON TOTAL TIME
+        count  total (s)   self (s)  function
+            2   0.000005             F_via_execute_1()
+
+        FUNCTIONS SORTED ON SELF TIME
+        count  total (s)   self (s)  function
+            2              0.000005  F_via_execute_1()
+        """.format(
+            defined_at=defined_at
+        )))
+
+    p = Profile(file_object)
+    p.parse()
+
+    assert len(p.scripts) == 1
+    s = p.scripts[0]
+
+    assert [(l.count, l.line) for l in s.lines.values()
+            if not l.line.startswith('"')] == [
+        (1, 'execute "function! F_via_execute_1()\\nreturn 0\\nendfunction"'),
+        (1, 'call F_via_execute_1()'),
+        (1, 'call F_via_execute_1()'),
+    ]
+
+    logmsgs = [x[1:] for x in caplog.record_tuples]
+    if defined_at == -1:
+        assert logmsgs == [
+            (30, "Could not find script line for function F_via_execute_1 (-1, 1)"),
+            (40, "Could not find source for function: F_via_execute_1"),
+        ]
+    else:
+        assert defined_at == 1
+        assert logmsgs == [
+            (30, "Script line does not match function line, ignoring: 'call F_via_execute_1()' != 'return 0'."),
+            (40, "Could not find source for function: F_via_execute_1"),
+        ]
