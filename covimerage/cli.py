@@ -72,8 +72,10 @@ def write_coverage(profile_file, data_file, source, append):
               help='Wrap VIM cmd with options to create a PROFILE_FILE.')
 @click.option('--profile-file', required=False, metavar='PROFILE_FILE',
               type=click.Path(dir_okay=False), help=(
-                  'File name for the PROFILE_FILE file.  '
-                  'By default a temporary file is used.'))
+                  'File name for the PROFILE_FILE file '
+                  '(get overwritten, but not removed).  '
+                  'By default a temporary file is used '
+                  '(and removed after processing).'))
 @click.option('--data-file', required=False, type=click.Path(dir_okay=False),
               default=DEFAULT_COVERAGE_DATA_FILE,
               help=('DATA_FILE to write into.  '
@@ -120,10 +122,11 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
             report_opts = {}
 
     args = list(args)
+    unlink_profile_file = False
     if wrap_profile:
         if not profile_file:
-            # TODO: remove it automatically in the end?
             profile_file = tempfile.mktemp(prefix='covimerage.profile.')
+            unlink_profile_file = True
         args += build_vim_profile_args(profile_file, source)
     cmd = args
     logger.info('Running cmd: %s (in %s)', join_argv(cmd), os.getcwd())
@@ -172,6 +175,12 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
                 report_opts['data'] = cov_data
                 ctx.invoke(report_cmd, report_file=report_file,
                            **report_opts)
+        if unlink_profile_file:
+            try:
+                os.unlink(profile_file)
+            except Exception:  # ignore FileNotFoundError (OSError on py2).
+                if os.path.exists(profile_file):
+                    raise
 
     if exit_code != 0:
         raise CustomClickException(
