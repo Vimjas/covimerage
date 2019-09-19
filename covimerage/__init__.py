@@ -432,7 +432,10 @@ class Profile(object):
                     if next_line.startswith('count'):
                         break
                     if next_line.startswith('    Defined:'):
-                        fname, lnum = next_line[13:].rstrip().rsplit(' line ', 1)  # noqa: E501
+                        defined = next_line[13:]
+                        fname, _, lnum = defined.rpartition(":")
+                        if not fname:
+                            fname, _, lnum = defined.rpartition(' line ')
                         fname = os.path.expanduser(fname)
                         in_function.source = (self.scripts_by_fname[fname],
                                               int(lnum))

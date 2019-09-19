@@ -573,9 +573,16 @@ def test_duplicate_s_function(caplog):
     assert not caplog.records
 
 
-@pytest.mark.parametrize("defined_at", (-1, 1))
-def test_handles_unmatched_defined(defined_at, caplog):
+@pytest.mark.parametrize("defined_lnum", (-1, 1))
+@pytest.mark.parametrize("defined_format", ("old", "new"))
+def test_handles_unmatched_defined(defined_format, defined_lnum, caplog):
     from covimerage import Profile
+
+    defined = "Defined: invalid_defined.vim"
+    if defined_format == "old":
+        defined += " line " + str(defined_lnum)
+    else:
+        defined += ":" + str(defined_lnum)
 
     file_object = StringIO(textwrap.dedent(
         """
@@ -590,7 +597,7 @@ def test_handles_unmatched_defined(defined_at, caplog):
             1   0.000006   0.000005 call F_via_execute_1()
 
         FUNCTION  F_via_execute_1()
-            Defined: invalid_defined.vim line {defined_at}
+            {defined}
         Called 2 times
         Total time:   0.000005
          Self time:   0.000005
@@ -606,7 +613,7 @@ def test_handles_unmatched_defined(defined_at, caplog):
         count  total (s)   self (s)  function
             2              0.000005  F_via_execute_1()
         """.format(
-            defined_at=defined_at
+            defined=defined
         )))
 
     p = Profile(file_object)
@@ -623,13 +630,13 @@ def test_handles_unmatched_defined(defined_at, caplog):
     ]
 
     logmsgs = [x[1:] for x in caplog.record_tuples]
-    if defined_at == -1:
+    if defined_lnum == -1:
         assert logmsgs == [
             (30, "Could not find script line for function F_via_execute_1 (-1, 1)"),
             (40, "Could not find source for function: F_via_execute_1"),
         ]
     else:
-        assert defined_at == 1
+        assert defined_lnum == 1
         assert logmsgs == [
             (30, "Script line does not match function line, ignoring: 'call F_via_execute_1()' != 'return 0'."),
             (40, "Could not find source for function: F_via_execute_1"),
