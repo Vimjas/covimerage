@@ -10,6 +10,7 @@ import click
 import pytest
 
 from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
+from covimerage.cli import get_version_message
 
 
 def test_dunder_main_run(capfd):
@@ -21,7 +22,9 @@ def test_dunder_main_run(capfd):
 def test_dunder_main_run_help(capfd):
     assert call([sys.executable, '-m', 'covimerage', '--version']) == 0
     out, err = capfd.readouterr()
-    assert out == 'covimerage, version %s\n' % get_version()
+    lines = out.splitlines()
+    assert len(lines) == 1
+    assert lines[0].startswith('covimerage, version %s' % get_version())
 
 
 def test_cli(runner, tmpdir):
@@ -46,7 +49,7 @@ def test_cli(runner, tmpdir):
 @pytest.mark.parametrize('arg', ('-V', '--version'))
 def test_cli_version(arg, runner):
     result = runner.invoke(cli.main, [arg])
-    assert result.output == 'covimerage, version %s\n' % get_version()
+    assert result.output == get_version_message() + '\n'
     assert result.exit_code == 0
 
 
@@ -282,7 +285,7 @@ def test_cli_run_report_fd(capfd, tmpdir, devnull):
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
     out, err = capfd.readouterr()
-    assert out == 'covimerage, version %s\n' % get_version()
+    assert out == get_version_message() + '\n'
 
     assert call(['covimerage', '--help']) == 0
     out, err = capfd.readouterr()
@@ -789,3 +792,18 @@ def test_run_cmd_requires_args(runner):
         'args' if click.__version__ < '7.0' else 'ARGS...',
     ) in result.output.splitlines()
     assert result.exit_code == 2
+
+
+def test_get_version_message_importerror(monkeypatch_importerror):
+    exc = ImportError('failed')
+    with monkeypatch_importerror(('coverage',), raise_exc=exc):
+        assert get_version_message() == (
+            'covimerage, version %s (using Coverage.py unknown (failed))'
+            % (get_version(),)
+        )
+    exc = ImportError
+    with monkeypatch_importerror(('coverage',), raise_exc=exc):
+        assert get_version_message() == (
+            'covimerage, version %s (using Coverage.py unknown ())'
+            % (get_version(),)
+        )

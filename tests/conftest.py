@@ -1,5 +1,7 @@
+from contextlib import contextmanager
 from glob import glob
 import os
+import sys
 
 from click.testing import CliRunner
 import pytest
@@ -41,3 +43,23 @@ def covdata_header():
 @pytest.fixture(scope='session')
 def covdata_empty():
     return "!coverage.py: This is a private format, don't read it directly!{}"
+
+
+@pytest.fixture
+def monkeypatch_importerror(monkeypatch):
+    @contextmanager
+    def cm(mocked_imports, raise_exc=ImportError):
+        orig_import = __import__
+
+        def import_mock(name, *args):
+            if name in mocked_imports:
+                raise raise_exc
+            return orig_import(name, *args)
+
+        with monkeypatch.context() as m:
+            if sys.version_info >= (3,):
+                m.setattr('builtins.__import__', import_mock)
+            else:
+                m.setattr('__builtin__.__import__', import_mock)
+            yield m
+    return cm
