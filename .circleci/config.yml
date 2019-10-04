@@ -23,11 +23,15 @@ common: &common
 
             bash <(curl -s https://codecov.io/bash) -Z -X gcov -X coveragepy -X search -X xcode -X gcovout -X fix -f coverage.xml -F "${CIRCLE_JOB//-/,}"
 
+            if [[ "$CIRCLE_JOB" != py37-coveragepy5 ]]; then
+              # coveralls-python does not work with Coverage.py 5's data yet.
+              # (https://github.com/coveralls-clients/coveralls-python/issues/203)
+              pip install coveralls
+              COVERALLS_PARALLEL=true coveralls
+            fi
+
             # Coveralls and Codacy do not support merged reports.
             if [[ "$CIRCLE_JOB" == py36 ]]; then
-              pip install coveralls
-              coveralls
-
               pip install codacy-coverage
               python-codacy-coverage --verbose --report coverage.xml
             fi
@@ -95,3 +99,7 @@ workflows:
       - py34
       - py27
       - checkqa
+
+notify:
+  webhooks:
+    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN

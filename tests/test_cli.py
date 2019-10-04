@@ -27,7 +27,7 @@ def test_dunder_main_run_help(capfd):
     assert lines[0].startswith('covimerage, version %s' % get_version())
 
 
-def test_cli(runner, tmpdir):
+def test_cli_write_coverage(runner, tmpdir):
     with tmpdir.as_cwd() as old_dir:
         with pytest.raises(SystemExit) as excinfo:
             cli.write_coverage([os.path.join(
@@ -41,8 +41,15 @@ def test_cli(runner, tmpdir):
             'Error: Invalid value for "profile_file": Could not open file:')
     else:
         assert result.output.splitlines()[-1].startswith(
-            'Error: Invalid value for "[PROFILE_FILE]...": Could not open file:')
+            'Error: Invalid value for "PROFILE_FILE...": Could not open file:')
+    assert result.exit_code == 2
 
+    result = runner.invoke(cli.main, ['write_coverage'])
+    if click.__version__ < '7.0':
+        expected = 'Error: Missing argument "profile_file".'
+    else:
+        expected = 'Error: Missing argument "PROFILE_FILE...".'
+    assert result.output.splitlines()[-1] == expected
     assert result.exit_code == 2
 
 
@@ -306,7 +313,7 @@ def test_cli_call(capfd):
     err_lines = err.splitlines()
     assert err_lines[-1] == (
         'Error: Invalid value for "%s": Could not open file: file not found: No such file or directory' % (
-            "profile_file" if click.__version__ < '7.0' else "[PROFILE_FILE]...",))
+            "profile_file" if click.__version__ < '7.0' else "PROFILE_FILE...",))
     assert out == ''
 
 
