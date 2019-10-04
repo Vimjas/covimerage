@@ -4,7 +4,7 @@ import signal
 
 import click
 
-from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile, get_version
+from . import DEFAULT_COVERAGE_DATA_FILE, MergedProfiles, Profile
 from .coveragepy import CoverageWrapper
 from .exceptions import CustomClickException
 from .logger import logger
@@ -15,8 +15,23 @@ def default_loglevel():
     return logging.getLevelName(logger.level).lower()
 
 
+def get_version_message():
+    from . import get_version
+
+    try:
+        from coverage import __version__ as coverage_version
+    except ImportError as exc:
+        coverage_version = 'unknown (%s)' % (exc,)
+
+    return 'covimerage, version %s (using Coverage.py %s)' % (
+        get_version(),
+        coverage_version,
+    )
+
+
 @click.group(context_settings={'help_option_names': ['-h', '--help']})
-@click.version_option(get_version(), '-V', '--version', prog_name='covimerage')
+@click.version_option('...', '-V', '--version',
+                      message=get_version_message())
 @click.option('-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('-q', '--quiet', count=True, help='Decrease verbosity.')
 @click.option('-l', '--loglevel', show_default=True,
