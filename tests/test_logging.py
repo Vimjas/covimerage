@@ -1,4 +1,7 @@
-from imp import reload
+try:
+    from importlib import reload
+except ImportError:
+    from imp import reload
 import logging
 
 import click
