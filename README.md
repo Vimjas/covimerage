@@ -89,6 +89,20 @@ coverage reporting platforms like <https://codecov.io/> or
     Neomake](https://github.com/neomake/neomake/pull/1600) (Neomake's test
     setup is rather advanced, so do not let that scare you!)
 
+## Caveats
+
+Coverage information for a function may get wiped if the function is re-defined
+after testing it. This is a known limitation that does not depend on the
+implementation of covimerage, but on the vim profiler itself, since profiling
+data for a function, used to extract coverage data, is reset when the function
+is re-defined, even if the definition is identical.
+
+This can be an issue if the source files being checked for coverage are
+reloaded with `runtime` between tests for some reasons, e.g. when mocking some
+function. To prevent coverage information from being lost, one solution is to
+write such tests in a different suite that is run separately, and combine the
+coverage results with `covimerage run --append`.
+
 ## Links
 
 - Discussion in Coverage.py's issue tracker:
