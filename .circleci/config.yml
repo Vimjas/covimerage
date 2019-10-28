@@ -15,13 +15,15 @@ common: &common
         name: upload coverage results for non-checkqa builds
         command: |
           if [[ "$TOXENV" != checkqa ]]; then
+            set -x
+
             # Use the virtualenv from tox (to match coveragepy version etc).
             PATH=$PWD/.tox/$TOXENV/bin:$PATH
 
             coverage report -m
             coverage xml
 
-            bash <(curl -s https://codecov.io/bash) -Z -X gcov -X coveragepy -X search -X xcode -X gcovout -X fix -f coverage.xml -F "${CIRCLE_JOB//-/,}"
+            bash <(curl -S -L --connect-timeout 5 --retry 6 -s https://codecov.io/bash) -Z -X fix -f coverage.xml -F "${CIRCLE_JOB//-/,}"
 
             if [[ "$CIRCLE_JOB" != py37-coveragepy5 ]]; then
               # coveralls-python does not work with Coverage.py 5's data yet.
