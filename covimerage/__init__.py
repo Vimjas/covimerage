@@ -434,7 +434,8 @@ class Profile(object):
                     if next_line.startswith('    Defined:'):
                         defined = next_line[13:]
                         fname, _, lnum = defined.rpartition(":")
-                        if not fname:
+                        # NOTE: fname may be a drive letter on Windows.
+                        if len(fname) <= 1:
                             fname, _, lnum = defined.rpartition(' line ')
                         fname = os.path.expanduser(fname)
                         in_function.source = (self.scripts_by_fname[fname],
