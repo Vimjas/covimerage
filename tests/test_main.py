@@ -575,10 +575,15 @@ def test_duplicate_s_function(caplog):
 
 @pytest.mark.parametrize("defined_lnum", (-1, 1))
 @pytest.mark.parametrize("defined_format", ("old", "new"))
-def test_handles_unmatched_defined(defined_format, defined_lnum, caplog):
+@pytest.mark.parametrize("platform", ("linux", "win32"))
+def test_handles_unmatched_defined(platform, defined_format, defined_lnum, caplog):
     from covimerage import Profile
 
-    defined = "Defined: invalid_defined.vim"
+    if platform == "win32":
+        script = "C:\\invalid_defined.vim"
+    else:
+        script = "/invalid_defined.vim"
+    defined = "Defined: " + script
     if defined_format == "old":
         defined += " line " + str(defined_lnum)
     else:
@@ -586,7 +591,7 @@ def test_handles_unmatched_defined(defined_format, defined_lnum, caplog):
 
     file_object = StringIO(textwrap.dedent(
         """
-        SCRIPT  invalid_defined.vim
+        SCRIPT  {script}
         Sourced 1 time
         Total time:   0.000037
          Self time:   0.000032
@@ -613,6 +618,7 @@ def test_handles_unmatched_defined(defined_format, defined_lnum, caplog):
         count  total (s)   self (s)  function
             2              0.000005  F_via_execute_1()
         """.format(
+            script=script,
             defined=defined
         )))
 
