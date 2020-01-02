@@ -8,12 +8,9 @@ common: &common
   working_directory: ~/repo
   steps:
     - checkout
-    - run: python -m venv .venv
-    - run: .venv/bin/pip install -U pip virtualenv
-    - run: .venv/bin/pip install tox
-    - run: .venv/bin/pip freeze
-    - run: .venv/bin/tox -vv --notest
-    - run: PYTEST_ADDOPTS=-vv .venv/bin/tox -vv
+    - run: pip install --user tox
+    - run: ~/.local/bin/tox -vv --notest
+    - run: PYTEST_ADDOPTS=-vv ~/.local/bin/tox -vv
     - run:
         name: upload coverage results for non-checkqa builds
         command: |
