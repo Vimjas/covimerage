@@ -12,7 +12,8 @@ common: &common
     - run: .venv/bin/pip install -U pip
     - run: .venv/bin/pip install tox
     - run: .venv/bin/pip freeze
-    - run: PYTEST_ADDOPTS=-vv .venv/bin/tox
+    - run: .venv/bin/tox -vv --notest
+    - run: PYTEST_ADDOPTS=-vv .venv/bin/tox -vv
     - run:
         name: upload coverage results for non-checkqa builds
         command: |
