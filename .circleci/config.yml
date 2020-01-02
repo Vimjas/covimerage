@@ -93,6 +93,8 @@ jobs:
 
   notify:
     <<: *common
+    docker:
+      - image: circleci/python:3.8
     steps:
       - run:
           name: Report finished build to coveralls
