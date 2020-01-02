@@ -25,12 +25,8 @@ common: &common
 
             bash <(curl -S -L --connect-timeout 5 --retry 6 -s https://codecov.io/bash) -Z -X fix -f coverage.xml -F "${CIRCLE_JOB//-/,}"
 
-            if [[ "$CIRCLE_JOB" != py37-coveragepy5 ]]; then
-              # coveralls-python does not work with Coverage.py 5's data yet.
-              # (https://github.com/coveralls-clients/coveralls-python/issues/203)
-              pip install coveralls
-              COVERALLS_PARALLEL=true coveralls
-            fi
+            pip install coveralls
+            COVERALLS_PARALLEL=true coveralls
 
             # Coveralls and Codacy do not support merged reports.
             if [[ "$CIRCLE_JOB" == py36 ]]; then
