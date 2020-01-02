@@ -9,7 +9,7 @@ common: &common
   steps:
     - checkout
     - run: python -m venv .venv
-    - run: .venv/bin/pip install -U pip
+    - run: .venv/bin/pip install -U pip virtualenv
     - run: .venv/bin/pip install tox
     - run: .venv/bin/pip freeze
     - run: .venv/bin/tox -vv --notest
