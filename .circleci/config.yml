@@ -91,6 +91,14 @@ jobs:
         environment:
           TOXENV=checkqa
 
+  notify:
+    <<: *common
+    steps:
+      - run:
+          name: Report finished build to coveralls
+          command: |
+            curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_BUILD_NUM&payload[status]=done"
+
 workflows:
   version: 2
   test:
@@ -104,7 +112,13 @@ workflows:
       - py34
       - py27
       - checkqa
-
-notify:
-  webhooks:
-    - url: https://coveralls.io/webhook
+      - notify:
+        requires:
+        - py38
+        - py37-coveragepy5
+        - py37
+        - py37-click6
+        - py36
+        - py35
+        - py34
+        - py27
