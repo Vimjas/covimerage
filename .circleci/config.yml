@@ -112,13 +112,4 @@ workflows:
       - py34
       - py27
       - checkqa
-      - notify:
-        requires:
-          - py38
-          - py37-coveragepy5
-          - py37
-          - py37-click6
-          - py36
-          - py35
-          - py34
-          - py27
+      - notify
