@@ -2,9 +2,9 @@ import click
 
 
 class CustomClickException(click.ClickException):
-    """Wrap click.ClickException for exit_code."""
-    def __init__(self, *args, **kwargs):
-        self.exit_code = kwargs.pop('exit_code', 1)
+    """Wrap click.ClickException for exit_code kwarg."""
+    def __init__(self, *args, exit_code=1, **kwargs):
+        self.exit_code = exit_code
         super(CustomClickException, self).__init__(*args, **kwargs)
 
 
