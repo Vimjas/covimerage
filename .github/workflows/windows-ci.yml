@@ -4,12 +4,28 @@ on: [push, pull_request]
 jobs:
   ci:
     name: Run tests
+    strategy:
+      matrix:
+        py: [3.4, 3.5, 3.6, 3.7, 3.8]
+        include:
+          - py: 3.4
+            tox: py34-coverage
+          - py: 3.5
+            tox: py35-coverage
+          - py: 3.6
+            tox: py36-coverage
+          - py: 3.7
+            tox: py37-coverage
+          - py: 3.8
+            tox: py38-coverage
     env:
-      TOXENV: py38-coverage
+      TOXENV: ${{ matrix.tox }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.py }}
       - name: Install tox
         run: |
           python -m pip install --upgrade pip
