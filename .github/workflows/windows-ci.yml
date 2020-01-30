@@ -6,10 +6,8 @@ jobs:
     name: Run tests
     strategy:
       matrix:
-        py: [3.4, 3.5, 3.6, 3.7, 3.8]
+        py: [3.5, 3.6, 3.7, 3.8]
         include:
-          - py: 3.4
-            tox: py34-coverage
           - py: 3.5
             tox: py35-coverage
           - py: 3.6
