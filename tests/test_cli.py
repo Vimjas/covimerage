@@ -773,6 +773,7 @@ def test_run_report_without_data(tmpdir, runner, devnull):
     assert result.exit_code == 1
 
 
+@pytest.mark.skipif(sys.platform == 'win32', reason='SIGHUP is not available on Windows')
 def test_run_forwards_sighup(devnull):
     proc = subprocess.Popen([
             sys.executable, '-m', 'covimerage', 'run',
