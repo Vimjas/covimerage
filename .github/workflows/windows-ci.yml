@@ -3,12 +3,27 @@ on: [push, pull_request]
 
 jobs:
   ci:
+    name: Run tests
+    env:
+      TOXENV: py38-coverage
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
-      - run: pip install tox
+      - name: Install tox
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox
       - name: Run tests
         run: tox
         env:
           PYTEST_ADDOPTS: '-vv'
+      - name: Generate coverage report
+        run: |
+          .tox/$TOXENV/bin/coverage report -m
+          .tox/$TOXENV/bin/coverage xml
+      # TODO: Set secrets.CODECOV_TOKEN from repositroy settings and uncomment this
+      # - uses: codecov/codecov-action@v1
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     yml: .codecov.yml
