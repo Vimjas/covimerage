@@ -1,4 +1,5 @@
 import os
+from os.path import normpath
 import signal
 import subprocess
 from subprocess import call
@@ -221,7 +222,7 @@ def test_cli_run_can_skip_writing_data(with_append, runner, tmpdir):
         'Parsing profile file %s.' % profile_file,
         'Name                                         Stmts   Miss  Cover',
         '----------------------------------------------------------------',
-        'tests/test_plugin/conditional_function.vim      13      5    62%']
+        normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
     assert not tmpdir.join(DEFAULT_COVERAGE_DATA_FILE).exists()
 
 
@@ -267,7 +268,7 @@ def test_cli_run_report_fd(capfd, tmpdir, devnull):
     assert out.splitlines() == [
         'Name                                         Stmts   Miss  Cover',
         '----------------------------------------------------------------',
-        'tests/test_plugin/conditional_function.vim      13      5    62%']
+        normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
     assert err.splitlines() == [
         'Running cmd: true (in %s)' % str(os.getcwd()),
         'Parsing profile file %s.' % tmp_profile_fname,
@@ -286,7 +287,7 @@ def test_cli_run_report_fd(capfd, tmpdir, devnull):
     assert open(ofname).read().splitlines() == [
         'Name                                         Stmts   Miss  Cover',
         '----------------------------------------------------------------',
-        'tests/test_plugin/conditional_function.vim      13      5    62%']
+        normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
 
 
 def test_cli_call(capfd):
@@ -511,7 +512,7 @@ def test_report_profile_or_data_file(runner, tmpdir):
     assert result.output.splitlines() == [
         'Name                                        Stmts   Miss  Cover',
         '---------------------------------------------------------------',
-        'tests/test_plugin/merged_conditionals.vim      19     12    37%']
+        normpath('tests/test_plugin/merged_conditionals.vim') + '      19     12    37%']
     assert result.exit_code == 0
 
 
@@ -553,7 +554,7 @@ def test_report_source(runner, tmpdir, devnull):
         )
         assert result.exit_code == 2
 
-        fname = "foo/bar/test.vim"
+        fname = normpath("foo/bar/test.vim")
         tmpdir.join(fname).ensure().write("echom 1")
         tmpdir.join("foo/bar/test2.vim").ensure().write("echom 2")
         result = runner.invoke(cli.main, ["report", "--source", ".", devnull.name])
@@ -591,7 +592,7 @@ def test_report_source(runner, tmpdir, devnull):
         == [
             "Name                                        Stmts   Miss  Cover",
             "---------------------------------------------------------------",
-            "tests/test_plugin/merged_conditionals.vim      19     12    37%",
+            normpath("tests/test_plugin/merged_conditionals.vim") + "      19     12    37%",
         ]
     )
     assert result.exit_code == 0
@@ -609,8 +610,8 @@ def test_cli_xml(runner, tmpdir):
 
         with open('coverage.xml') as f:
             xml = f.read()
-        assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
-            old_cwd) in xml
+        assert 'filename="%s' % (
+            old_cwd.join('/tests/test_plugin/merged_conditionals.vim')) in xml
 
         # --rcfile is used.
         coveragerc = 'customrc'
@@ -624,8 +625,8 @@ def test_cli_xml(runner, tmpdir):
         assert result.exit_code == 0
         with open('custom.xml') as f:
             xml = f.read()
-        assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
-            old_cwd) in xml
+        assert 'filename="%s' % (
+            old_cwd.join('/tests/test_plugin/merged_conditionals.vim')) in xml
 
         # --rcfile is used.
         coveragerc = 'customrc'
@@ -722,7 +723,7 @@ def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
             'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
-            'tests/test_plugin/conditional_function.vim      13      5    62%']
+            normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
         assert result.exit_code == 0
 
         assert open('.coverage_covimerage').read().startswith(covdata_header)
@@ -735,7 +736,7 @@ def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
             'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
-            'tests/test_plugin/conditional_function.vim      13      5    62%']
+            normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
         assert result.exit_code == 0
 
         # Append another profile.
@@ -753,8 +754,8 @@ def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
             'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
-            'tests/test_plugin/conditional_function.vim      13      5    62%',
-            'tests/test_plugin/merged_conditionals.vim       19     12    37%',
+            normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%',
+            normpath('tests/test_plugin/merged_conditionals.vim') + '       19     12    37%',
             '----------------------------------------------------------------',
             'TOTAL                                           32     17    47%']
         assert result.exit_code == 0
