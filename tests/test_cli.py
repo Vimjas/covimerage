@@ -1,4 +1,5 @@
 import os
+from os.path import normpath
 import signal
 import subprocess
 from subprocess import call
@@ -11,6 +12,8 @@ import pytest
 
 from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
 from covimerage.cli import get_version_message
+
+NEWLINE = '\n' if sys.platform != 'win32' else '\r\n'
 
 
 def test_dunder_main_run(capfd):
@@ -85,8 +88,11 @@ def test_cli_run_with_args_fd(capfd):
 def test_cli_run_subprocess_exception(runner, mocker):
     result = runner.invoke(cli.run, [os.devnull])
     out = result.output.splitlines()
-    assert out[-1].startswith("Error: Failed to run ['/dev/null', '--cmd',")
-    assert '[Errno 13] Permission denied' in out[-1]
+    assert out[-1].startswith("Error: Failed to run ['%s', '--cmd'," % os.devnull)
+    expected_message = '[Errno 13] Permission denied'
+    if sys.platform == 'win32':
+        expected_message = '[WinError 2] The system cannot find the file specified'
+    assert expected_message in out[-1]
     assert result.exit_code == 1
 
 
@@ -136,7 +142,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         'Running cmd: printf -- --headless (in %s)' % os.getcwd(),
-        'Parsing profile file /dev/null.',
+        'Parsing profile file %s.' % os.devnull,
         'Not writing coverage file: no data to report!',
         'Error: Command exited non-zero: 3.']
 
@@ -221,7 +227,7 @@ def test_cli_run_can_skip_writing_data(with_append, runner, tmpdir):
         'Parsing profile file %s.' % profile_file,
         'Name                                         Stmts   Miss  Cover',
         '----------------------------------------------------------------',
-        'tests/test_plugin/conditional_function.vim      13      5    62%']
+        normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
     assert not tmpdir.join(DEFAULT_COVERAGE_DATA_FILE).exists()
 
 
@@ -267,7 +273,7 @@ def test_cli_run_report_fd(capfd, tmpdir, devnull):
     assert out.splitlines() == [
         'Name                                         Stmts   Miss  Cover',
         '----------------------------------------------------------------',
-        'tests/test_plugin/conditional_function.vim      13      5    62%']
+        normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
     assert err.splitlines() == [
         'Running cmd: true (in %s)' % str(os.getcwd()),
         'Parsing profile file %s.' % tmp_profile_fname,
@@ -286,13 +292,13 @@ def test_cli_run_report_fd(capfd, tmpdir, devnull):
     assert open(ofname).read().splitlines() == [
         'Name                                         Stmts   Miss  Cover',
         '----------------------------------------------------------------',
-        'tests/test_plugin/conditional_function.vim      13      5    62%']
+        normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
 
 
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
     out, err = capfd.readouterr()
-    assert out == get_version_message() + '\n'
+    assert out == get_version_message() + NEWLINE
 
     assert call(['covimerage', '--help']) == 0
     out, err = capfd.readouterr()
@@ -329,7 +335,7 @@ def test_cli_call_verbosity_fd(capfd):
     out, err = capfd.readouterr()
     assert out == ''
     assert err.splitlines() == [
-        'Parsing file: /dev/null',
+        'Parsing file: %s' % os.devnull,
         'source_files: []',
         'Not writing coverage file: no data to report!',
         'Error: No data to report.']
@@ -338,7 +344,7 @@ def test_cli_call_verbosity_fd(capfd):
     out, err = capfd.readouterr()
     assert out == ''
     assert err.splitlines() == [
-        'Parsing file: /dev/null',
+        'Parsing file: %s' % os.devnull,
         'source_files: []',
         'Not writing coverage file: no data to report!',
         'Error: No data to report.']
@@ -353,7 +359,7 @@ def test_cli_call_verbosity_fd(capfd):
     assert call(['covimerage', '-qq', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
-    assert err == 'Error: No data to report.\n'
+    assert err == 'Error: No data to report.' + NEWLINE
 
 
 def test_cli_writecoverage_without_data(runner):
@@ -490,7 +496,7 @@ def test_report_profile_or_data_file(runner, tmpdir):
         'report', '--data-file', os.devnull])
     cov_exc = 'CoverageException: Doesn\'t seem to be a coverage.py data file'
     assert result.output.splitlines()[-1] == \
-        'Error: Coverage could not read data_file: /dev/null (%s)' % cov_exc
+        'Error: Coverage could not read data_file: %s (%s)' % (os.devnull, cov_exc)
     assert result.exit_code == 1
 
     with tmpdir.as_cwd():
@@ -511,12 +517,12 @@ def test_report_profile_or_data_file(runner, tmpdir):
     assert result.output.splitlines() == [
         'Name                                        Stmts   Miss  Cover',
         '---------------------------------------------------------------',
-        'tests/test_plugin/merged_conditionals.vim      19     12    37%']
+        normpath('tests/test_plugin/merged_conditionals.vim') + '      19     12    37%']
     assert result.exit_code == 0
 
 
 def test_report_rcfile_and_include(tmpdir, runner):
-    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file = normpath('tests/test_plugin/conditional_function.vim')
     profiled_file_content = open(profiled_file, 'r').read()
 
     # Works without rcfile.
@@ -553,7 +559,7 @@ def test_report_source(runner, tmpdir, devnull):
         )
         assert result.exit_code == 2
 
-        fname = "foo/bar/test.vim"
+        fname = normpath("foo/bar/test.vim")
         tmpdir.join(fname).ensure().write("echom 1")
         tmpdir.join("foo/bar/test2.vim").ensure().write("echom 2")
         result = runner.invoke(cli.main, ["report", "--source", ".", devnull.name])
@@ -591,7 +597,7 @@ def test_report_source(runner, tmpdir, devnull):
         == [
             "Name                                        Stmts   Miss  Cover",
             "---------------------------------------------------------------",
-            "tests/test_plugin/merged_conditionals.vim      19     12    37%",
+            normpath("tests/test_plugin/merged_conditionals.vim") + "      19     12    37%",
         ]
     )
     assert result.exit_code == 0
@@ -609,8 +615,8 @@ def test_cli_xml(runner, tmpdir):
 
         with open('coverage.xml') as f:
             xml = f.read()
-        assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
-            old_cwd) in xml
+        assert 'filename="%s' % (
+            old_cwd.join('tests/test_plugin/merged_conditionals.vim')) in xml
 
         # --rcfile is used.
         coveragerc = 'customrc'
@@ -624,8 +630,8 @@ def test_cli_xml(runner, tmpdir):
         assert result.exit_code == 0
         with open('custom.xml') as f:
             xml = f.read()
-        assert 'filename="%s/tests/test_plugin/merged_conditionals.vim' % (
-            old_cwd) in xml
+        assert 'filename="%s' % (
+            old_cwd.join('tests/test_plugin/merged_conditionals.vim')) in xml
 
         # --rcfile is used.
         coveragerc = 'customrc'
@@ -661,7 +667,7 @@ def test_run_handles_exit_code_from_python_fd(capfd):
                 'python', '-c', 'print("output"); import sys; sys.exit(42)'])
     out, err = capfd.readouterr()
     assert 'Error: Command exited non-zero: 42.' in err.splitlines()
-    assert out == 'output\n'
+    assert out == 'output' + NEWLINE
     assert ret == 42
 
 
@@ -722,7 +728,7 @@ def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
             'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
-            'tests/test_plugin/conditional_function.vim      13      5    62%']
+            normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
         assert result.exit_code == 0
 
         assert open('.coverage_covimerage').read().startswith(covdata_header)
@@ -735,7 +741,7 @@ def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
             'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
-            'tests/test_plugin/conditional_function.vim      13      5    62%']
+            normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%']
         assert result.exit_code == 0
 
         # Append another profile.
@@ -753,8 +759,8 @@ def test_run_append_with_data(with_data_file, runner, tmpdir, covdata_header):
             'Writing coverage file .coverage_covimerage.',
             'Name                                         Stmts   Miss  Cover',
             '----------------------------------------------------------------',
-            'tests/test_plugin/conditional_function.vim      13      5    62%',
-            'tests/test_plugin/merged_conditionals.vim       19     12    37%',
+            normpath('tests/test_plugin/conditional_function.vim') + '      13      5    62%',
+            normpath('tests/test_plugin/merged_conditionals.vim') + '       19     12    37%',
             '----------------------------------------------------------------',
             'TOTAL                                           32     17    47%']
         assert result.exit_code == 0
@@ -773,6 +779,7 @@ def test_run_report_without_data(tmpdir, runner, devnull):
     assert result.exit_code == 1
 
 
+@pytest.mark.skipif(sys.platform == 'win32', reason='SIGHUP is not available on Windows')
 def test_run_forwards_sighup(devnull):
     proc = subprocess.Popen([
             sys.executable, '-m', 'covimerage', 'run',

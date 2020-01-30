@@ -149,10 +149,12 @@ def run(ctx, args, wrap_profile, profile_file, write_data, data_file,
     try:
         proc = subprocess.Popen(cmd)
 
-        def forward_signals(signalnum, stackframe):
-            """Forward SIGHUP to the subprocess."""
-            proc.send_signal(signalnum)
-        signal.signal(signal.SIGHUP, forward_signals)
+        # signal.SIGHUP does not exist on Windows
+        if hasattr(signal, 'SIGHUP'):
+            def forward_signals(signalnum, stackframe):
+                """Forward SIGHUP to the subprocess."""
+                proc.send_signal(signalnum)
+            signal.signal(signal.SIGHUP, forward_signals)
 
         try:
             exit_code = proc.wait()

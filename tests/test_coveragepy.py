@@ -1,3 +1,4 @@
+import os
 import sys
 
 import attr
@@ -165,7 +166,7 @@ def test_coveragewrapper(coverage_fileobj, devnull):
     with pytest.raises(CoverageWrapperException) as excinfo:
         CoverageWrapper(data_file=devnull.name)
     assert excinfo.value.args == (
-        'Coverage could not read data_file: /dev/null',)
+        'Coverage could not read data_file: %s' % os.devnull,)
 
     f = StringIO()
     with pytest.raises(CoverageWrapperException) as excinfo:
