@@ -89,7 +89,10 @@ def test_cli_run_subprocess_exception(runner, mocker):
     result = runner.invoke(cli.run, [os.devnull])
     out = result.output.splitlines()
     assert out[-1].startswith("Error: Failed to run ['%s', '--cmd'," % os.devnull)
-    assert '[Errno 13] Permission denied' in out[-1]
+    expected_message = '[Errno 13] Permission denied'
+    if sys.platform == 'win32':
+        expected_message = '[WinError 2] The system cannot find the file specified'
+    assert expected_message in out[-1]
     assert result.exit_code == 1
 
 
