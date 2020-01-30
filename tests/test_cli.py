@@ -85,7 +85,7 @@ def test_cli_run_with_args_fd(capfd):
 def test_cli_run_subprocess_exception(runner, mocker):
     result = runner.invoke(cli.run, [os.devnull])
     out = result.output.splitlines()
-    assert out[-1].startswith("Error: Failed to run ['/dev/null', '--cmd',")
+    assert out[-1].startswith("Error: Failed to run ['%s', '--cmd'," % os.devnull)
     assert '[Errno 13] Permission denied' in out[-1]
     assert result.exit_code == 1
 
@@ -136,7 +136,7 @@ def test_cli_run_args(runner, mocker, devnull, tmpdir):
     assert m.call_args[0] == (['printf', '--', '--headless'],)
     assert result.output.splitlines() == [
         'Running cmd: printf -- --headless (in %s)' % os.getcwd(),
-        'Parsing profile file /dev/null.',
+        'Parsing profile file %s.' % os.devnull,
         'Not writing coverage file: no data to report!',
         'Error: Command exited non-zero: 3.']
 
@@ -329,7 +329,7 @@ def test_cli_call_verbosity_fd(capfd):
     out, err = capfd.readouterr()
     assert out == ''
     assert err.splitlines() == [
-        'Parsing file: /dev/null',
+        'Parsing file: %s' % os.devnull,
         'source_files: []',
         'Not writing coverage file: no data to report!',
         'Error: No data to report.']
@@ -338,7 +338,7 @@ def test_cli_call_verbosity_fd(capfd):
     out, err = capfd.readouterr()
     assert out == ''
     assert err.splitlines() == [
-        'Parsing file: /dev/null',
+        'Parsing file: %s' % os.devnull,
         'source_files: []',
         'Not writing coverage file: no data to report!',
         'Error: No data to report.']
@@ -490,7 +490,7 @@ def test_report_profile_or_data_file(runner, tmpdir):
         'report', '--data-file', os.devnull])
     cov_exc = 'CoverageException: Doesn\'t seem to be a coverage.py data file'
     assert result.output.splitlines()[-1] == \
-        'Error: Coverage could not read data_file: /dev/null (%s)' % cov_exc
+        'Error: Coverage could not read data_file: %s (%s)' % (os.devnull, cov_exc)
     assert result.exit_code == 1
 
     with tmpdir.as_cwd():
