@@ -13,6 +13,8 @@ import pytest
 from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
 from covimerage.cli import get_version_message
 
+NEWLINE = '\n' if sys.platform != 'win32' else '\r\n'
+
 
 def test_dunder_main_run(capfd):
     assert call([sys.executable, '-m', 'covimerage']) == 0
@@ -293,7 +295,7 @@ def test_cli_run_report_fd(capfd, tmpdir, devnull):
 def test_cli_call(capfd):
     assert call(['covimerage', '--version']) == 0
     out, err = capfd.readouterr()
-    assert out == get_version_message() + '\n'
+    assert out == get_version_message() + NEWLINE
 
     assert call(['covimerage', '--help']) == 0
     out, err = capfd.readouterr()
@@ -354,7 +356,7 @@ def test_cli_call_verbosity_fd(capfd):
     assert call(['covimerage', '-qq', 'write_coverage', os.devnull]) == 1
     out, err = capfd.readouterr()
     assert out == ''
-    assert err == 'Error: No data to report.\n'
+    assert err == 'Error: No data to report.' + NEWLINE
 
 
 def test_cli_writecoverage_without_data(runner):
@@ -662,7 +664,7 @@ def test_run_handles_exit_code_from_python_fd(capfd):
                 'python', '-c', 'print("output"); import sys; sys.exit(42)'])
     out, err = capfd.readouterr()
     assert 'Error: Command exited non-zero: 42.' in err.splitlines()
-    assert out == 'output\n'
+    assert out == 'output' + NEWLINE
     assert ret == 42
 
 
