@@ -1,0 +1,14 @@
+name: Windows CI
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+      - run: pip install tox
+      - name: Run tests
+        run: tox
+        env:
+          PYTEST_ADDOPTS: '-vv'
