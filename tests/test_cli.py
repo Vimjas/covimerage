@@ -522,7 +522,7 @@ def test_report_profile_or_data_file(runner, tmpdir):
 
 
 def test_report_rcfile_and_include(tmpdir, runner):
-    profiled_file = 'tests/test_plugin/conditional_function.vim'
+    profiled_file = normpath('tests/test_plugin/conditional_function.vim')
     profiled_file_content = open(profiled_file, 'r').read()
 
     # Works without rcfile.
@@ -616,7 +616,7 @@ def test_cli_xml(runner, tmpdir):
         with open('coverage.xml') as f:
             xml = f.read()
         assert 'filename="%s' % (
-            old_cwd.join('/tests/test_plugin/merged_conditionals.vim')) in xml
+            old_cwd.join('tests/test_plugin/merged_conditionals.vim')) in xml
 
         # --rcfile is used.
         coveragerc = 'customrc'
@@ -631,7 +631,7 @@ def test_cli_xml(runner, tmpdir):
         with open('custom.xml') as f:
             xml = f.read()
         assert 'filename="%s' % (
-            old_cwd.join('/tests/test_plugin/merged_conditionals.vim')) in xml
+            old_cwd.join('tests/test_plugin/merged_conditionals.vim')) in xml
 
         # --rcfile is used.
         coveragerc = 'customrc'
