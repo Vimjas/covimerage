@@ -52,7 +52,8 @@ def main(ctx, verbose, quiet, loglevel, rcfile):
 
 @main.command(name='write_coverage')
 @click.argument('profile_file', type=click.File('r'), required=True, nargs=-1)
-@click.option('--data-file', required=False, type=click.Path(dir_okay=False),
+@click.option('--data-file', required=False,
+              type=click.Path(dir_okay=False, writable=True),
               default=DEFAULT_COVERAGE_DATA_FILE,
               help=('DATA_FILE to write into.  '
                     u'[default:\xa0%s]' % DEFAULT_COVERAGE_DATA_FILE))
@@ -86,12 +87,13 @@ def write_coverage(profile_file, data_file, source, append):
               default=True, show_default=True,
               help='Wrap VIM cmd with options to create a PROFILE_FILE.')
 @click.option('--profile-file', required=False, metavar='PROFILE_FILE',
-              type=click.Path(dir_okay=False), help=(
+              type=click.Path(dir_okay=False, writable=True), help=(
                   'File name for the PROFILE_FILE file '
                   '(get overwritten, but not removed).  '
                   'By default a temporary file is used '
                   '(and removed after processing).'))
-@click.option('--data-file', required=False, type=click.Path(dir_okay=False),
+@click.option('--data-file', required=False,
+              type=click.Path(dir_okay=False, writable=True),
               default=DEFAULT_COVERAGE_DATA_FILE,
               help=('DATA_FILE to write into.  '
                     u'[default:\xa0%s]' % DEFAULT_COVERAGE_DATA_FILE))
