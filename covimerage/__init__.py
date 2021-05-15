@@ -5,8 +5,8 @@ import os
 import re
 
 import attr
-from click.utils import string_types
 
+from ._compat import string_types
 from .coveragepy import CoverageData
 from .logger import logger
 from .utils import (

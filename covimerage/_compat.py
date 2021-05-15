@@ -1,3 +1,5 @@
+import sys
+
 try:
     FileNotFoundError = FileNotFoundError
 except NameError:
@@ -12,3 +14,8 @@ try:
     from shlex import quote as shell_quote
 except ImportError:
     from pipes import quote as shell_quote  # noqa: F401
+
+if sys.version_info < (3,):
+    string_types = (str, unicode)  # noqa: F821
+else:
+    string_types = str
