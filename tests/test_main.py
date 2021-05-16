@@ -159,7 +159,7 @@ def test_profile_parse_dict_function():
     assert s.mapped_dict_functions == {3}
 
     assert len(s.lines) == 13
-    assert [l.line for l in s.lines.values()] == [
+    assert [ln.line for ln in s.lines.values()] == [
         '" Test parsing of dict function.',
         'let obj = {}',
         'function! obj.dict_function(arg) abort',
@@ -197,7 +197,7 @@ def test_profile_parse_dict_function_with_same_source(caplog):
     assert s.mapped_dict_functions == {3, 12}
 
     N = None
-    assert [(l.count, l.line) for l in s.lines.values()] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()] == [
         (N, '" Test parsing of dict function (with same source).'),
         (1, 'let obj1 = {}'),
         (1, 'function! obj1.dict_function(arg) abort'),
@@ -242,7 +242,7 @@ def test_profile_parse_dict_function_with_continued_lines():
     assert s.mapped_dict_functions == {3}
 
     N = None
-    assert [(l.count, l.line) for l in s.lines.values()] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()] == [
         (N, '" Test parsing of dict function with continued lines.'),
         (1, 'let obj = {}'),
         (1, 'function! obj.dict_function(arg) abort'),
@@ -270,7 +270,7 @@ def test_profile_continued_lines():
     assert len(p.scripts) == 1
     s = p.scripts[0]
 
-    assert [(l.count, l.line) for l in s.lines.values()] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()] == [
         (1, 'echom 1'),
         (1, 'echom 2'),
         (1, '      \\ 3'),
@@ -290,7 +290,7 @@ def test_conditional_functions():
     s = p.scripts[0]
 
     N = None
-    assert [(l.count, l.line) for l in s.lines.values()] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()] == [
         (N, '" Test for detection of conditional functions.'),
         (N, ''),
         (1, 'if 0'),
@@ -332,7 +332,7 @@ def test_merged_profiles():
 
     N = None
     s_fname = '/test_plugin/merged_profiles.vim'
-    assert [(l.count, l.line) for lnum, l in m.lines[s_fname].items()] == [
+    assert [(ln.count, ln.line) for lnum, ln in m.lines[s_fname].items()] == [
         (N, '" Generate profile output for merged profiles.'),
         (N, '" Used merged_profiles-init.vim'),
         (2, "if !exists('s:conditional')"),
@@ -374,13 +374,13 @@ def test_mergedprofiles_fixes_line_count():
 
     script = p.scripts[0]
 
-    assert [(l.count, l.line) for l in script.lines.values()] == [
+    assert [(ln.count, ln.line) for ln in script.lines.values()] == [
         (None, 'let foo = 1'),
         (1, 'let bar = 2'),
     ]
 
     m = MergedProfiles([p])
-    assert [(l.count, l.line) for l in m.lines[script.path].values()] == [
+    assert [(ln.count, ln.line) for ln in m.lines[script.path].values()] == [
         (1, 'let foo = 1'),
         (1, 'let bar = 2'),
     ]
@@ -452,7 +452,7 @@ def test_function_in_function():
     assert len(p.scripts) == 1
     s = p.scripts[0]
 
-    assert [(l.count, l.line) for l in s.lines.values()] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()] == [
         (None, '" Test for dict function in function.'),
         (None, ''),
         (1, 'function! GetObj()'),
@@ -477,7 +477,7 @@ def test_function_in_function_count(caplog):
     assert len(p.scripts) == 1
     s = p.scripts[0]
 
-    assert [(l.count, l.line) for l in s.lines.values()] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()] == [
         (None, '" Test for line count with inner functions.'),
         (1, 'function! Outer()'),
         (None, '  " comment1'),
@@ -499,8 +499,8 @@ def test_function_in_function_with_ref(caplog):
     assert len(p.scripts) == 1
     s = p.scripts[0]
 
-    assert [(l.count, l.line) for l in s.lines.values()
-            if not l.line.startswith('"')] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()
+            if not ln.line.startswith('"')] == [
         (None, ''),
         (1, 'let g:refs = []'),
         (None, ''),
@@ -548,9 +548,9 @@ def test_duplicate_s_function(caplog):
     assert len(p.scripts) == 2
 
     N = None
-    assert [(l.count, l.line)
-            for l in p.scripts[0].lines.values()
-            if not l.line.startswith('"')] == [
+    assert [(ln.count, ln.line)
+            for ln in p.scripts[0].lines.values()
+            if not ln.line.startswith('"')] == [
                 (1, 'function! s:function(name) abort'),
                 (1, '  echom a:name'),
                 (N, 'endfunction'),
@@ -559,9 +559,9 @@ def test_duplicate_s_function(caplog):
                 (1, "call test_plugin#function#function('name')"),
             ]
 
-    assert [(l.count, l.line)
-            for l in p.scripts[1].lines.values()
-            if not l.line.startswith('"')] == [
+    assert [(ln.count, ln.line)
+            for ln in p.scripts[1].lines.values()
+            if not ln.line.startswith('"')] == [
                 (1, 'function! s:function(name) abort'),
                 (1, '  echom a:name'),
                 (N, 'endfunction'),
@@ -628,8 +628,8 @@ def test_handles_unmatched_defined(platform, defined_format, defined_lnum, caplo
     assert len(p.scripts) == 1
     s = p.scripts[0]
 
-    assert [(l.count, l.line) for l in s.lines.values()
-            if not l.line.startswith('"')] == [
+    assert [(ln.count, ln.line) for ln in s.lines.values()
+            if not ln.line.startswith('"')] == [
         (1, 'execute "function! F_via_execute_1()\\nreturn 0\\nendfunction"'),
         (1, 'call F_via_execute_1()'),
         (1, 'call F_via_execute_1()'),
