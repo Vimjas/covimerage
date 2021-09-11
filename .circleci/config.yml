@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2.1
+version: 2
 
 common: &common
   working_directory: ~/repo
@@ -71,8 +71,6 @@ jobs:
         environment:
           - TOXENV=py35-coverage
   py34:
-    pre-steps:
-      - run: pip install -U pip==19.1.1
     <<: *common
     docker:
       - image: circleci/python:3.4
@@ -98,7 +96,7 @@ jobs:
           TOXENV=checkqa
 
 workflows:
-  version: 2
+  version: 2.1
   test:
     jobs:
       - py38
@@ -107,7 +105,9 @@ workflows:
       - py37-click6
       - py36
       - py35
-      - py34
+      - py34:
+        pre-steps:
+          - run: pip install -U pip==19.1.1
       - py27
       - checkqa
 
