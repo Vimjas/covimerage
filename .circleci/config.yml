@@ -96,7 +96,6 @@ jobs:
           TOXENV=checkqa
 
 workflows:
-  version: 2
   test:
     jobs:
       - py38
@@ -106,9 +105,9 @@ workflows:
       - py36
       - py35
       - py34:
-        pre-steps:
-          - run:
-            command: pip install -U pip==19.1.1
+          pre-steps:
+            - run:
+                command: pip install -U pip==19.1.1
       - py27
       - checkqa
 
