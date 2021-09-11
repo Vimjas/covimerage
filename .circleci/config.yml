@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2
+version: 2.1
 
 common: &common
   working_directory: ~/repo
@@ -96,7 +96,7 @@ jobs:
           TOXENV=checkqa
 
 workflows:
-  version: 2.1
+  version: 2
   test:
     jobs:
       - py38
