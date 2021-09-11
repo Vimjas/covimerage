@@ -107,7 +107,7 @@ workflows:
       - py34:
         pre-steps:
           - run:
-            command: pip install -U pip==19.1.1
+            command: sudo pip install -U pip==19.1.1
       - py27
       - checkqa
 
