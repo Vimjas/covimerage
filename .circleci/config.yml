@@ -98,18 +98,10 @@ jobs:
 workflows:
   test:
     jobs:
-      - py38
-      - py37-coveragepy5
-      - py37
-      - py37-click6
-      - py36
-      - py35
       - py34:
           pre-steps:
             - run: sudo pip install -U pip==19.1.1
             - run: pip install --user setuptools==42.0.2 virtualenv==20.4.3
-      - py27
-      - checkqa
 
 notify:
   webhooks:
