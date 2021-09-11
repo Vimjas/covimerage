@@ -17,7 +17,7 @@ def test_logging_error_causes_exception(capfd):
     out, err = capfd.readouterr()
 
     lines = err.splitlines()
-    assert any((l.startswith('Traceback') for l in lines))  # pragma: no branch
+    assert any((ln.startswith('Traceback') for ln in lines))  # pragma: no branch
 
     if not lines[-1].startswith('Logged from file test_logging.py, line '):
         assert lines[-2:] == [
