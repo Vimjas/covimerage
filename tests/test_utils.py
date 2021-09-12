@@ -1,3 +1,5 @@
+import os
+
 from covimerage._compat import StringIO
 
 
@@ -27,7 +29,7 @@ def test_get_fname_and_fobj_and_str(devnull):
     F = get_fname_and_fobj_and_str
     assert F('foo') == ('foo', None, 'foo')
     assert F(None) == (None, None, 'None')
-    assert F(devnull) == ('/dev/null', devnull, '/dev/null')
+    assert F(devnull) == (os.devnull, devnull, os.devnull)
     s = StringIO('')
     assert F(s) == (None, s, str(s))
 

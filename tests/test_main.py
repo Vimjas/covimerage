@@ -1,4 +1,5 @@
 import logging
+import os
 import textwrap
 
 import coverage
@@ -39,7 +40,7 @@ def test_profile_fname_or_fobj(caplog, devnull):
     with caplog.at_level(logging.DEBUG, logger='covimerage'):
         Profile(devnull).parse()
     msgs = [(r.levelname, r.message) for r in caplog.records]
-    assert msgs == [('DEBUG', 'Parsing file: /dev/null')]
+    assert msgs == [('DEBUG', 'Parsing file: %s' % os.devnull)]
 
     fileobj = StringIO('')
     with caplog.at_level(logging.DEBUG, logger='covimerage'):
