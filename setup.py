@@ -81,7 +81,7 @@ setup(
     ],
     install_requires=[
         'attrs>=16.1.0',
-        'click<7.1',
+        'click',
         'coverage<5.0a6',
     ],
     extras_require={
