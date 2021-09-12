@@ -564,14 +564,14 @@ def test_report_source(runner, tmpdir, devnull):
         tmpdir.join("foo/bar/test2.vim").ensure().write("echom 2")
         result = runner.invoke(cli.main, ["report", "--source", ".", devnull.name])
         out = result.output.splitlines()
-        assert any(l.startswith(fname) for l in out)  # pragma: no branch
+        assert any(ln.startswith(fname) for ln in out)  # pragma: no branch
         assert out[-1].startswith("TOTAL")
         assert out[-1].endswith(" 0%")
         assert result.exit_code == 0
 
         result = runner.invoke(cli.main, ["report", devnull.name, "--source", "."])
         out = result.output.splitlines()
-        assert any(fname in l for l in out)  # pragma: no branch
+        assert any(fname in ln for ln in out)  # pragma: no branch
         assert out[-1].startswith("TOTAL")
         assert out[-1].endswith(" 0%")
         assert result.exit_code == 0

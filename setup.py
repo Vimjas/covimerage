@@ -55,7 +55,7 @@ class PublishCommand(Command):
 
 DEPS_QA = [
     'flake8>=3.7.0',
-    'flake8-isort',
+    'isort',
 ]
 DEPS_TESTING = [
     'pytest>=3.3.0',
@@ -81,7 +81,7 @@ setup(
     ],
     install_requires=[
         'attrs>=16.1.0',
-        'click',
+        'click<7.1',
         'coverage<5.0a6',
     ],
     extras_require={
@@ -106,6 +106,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],

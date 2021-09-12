@@ -61,8 +61,10 @@ def coverage_fileobj():
 
 def test_coveragedata(coverage_fileobj):
     import coverage
+
     from covimerage.coveragepy import (
-        CoverageData, CoveragePyData, CoverageWrapperException)
+        CoverageData, CoveragePyData, CoverageWrapperException,
+    )
 
     with pytest.raises(TypeError) as excinfo:
         CoverageData(data_file='foo', cov_data=CoveragePyData())
@@ -131,8 +133,11 @@ def test_coveragedata_empty(covdata_empty):
 
 def test_coveragewrapper(coverage_fileobj, devnull):
     import coverage
+
     from covimerage.coveragepy import (
-        CoverageData, CoveragePyData, CoverageWrapper, CoverageWrapperException)
+        CoverageData, CoveragePyData, CoverageWrapper,
+        CoverageWrapperException,
+    )
 
     cov_data = CoverageWrapper()
     assert cov_data.lines == {}
