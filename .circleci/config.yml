@@ -9,8 +9,8 @@ common: &common
   steps:
     - checkout
     - run: pip install --user tox
-    - run: ~/.local/bin/tox --version
-    - run: PYTEST_ADDOPTS=-vv ~/.local/bin/tox
+    - run: ~/.local/bin/tox -vv --notest
+    - run: PYTEST_ADDOPTS=-vv ~/.local/bin/tox -vv
     - run:
         name: upload coverage results for non-checkqa builds
         command: |
@@ -25,14 +25,10 @@ common: &common
 
             bash <(curl -S -L --connect-timeout 5 --retry 6 -s https://codecov.io/bash) -Z -X fix -f coverage.xml -F "${CIRCLE_JOB//-/,}"
 
-            if [[ "$CIRCLE_JOB" != py37-coveragepy5 ]]; then
-              # coveralls-python does not work with Coverage.py 5's data yet.
-              # (https://github.com/coveralls-clients/coveralls-python/issues/203)
-              pip install coveralls
-              COVERALLS_PARALLEL=true coveralls
-            fi
+            pip install coveralls
+            COVERALLS_PARALLEL=true coveralls
 
-            # Coveralls and Codacy do not support merged reports.
+            # Codacy does not support merged reports.
             if [[ "$CIRCLE_JOB" == py36 ]]; then
               pip install codacy-coverage
               python-codacy-coverage --verbose --report coverage.xml
@@ -101,6 +97,16 @@ jobs:
         environment:
           TOXENV=checkqa
 
+  notify:
+    <<: *common
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - run:
+          name: Report finished build to coveralls
+          command: |
+            curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_BUILD_NUM&payload[status]=done"
+
 workflows:
   test:
     jobs:
@@ -117,7 +123,13 @@ workflows:
             - run: pip install --user setuptools==42.0.2 virtualenv==20.4.3
       - py27
       - checkqa
-
-notify:
-  webhooks:
-    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
+      - notify:
+          requires:
+            - py38
+            - py37-coveragepy5
+            - py37
+            - py37-click6
+            - py36
+            - py35
+            - py34
+            - py27
