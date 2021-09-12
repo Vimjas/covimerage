@@ -37,12 +37,13 @@ def test_loglevel(mocker, runner, devnull):
         if click.__version__ < '7.0':
             assert result.output.splitlines() == [
                 'Error: no such option: --nonexistingoption']
+            return
+        lines = result.output.splitlines()
+        assert lines[0] == 'Usage: main report [OPTIONS] [PROFILE_FILE]...'
+        if click.__version__ < '8.0':
+            assert lines[-1] == 'Error: no such option: --nonexistingoption'
         else:
-            assert result.output.splitlines() == [
-                'Usage: main report [OPTIONS] [PROFILE_FILE]...',
-                'Try "main report -h" for help.',
-                '',
-                'Error: no such option: --nonexistingoption']
+            assert lines[-1] == 'Error: No such option: --nonexistingoption'
 
     for level in ['error', 'warning', 'info', 'debug']:
         result = runner.invoke(cli.main, [

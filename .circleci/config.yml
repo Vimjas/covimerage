@@ -94,6 +94,18 @@ jobs:
       - image: circleci/python:3.7
         environment:
           - TOXENV=py37-click6-coverage
+  py38-click7:
+    <<: *common
+    docker:
+      - image: circleci/python:3.8
+        environment:
+          - TOXENV=py38-click7-coverage
+  py38-click70:
+    <<: *common
+    docker:
+      - image: circleci/python:3.8
+        environment:
+          - TOXENV=py38-click70-coverage
   checkqa:
     <<: *common
     docker:
@@ -106,6 +118,8 @@ workflows:
     jobs:
       - py39
       - py38
+      - py38-click7
+      - py38-click70
       - py37-coveragepy5
       - py37
       - py37-click6

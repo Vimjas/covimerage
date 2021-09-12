@@ -13,6 +13,15 @@ from covimerage import DEFAULT_COVERAGE_DATA_FILE, cli, get_version
 from covimerage.cli import get_version_message
 
 
+def format_click_arg(name):
+    if click.__version__ < '7.0':
+        return '"{}"'.format(name)
+    elif click.__version__ < '7.1':
+        return '"{}..."'.format(name.upper())
+    else:
+        return "'{}...'".format(name.upper())
+
+
 def test_dunder_main_run(capfd):
     assert call([sys.executable, '-m', 'covimerage']) == 0
     out, err = capfd.readouterr()
@@ -795,9 +804,10 @@ def test_run_forwards_sighup(devnull):
 
 def test_run_cmd_requires_args(runner):
     result = runner.invoke(cli.run, [])
-    assert 'Error: Missing argument "%s".' % (
-        'args' if click.__version__ < '7.0' else 'ARGS...',
-    ) in result.output.splitlines()
+    assert (
+        'Error: Missing argument {}.'.format(format_click_arg('args'))
+        in result.output.splitlines()
+    )
     assert result.exit_code == 2
 
 
